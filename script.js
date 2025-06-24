@@ -688,72 +688,112 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('totalAttempts').textContent = db.results.length;
         document.getElementById('avgScore').textContent = db.results.length > 0 ? Math.round(db.results.reduce((sum, r) => sum + r.score, 0) / db.results.length) + '%' : '0%';
 
-        // --- Analytics Chart (text-based for now) ---
+        // --- Modern Analytics Section ---
         let oldChart = document.getElementById('teacherAnalytics');
         if (oldChart) oldChart.remove();
-        const chartDiv = document.createElement('div');
-        chartDiv.id = 'teacherAnalytics';
-        chartDiv.style.margin = '1.5rem 0';
-        chartDiv.style.background = '#fff';
-        chartDiv.style.borderRadius = '0.75rem';
-        chartDiv.style.boxShadow = '0 1px 3px rgba(0,0,0,0.07)';
-        chartDiv.style.padding = '1.5rem';
-        chartDiv.innerHTML = `<h3 style="margin-bottom:1rem;">Exam Performance Analytics</h3>`;
-        // Bar chart for each exam (text-based)
+        const analyticsSection = document.createElement('section');
+        analyticsSection.id = 'teacherAnalytics';
+        analyticsSection.style.margin = '2rem 0 1.5rem 0';
+        analyticsSection.style.background = 'var(--card-bg, #fff)';
+        analyticsSection.style.borderRadius = '1rem';
+        analyticsSection.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)';
+        analyticsSection.style.padding = '2rem 1.5rem';
+        analyticsSection.style.fontFamily = 'var(--pixel-font, monospace)';
+        analyticsSection.innerHTML = `<h3 style="margin-bottom:1.5rem;font-size:1.2rem;letter-spacing:1px;display:flex;align-items:center;gap:0.5em;"><span style='font-size:1.3em;'>📊</span> Exam Performance Analytics</h3>`;
+        // Grid of stat cards for each exam
+        const grid = document.createElement('div');
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(260px, 1fr))';
+        grid.style.gap = '1.5rem';
         db.exams.forEach(exam => {
             const stats = db.getExamStatistics(exam.id);
-            const bar = `<div style="margin-bottom:0.5rem;">
-                <strong>${exam.title}</strong> (${stats.totalAttempts} attempts)<br>
-                <div style="background:#eee;height:18px;border-radius:8px;overflow:hidden;">
-                    <div style="background:#333;height:100%;width:${stats.averageScore}%;min-width:2px;transition:width 0.5s;"></div>
+            const card = document.createElement('div');
+            card.style.background = 'var(--card-inner-bg, #f9fafb)';
+            card.style.border = '1.5px solid #e5e7eb';
+            card.style.borderRadius = '0.7rem';
+            card.style.padding = '1.2rem 1rem 1rem 1rem';
+            card.style.fontSize = '1rem';
+            card.style.display = 'flex';
+            card.style.flexDirection = 'column';
+            card.style.justifyContent = 'space-between';
+            card.style.transition = 'box-shadow 0.2s';
+            card.style.boxShadow = '0 1px 4px rgba(36,36,36,0.06)';
+            card.onmouseover = () => card.style.boxShadow = '0 4px 16px rgba(36,36,36,0.13)';
+            card.onmouseout = () => card.style.boxShadow = '0 1px 4px rgba(36,36,36,0.06)';
+            card.innerHTML = `
+                <div style="font-weight:700;font-size:1.08rem;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.5em;"><span style='font-size:1.1em;'>📝</span> ${exam.title}</div>
+                <div style="font-size:0.93rem;color:#6b7280;margin-bottom:0.5rem;">${exam.subject}</div>
+                <div style="display:flex;gap:1em;margin-bottom:0.5rem;">
+                    <span style="font-size:0.92em;">Attempts: <b>${stats.totalAttempts}</b></span>
+                    <span style="font-size:0.92em;">Avg: <b>${stats.averageScore}%</b></span>
                 </div>
-                <span style="font-size:0.9em;">Avg: ${stats.averageScore}%, High: ${stats.highestScore}%, Low: ${stats.lowestScore}%, Pass Rate: ${stats.passRate}%</span>
-            </div>`;
-            chartDiv.innerHTML += bar;
+                <div style="height:16px;background:#e5e7eb;border-radius:7px;overflow:hidden;margin-bottom:0.5rem;">
+                    <div style="background:#3b82f6;height:100%;width:${stats.averageScore}%;min-width:2px;transition:width 0.5s;"></div>
+                </div>
+                <div style="font-size:0.91em;display:flex;gap:1em;">
+                    <span>High: <b>${stats.highestScore}%</b></span>
+                    <span>Low: <b>${stats.lowestScore}%</b></span>
+                    <span>Pass: <b>${stats.passRate}%</b></span>
+                </div>
+            `;
+            grid.appendChild(card);
         });
+        analyticsSection.appendChild(grid);
         // Insert after stats-list
         const statsList = document.querySelector('.stats-list');
-        if (statsList) statsList.parentNode.insertBefore(chartDiv, statsList.nextSibling);
+        if (statsList) statsList.parentNode.insertBefore(analyticsSection, statsList.nextSibling);
 
-        // --- Teacher Review Table ---
+        // --- Modern Teacher Review Table ---
         let oldReview = document.getElementById('teacherReviewTable');
         if (oldReview) oldReview.remove();
-        const reviewDiv = document.createElement('div');
-        reviewDiv.id = 'teacherReviewTable';
-        reviewDiv.style.margin = '2rem 0';
-        reviewDiv.innerHTML = `<h3 style="margin-bottom:1rem;">All Student Attempts</h3>`;
+        const reviewSection = document.createElement('section');
+        reviewSection.id = 'teacherReviewTable';
+        reviewSection.style.margin = '2.5rem 0 1.5rem 0';
+        reviewSection.style.background = 'var(--card-bg, #fff)';
+        reviewSection.style.borderRadius = '1rem';
+        reviewSection.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)';
+        reviewSection.style.padding = '2rem 1.5rem';
+        reviewSection.style.fontFamily = 'var(--pixel-font, monospace)';
+        reviewSection.innerHTML = `<h3 style="margin-bottom:1.5rem;font-size:1.2rem;letter-spacing:1px;display:flex;align-items:center;gap:0.5em;"><span style='font-size:1.3em;'>📋</span> All Student Attempts</h3>`;
+        const tableWrap = document.createElement('div');
+        tableWrap.style.overflowX = 'auto';
+        tableWrap.style.maxHeight = '340px';
+        tableWrap.style.borderRadius = '0.7rem';
+        tableWrap.style.boxShadow = '0 1px 3px rgba(0,0,0,0.07)';
         const table = document.createElement('table');
         table.style.width = '100%';
         table.style.borderCollapse = 'collapse';
+        table.style.fontSize = '0.97rem';
         table.innerHTML = `
             <thead>
-                <tr style="background:#f3f4f6;">
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Student</th>
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Exam</th>
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Score</th>
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Correct</th>
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Time</th>
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Date</th>
+                <tr style="background:var(--table-head-bg,#f3f4f6);color:#23272f;">
+                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Student</th>
+                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Exam</th>
+                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Score</th>
+                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Correct</th>
+                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Time</th>
+                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Date</th>
                 </tr>
             </thead>
             <tbody>
                 ${db.getAllResults().map(r => `
-                    <tr>
-                        <td style='padding:8px;border:1px solid #e5e7eb;'>${r.studentName}</td>
-                        <td style='padding:8px;border:1px solid #e5e7eb;'>${r.examTitle}</td>
-                        <td style='padding:8px;border:1px solid #e5e7eb;'>${r.score}%</td>
-                        <td style='padding:8px;border:1px solid #e5e7eb;'>${r.correctAnswers}/${r.totalQuestions}</td>
-                        <td style='padding:8px;border:1px solid #e5e7eb;'>${db.formatTime(r.timeTaken)}</td>
-                        <td style='padding:8px;border:1px solid #e5e7eb;'>${r.completedAt.split('T')[0]}</td>
+                    <tr style="background:var(--table-row-bg,#fff);color:#23272f;transition:background 0.2s;">
+                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${r.studentName}</td>
+                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${r.examTitle}</td>
+                        <td style='padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:${r.score >= 60 ? '#10B981' : '#EF4444'};'>${r.score}%</td>
+                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${r.correctAnswers}/${r.totalQuestions}</td>
+                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${db.formatTime(r.timeTaken)}</td>
+                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${r.completedAt.split('T')[0]}</td>
                     </tr>
                 `).join('')}
             </tbody>
         `;
-        reviewDiv.appendChild(table);
-        // Insert after chartDiv
-        chartDiv.parentNode.insertBefore(reviewDiv, chartDiv.nextSibling);
+        tableWrap.appendChild(table);
+        reviewSection.appendChild(tableWrap);
+        // Insert after analyticsSection
+        analyticsSection.parentNode.insertBefore(reviewSection, analyticsSection.nextSibling);
 
-        // Recent Results
+        // Recent Results (unchanged)
         const recentResults = db.getRecentResults(5);
         const recentResultsDiv = document.getElementById('recentResults');
         recentResultsDiv.innerHTML = '';
