@@ -506,12 +506,6 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentUser = null;
 
     // Demo users (for login info)
-    const demoUsers = [
-        { role: 'student', username: 'student1', password: 'studentpass', name: 'Demo Student' },
-        { role: 'teacher', username: 'teacher1', password: 'teacherpass', name: 'Demo Teacher' }
-    ];
-
-    // Add demo users to DB if not present
     if (!db.users.some(u => u.email === 'student1')) {
         db.addUser({ name: 'Demo Student', email: 'student1', password: 'studentpass', role: 'student' });
     }
@@ -596,10 +590,10 @@ document.addEventListener('DOMContentLoaded', function () {
     setupLogoutButton();
 
     // Ensure logout button works after login and after DOM updates
-    window.addEventListener('DOMContentLoaded', function() {
-        showAuthModal();
-        setupLogoutButton();
-    });
+    // window.addEventListener('DOMContentLoaded', function() {
+    //     showAuthModal();
+    //     setupLogoutButton();
+    // });
     // Also call after showing dashboard for role
     function showDashboardForRole(role) {
         if (role === 'student') {
@@ -785,8 +779,6 @@ document.addEventListener('DOMContentLoaded', function () {
             renderTeacherDashboard();
         });
     }
-
-    // No login/logout logic needed
 
     // Student Dashboard: Render Exams and Features
     function renderExamsList() {
