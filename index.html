@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExamPro - Online Examination System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <h1 class="logo">ExamPro</h1>
+                <button id="themeToggle" class="btn btn-secondary" title="Toggle theme" style="padding:0.5rem 1rem;font-size:1.1rem;">
+                    🌓
+                </button>
+                <button id="logoutBtn" class="btn btn-secondary" style="margin-left:0.5rem;">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <!-- Student Dashboard -->
+        <div id="studentDashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>Available Exams</h2>
+                        <p>Select an exam to begin</p>
+                    </div>
+                    <div class="student-stats-card" id="studentStatsCard" style="min-width:220px;"></div>
+                </div>
+                <div class="exams-grid" id="examsList">
+                    <!-- Exams will be populated here -->
+                </div>
+                <div class="student-recent-results" id="studentRecentResults" style="margin-top:2.5rem;"></div>
+            </div>
+        </div>
+
+        <!-- Teacher Dashboard -->
+        <div id="teacherDashboard" class="hidden">
+            <div class="container">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>Exam Management</h2>
+                        <p>Create and manage exams</p>
+                    </div>
+                    <button id="createExamBtn" class="btn btn-success">Create New Exam</button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Recent Results</h3>
+                        <div id="recentResults" class="results-list">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Exam Statistics</h3>
+                        <div class="stats-list">
+                            <div class="stat-item">
+                                <span>Total Exams</span>
+                                <span id="totalExams" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span>Completed Attempts</span>
+                                <span id="totalAttempts" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span>Average Score</span>
+                                <span id="avgScore" class="stat-value">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Dynamic analytics and review containers for teacher dashboard (populated by JS) -->
+                <div id="teacherAnalytics"></div>
+                <div id="teacherReviewTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Taking Interface -->
+    <div id="examInterface" class="exam-interface hidden">
+        <div class="container">
+            <div class="exam-header">
+                <h2 id="examTitle"></h2>
+                <div class="timer" id="timer">
+                    <span id="timeRemaining">30:00</span>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span>Progress</span>
+                    <span id="progressText">1 of 5</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div id="questionContainer" class="question-container">
+                <!-- Question will be populated here -->
+            </div>
+
+            <div class="exam-navigation">
+                <button id="prevBtn" class="btn btn-secondary" disabled>Previous</button>
+                <button id="nextBtn" class="btn btn-primary">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Page -->
+    <div id="resultsPage" class="results-page hidden">
+        <div class="container">
+            <div class="results-container">
+                <div class="results-header">
+                    <div class="success-icon">✓</div>
+                    <h2>Exam Completed!</h2>
+                    <p>Here are your results</p>
+                </div>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-value" id="finalScore">0%</div>
+                        <div class="result-label">Final Score</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-value" id="correctAnswers">0/0</div>
+                        <div class="result-label">Correct Answers</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-value" id="timeTaken">00:00</div>
+                        <div class="result-label">Time Taken</div>
+                    </div>
+                </div>
+                <button id="backToDashboard" class="btn btn-primary">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Exam Modal -->
+    <div id="createExamModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Exam</h3>
+                <button id="closeModal" class="close-btn">&times;</button>
+            </div>
+            
+            <form id="createExamForm" class="create-exam-form">
+                <div class="form-group">
+                    <label for="examTitleInput">Exam Title</label>
+                    <input type="text" id="examTitleInput" class="form-input" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="examDuration">Duration (minutes)</label>
+                        <input type="number" id="examDuration" class="form-input" min="1" value="30" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="examSubject">Subject</label>
+                        <input type="text" id="examSubject" class="form-input" required>
+                    </div>
+                </div>
+                <div id="questionsContainer">
+                    <label>Questions</label>
+                    <!-- Questions will be added dynamically -->
+                </div>
+                <button type="button" id="addQuestionBtn" class="btn btn-secondary">Add Question</button>
+                <div class="modal-actions">
+                    <button type="button" id="cancelCreate" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-success">Create Exam</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Login/Signup Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <h3 id="authTitle">Login</h3>
+            </div>
+            <form id="authForm" class="create-exam-form">
+                <div class="form-group">
+                    <label for="authRole">Role</label>
+                    <select id="authRole" class="form-input">
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="authUsername">Username</label>
+                    <input type="text" id="authUsername" class="form-input" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Password</label>
+                    <input type="password" id="authPassword" class="form-input" required autocomplete="current-password">
+                </div>
+                <div id="signupFields" class="hidden">
+                    <div class="form-group">
+                        <label for="signupFullName">Full Name</label>
+                        <input type="text" id="signupFullName" class="form-input" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="signupId">ID</label>
+                        <input type="text" id="signupId" class="form-input" autocomplete="off">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary" id="authSubmitBtn">Login</button>
+                    <button type="button" class="btn btn-secondary" id="switchAuthMode">Sign up</button>
+                </div>
+                <div class="demo-credentials" style="margin-top:1.5rem;">
+                    <strong>Demo Logins:</strong><br>
+                    <span>Student: <b>student1</b> / <b>studentpass</b></span><br>
+                    <span>Teacher: <b>teacher1</b> / <b>teacherpass</b></span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="database.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
