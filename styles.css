@@ -652,10 +652,29 @@ body {
   color: #6b7280;
   font-size: 1.05rem;
 }
+#authForm .form-group {
+  margin-bottom: 1.1rem;
+  display: flex;
+  flex-direction: column;
+}
 #authForm .form-group label {
+  margin-bottom: 0.3rem;
+}
+#authForm #authId.form-input {
+  letter-spacing: 0.04em;
+  font-family: 'Inter', monospace, sans-serif;
+  font-size: 1.05rem;
+  background: #f3f4f6;
   color: #23272f;
-  font-weight: 600;
+  border: 1.5px solid #e0e7ef;
+  border-radius: 0.6rem;
+  padding: 0.7rem 1rem;
   margin-bottom: 0.2rem;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+#authForm #authId.form-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px #dbeafe;
 }
 #authForm .form-input {
   background: #f3f4f6;
@@ -727,12 +746,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
 }
 #aboutOverlay .modal-content {
   max-width: 410px;
   min-width: 0;
   width: 97vw;
   padding: 2.2rem 1.3rem 1.7rem 1.3rem;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 #aboutOverlay .about-flex {
   display: flex;
@@ -795,6 +817,7 @@ body {
   #aboutOverlay .modal-content {
     padding: 1.1rem 0.3rem 1.1rem 0.3rem;
     max-width: 99vw;
+    max-height: 98vh;
   }
   #aboutOverlay .about-title {
     font-size: 1.1rem;
