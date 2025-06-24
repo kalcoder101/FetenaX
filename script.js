@@ -1048,12 +1048,13 @@ document.addEventListener('DOMContentLoaded', function () {
         hideExamInterface();
         const resultsPage = document.getElementById('resultsPage');
         resultsPage.classList.remove('hidden');
+        resultsPage.classList.add('results-modal'); // Show as modal overlay
         document.getElementById('finalScore').textContent = score + '%';
         document.getElementById('correctAnswers').textContent = `${correct}/${total}`;
         document.getElementById('timeTaken').textContent = db.formatTime(timeTaken);
         let userInfo = '';
         if (currentUser && currentUser.name && (currentUser.userId || currentUser.email)) {
-            userInfo = `<div style="margin-bottom:1rem;color:#3b82f6;font-weight:600;">${currentUser.name}${currentUser.userId ? ' (ID: ' + currentUser.userId + ')' : ''}</div>`;
+            userInfo = `<div style=\"margin-bottom:1rem;color:#3b82f6;font-weight:600;\">${currentUser.name}${currentUser.userId ? ' (ID: ' + currentUser.userId + ')' : ''}</div>`;
         }
         const resultsHeader = resultsPage.querySelector('.results-header');
         if (resultsHeader && !resultsHeader.querySelector('.user-info')) {
@@ -1064,45 +1065,13 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (resultsHeader && resultsHeader.querySelector('.user-info')) {
             resultsHeader.querySelector('.user-info').innerHTML = userInfo;
         }
+        // Remove answer review section if present
         let oldBreakdown = document.getElementById('resultsBreakdown');
         if (oldBreakdown) oldBreakdown.remove();
-        const breakdown = document.createElement('div');
-        breakdown.id = 'resultsBreakdown';
-        breakdown.style.marginTop = '2rem';
-        breakdown.innerHTML = `<h3 style="margin-bottom:1rem;">Answer Review</h3>`;
-        const table = document.createElement('table');
-        table.style.width = '100%';
-        table.style.borderCollapse = 'collapse';
-        table.innerHTML = `
-            <thead>
-                <tr style="background:#f3f4f6;">
-                    <th style="padding:8px;border:1px solid #e5e7eb;">#</th>
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Question</th>
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Your Answer</th>
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Correct Answer</th>
-                    <th style="padding:8px;border:1px solid #e5e7eb;">Result</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${currentExam.questions.map((q, i) => {
-                    const userAns = currentExamAnswers[i];
-                    const isCorrect = userAns === q.correctAnswer;
-                    return `
-                        <tr>
-                            <td style='padding:8px;border:1px solid #e5e7eb;text-align:center;'>${i+1}</td>
-                            <td style='padding:8px;border:1px solid #e5e7eb;'>${q.question}</td>
-                            <td style='padding:8px;border:1px solid #e5e7eb;'>${userAns !== null && userAns !== undefined ? q.options[userAns] : '<em>No answer</em>'}</td>
-                            <td style='padding:8px;border:1px solid #e5e7eb;'>${q.options[q.correctAnswer]}</td>
-                            <td style='padding:8px;border:1px solid #e5e7eb;text-align:center;'><span style='color:${isCorrect ? '#10b981' : '#ef4444'};font-weight:600;'>${isCorrect ? '✔' : '✘'}</span></td>
-                        </tr>
-                    `;
-                }).join('')}
-            </tbody>
-        `;
-        breakdown.appendChild(table);
-        resultsPage.querySelector('.results-container').appendChild(breakdown);
+        // Do NOT append answer review anymore
         document.getElementById('backToDashboard').onclick = function() {
             resultsPage.classList.add('hidden');
+            resultsPage.classList.remove('results-modal'); // Remove modal overlay
             dashboard.classList.remove('hidden');
             renderExamsList();
         };
