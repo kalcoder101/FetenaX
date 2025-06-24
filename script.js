@@ -542,12 +542,52 @@ document.addEventListener('DOMContentLoaded', function () {
         const role = document.getElementById('authRole').value;
         const username = document.getElementById('authUsername').value.trim();
         const password = document.getElementById('authPassword').value;
+        // --- MASTER TEACHER ACCOUNT (PRIVATE) ---
+        const MASTER_TEACHER = {
+            username: 'masterteacher',
+            password: 'supersecret123',
+            name: 'Master Teacher',
+            role: 'teacher',
+            id: 9999,
+            email: 'master@private.local',
+            avatar: 'MT'
+        };
+        // --- MASTER STUDENT ACCOUNT (PRIVATE) ---
+        const MASTER_STUDENT = {
+            username: 'masterstudent',
+            password: 'superstudent123',
+            name: 'Master Student',
+            role: 'student',
+            id: 8888,
+            email: 'student@private.local',
+            avatar: 'MS'
+        };
         if (isLoginMode) {
             if (!username || !password) {
                 alert('Please enter both username and password.');
                 return;
             }
-            // Accept both username and email for login
+            // Check for master teacher login (username or email, and password)
+            if (
+                role === 'teacher' &&
+                ((username === MASTER_TEACHER.username || username === MASTER_TEACHER.email) && password === MASTER_TEACHER.password)
+            ) {
+                currentUser = MASTER_TEACHER;
+                hideAuthModal();
+                showDashboardForRole('teacher');
+                return;
+            }
+            // Check for master student login (username or email, and password)
+            if (
+                role === 'student' &&
+                ((username === MASTER_STUDENT.username || username === MASTER_STUDENT.email) && password === MASTER_STUDENT.password)
+            ) {
+                currentUser = MASTER_STUDENT;
+                hideAuthModal();
+                showDashboardForRole('student');
+                return;
+            }
+            // Accept both username and email for login (regular users)
             const user = db.users.find(u => (u.email === username || u.email.split('@')[0] === username) && u.password === password && u.role === role);
             if (user) {
                 currentUser = user;
