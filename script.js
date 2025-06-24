@@ -1154,22 +1154,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Show/hide About overlay modal
+    // About overlay show/hide logic with new .active class
     const aboutBtn = document.getElementById('aboutBtn');
     const aboutOverlay = document.getElementById('aboutOverlay');
     const closeAbout = document.getElementById('closeAbout');
 
     if (aboutBtn && aboutOverlay && closeAbout) {
       aboutBtn.addEventListener('click', () => {
-        aboutOverlay.classList.remove('hidden');
+        aboutOverlay.classList.add('active');
       });
       closeAbout.addEventListener('click', () => {
-        aboutOverlay.classList.add('hidden');
+        aboutOverlay.classList.remove('active');
       });
-      // Optional: close overlay when clicking outside modal content
       aboutOverlay.addEventListener('click', (e) => {
         if (e.target === aboutOverlay) {
-          aboutOverlay.classList.add('hidden');
+          aboutOverlay.classList.remove('active');
         }
       });
     }

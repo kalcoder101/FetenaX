@@ -29,12 +29,24 @@ body.dark-mode {
     box-sizing: border-box;
 }
 
+html, body, input, button, select, textarea, .btn, .modal-content, .dashboard, .exam-card, .stat-card, .results-container, .result-item, .recent-result-item, .student-stats-card, .exam-title, .exam-meta, .exam-detail, .exam-header, .question-title, .question-text, .option-item, .about-title, .about-desc, .about-author-name, .about-author-role {
+  font-family: 'VT323', 'Press Start 2P', 'Fira Mono', 'monospace', sans-serif !important;
+  letter-spacing: 0.01em;
+}
+
+html {
+  font-size: 15px;
+}
+@media (max-width: 600px) {
+  html { font-size: 12px; }
+}
+
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    line-height: 1.6;
-    color: var(--color-text);
-    background: var(--color-bg);
-    transition: background 0.3s, color 0.3s;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--color-bg);
+  transition: background 0.3s, color 0.3s;
 }
 
 .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
@@ -624,7 +636,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    z-index: 1000;
+    z-index: 11000;
     overflow: hidden;
 }
 #authModal .modal-content {
@@ -632,10 +644,13 @@ body {
   width: 97vw;
   padding: 2.2rem 1.3rem 1.7rem 1.3rem;
   border-radius: 1.2rem;
-  background: linear-gradient(135deg, #f9fafb 70%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #23232b 80%, #3b3b4f 100%);
+  color: #fff;
+  font-family: 'VT323', 'Press Start 2P', 'Fira Mono', 'monospace', 'Inter', sans-serif;
   box-shadow: 0 8px 32px rgba(36,36,36,0.16);
   border: 1.5px solid #e0e7ef;
   animation: fadeInScale 0.22s;
+  z-index: 11001;
 }
 #authModal .modal-header {
   text-align: center;
@@ -643,14 +658,14 @@ body {
   border-bottom: none;
 }
 #authModal h3 {
-  font-size: 1.7rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: #2b4cff;
+  color: #7dd3fc;
   margin-bottom: 0.3rem;
+  text-shadow: 1px 1px 0 #23232b, 2px 2px 0 #000;
 }
 #authModal p {
-  color: #6b7280;
-  font-size: 1.05rem;
+  color: #a1a1aa;
 }
 #authForm .form-group {
   margin-bottom: 1.1rem;
@@ -659,10 +674,11 @@ body {
 }
 #authForm .form-group label {
   margin-bottom: 0.3rem;
+  color: #7dd3fc;
 }
 #authForm #authId.form-input {
   letter-spacing: 0.04em;
-  font-family: 'Inter', monospace, sans-serif;
+  font-family: 'VT323', 'Press Start 2P', 'Fira Mono', 'monospace', sans-serif !important;
   font-size: 1.05rem;
   background: #f3f4f6;
   color: #23272f;
@@ -677,18 +693,18 @@ body {
   box-shadow: 0 0 0 2px #dbeafe;
 }
 #authForm .form-input {
-  background: #f3f4f6;
-  color: #23272f;
-  border: 1.5px solid #e0e7ef;
+  background: #18181b;
+  color: #e0e7ef;
+  border: 1.5px solid #3b3b4f;
   border-radius: 0.6rem;
   padding: 0.7rem 1rem;
-  font-size: 1rem;
+  font-size: 1.2rem;
   margin-bottom: 0.2rem;
   transition: border 0.2s, box-shadow 0.2s;
 }
 #authForm .form-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px #dbeafe;
+  border-color: #7dd3fc;
+  box-shadow: 0 0 0 2px #7dd3fc44;
 }
 #authForm .modal-actions {
   gap: 0.5rem;
@@ -700,29 +716,27 @@ body {
   border-radius: 0.7rem;
 }
 #authForm .btn-primary {
-  background: linear-gradient(90deg, #2b4cff 0%, #6a82fb 100%);
-  color: #fff;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(36,36,36,0.08);
+  background: linear-gradient(90deg, #7dd3fc 0%, #38bdf8 100%);
+  color: #23232b;
+  text-shadow: none;
 }
 #authForm .btn-primary:hover {
-  background: linear-gradient(90deg, #6a82fb 0%, #2b4cff 100%);
+  background: linear-gradient(90deg, #38bdf8 0%, #7dd3fc 100%);
 }
 #authForm .btn-secondary {
-  background: #f3f4f6;
-  color: #2b4cff;
-  font-weight: 600;
+  background: #23232b;
+  color: #7dd3fc;
+  border: 1.5px solid #7dd3fc;
 }
 #authForm .btn-secondary:hover {
-  background: #e0e7ef;
-  color: #23272f;
+  background: #18181b;
+  color: #fff;
 }
-#authForm .form-group {
-  margin-bottom: 1.1rem;
+#authForm .form-group label {
+  color: #7dd3fc;
 }
 #authForm .form-input::placeholder {
-  color: #a1a1aa;
-  opacity: 1;
+  color: #64748b;
 }
 #authForm .form-group:last-child {
   margin-bottom: 0;
@@ -747,6 +761,14 @@ body {
   align-items: center;
   justify-content: center;
   overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+#aboutOverlay.modal.active {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  display: flex !important;
 }
 #aboutOverlay .modal-content {
   max-width: 410px;
@@ -822,4 +844,35 @@ body {
   #aboutOverlay .about-title {
     font-size: 1.1rem;
   }
+}
+
+/* === PIXEL FONT SIZES FOR KEY UI === */
+#authModal h3, .about-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+#authModal p, .about-desc, .exam-meta, .exam-detail, .stat-label, .stat-value, .result-label, .result-score, .recent-result-item, .about-author-role {
+  font-size: 0.92rem;
+}
+#authForm .form-input, .btn, .exam-title, .exam-card .btn, .option-item, .question-title, .question-text, .stat-card h3, .result-item, .result-info h4, .result-info p, .about-author-name {
+  font-size: 0.98rem;
+}
+@media (max-width: 600px) {
+  #authModal h3, .about-title { font-size: 0.98rem; }
+  #authForm .form-input, .btn, .exam-title, .option-item, .question-title, .question-text, .stat-card h3, .result-item, .result-info h4, .result-info p, .about-author-name { font-size: 0.87rem; }
+}
+
+/* === ENSURE ABOUT OVERLAY USES PIXEL FONT === */
+#aboutOverlay .modal-content, #aboutOverlay .about-title, #aboutOverlay .about-desc, #aboutOverlay .about-author-name, #aboutOverlay .about-author-role {
+  font-family: 'VT323', 'Press Start 2P', 'Fira Mono', 'monospace', sans-serif !important;
+}
+
+/* === ENSURE DASHBOARD, EXAM, RESULTS, ETC. USE PIXEL FONT === */
+.dashboard, .exam-interface, .results-page, .results-container, .exam-card, .stat-card, .student-stats-card, .recent-result-item, .result-item, .exam-title, .exam-meta, .exam-detail, .stat-label, .stat-value, .result-label, .result-score, .question-title, .question-text, .option-item {
+  font-family: 'VT323', 'Press Start 2P', 'Fira Mono', 'monospace', sans-serif !important;
+}
+
+/* Remove Inter from #authForm #authId.form-input */
+#authForm #authId.form-input {
+  font-family: 'VT323', 'Press Start 2P', 'Fira Mono', 'monospace', sans-serif !important;
 }
