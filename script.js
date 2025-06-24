@@ -585,10 +585,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             // Check for master teacher login (username or email, password, and ID)
             if (
-                role === 'teacher' &&
-                ((username === MASTER_TEACHER.username || username === MASTER_TEACHER.email) &&
-                 password === MASTER_TEACHER.password &&
-                 loginId === MASTER_TEACHER.userId)
+                (username === MASTER_TEACHER.username || username === MASTER_TEACHER.email) &&
+                password === MASTER_TEACHER.password &&
+                (loginId === MASTER_TEACHER.userId || loginId === MASTER_TEACHER.id.toString())
             ) {
                 currentUser = MASTER_TEACHER;
                 hideAuthModal();
@@ -597,17 +596,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             // Check for master student login (username or email, password, and ID)
             if (
-                role === 'student' &&
-                ((username === MASTER_STUDENT.username || username === MASTER_STUDENT.email) &&
-                 password === MASTER_STUDENT.password &&
-                 loginId === MASTER_STUDENT.userId)
+                (username === MASTER_STUDENT.username || username === MASTER_STUDENT.email) &&
+                password === MASTER_STUDENT.password &&
+                (loginId === MASTER_STUDENT.userId || loginId === MASTER_STUDENT.id.toString())
             ) {
                 currentUser = MASTER_STUDENT;
                 hideAuthModal();
                 showDashboardForRole('student');
                 return;
             }
-            // Accept both username and email for login (regular users), require ID match
+            // Accept both username and email for login (regular users), require ID match and role
             const user = db.users.find(u =>
                 (u.email === username || u.email.split('@')[0] === username) &&
                 u.password === password &&
