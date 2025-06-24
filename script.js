@@ -1173,4 +1173,37 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     }
+
+    // Student Dashboard Stats and Recent Results rendering
+    function renderStudentStats(stats) {
+      const statExamsTaken = document.getElementById('statExamsTaken');
+      const statAvgScore = document.getElementById('statAvgScore');
+      if (statExamsTaken && statAvgScore) {
+        statExamsTaken.textContent = stats.examsTaken || 0;
+        statAvgScore.textContent = (stats.avgScore || 0) + '%';
+      }
+    }
+
+    function renderRecentResults(results) {
+      const recentResultsList = document.getElementById('recentResultsList');
+      if (!recentResultsList) return;
+      recentResultsList.innerHTML = '';
+      if (!results || results.length === 0) {
+        recentResultsList.innerHTML = '<div style="color:#888;font-size:1rem;">No recent results yet.</div>';
+        return;
+      }
+      results.slice(0, 5).forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'recent-result-item';
+        item.innerHTML = `<span>${r.examTitle}</span><span class="score">${r.score}%</span>`;
+        recentResultsList.appendChild(item);
+      });
+    }
+
+    // Example usage (replace with real data from your app logic):
+    // renderStudentStats({ examsTaken: 3, avgScore: 87 });
+    // renderRecentResults([
+    //   { examTitle: 'Java OOP', score: 90 },
+    //   { examTitle: 'C++', score: 80 },
+    // ]);
 });

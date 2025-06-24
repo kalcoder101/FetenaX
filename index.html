@@ -13,28 +13,34 @@
     <nav class="navbar">
         <div class="container">
             <div class="nav-content">
-                <h1 class="logo">ExamPro</h1>
-                <button id="aboutBtn" class="btn btn-secondary" title="About this site" style="padding:0.5rem 1rem;font-size:1.1rem;margin-right:0.5rem;">About</button>
-                <button id="themeToggle" class="btn btn-secondary" title="Toggle theme" style="padding:0.5rem 1rem;font-size:1.1rem;">
-                    🌓
-                </button>
-                <button id="logoutBtn" class="btn btn-secondary" style="margin-left:0.5rem;">Logout</button>
+                <span class="logo">ExamPro</span>
+                <div class="nav-actions">
+                  <button id="aboutBtn" class="btn btn-secondary" title="About this site">About</button>
+                  <button id="themeToggle" class="btn btn-secondary" title="Toggle theme">🌓</button>
+                  <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- About Overlay Modal (hidden by default) -->
-    <div id="aboutOverlay" class="modal hidden" style="background:rgba(36,36,36,0.25);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:10000;">
-      <div class="modal-content" style="max-width:520px;box-shadow:0 8px 32px rgba(36,36,36,0.18);border-radius:1.2rem;padding:2.5rem 2rem 2rem 2rem;position:relative;background:var(--color-card);">
-        <button id="closeAbout" class="close-btn" style="position:absolute;top:1.2rem;right:1.2rem;font-size:2rem;background:none;border:none;cursor:pointer;">&times;</button>
-        <div style="display:flex;align-items:center;gap:2rem;flex-wrap:wrap;justify-content:center;">
-          <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=facearea&w=256&q=80" alt="Exam System" style="width:110px;height:110px;border-radius:50%;object-fit:cover;box-shadow:0 2px 8px rgba(36,36,36,0.10);border:4px solid #fff;">
-          <div style="flex:1;min-width:220px;">
-            <h1 style="font-size:2.1rem;font-weight:700;margin-bottom:0.5rem;color:#23272f;">Online Exam System</h1>
-            <p style="font-size:1.1rem;color:#374151;margin-bottom:0.7rem;line-height:1.6;">
-              Welcome to the Online Exam System – a modern, secure, and user-friendly platform for students and teachers. Effortlessly take or manage exams in subjects like Java OOP, Database, C++, and Computer Organization & Assembly Language. Students can sign up, log in with their ID, and track their progress. Teachers can create exams, view analytics, and monitor student performance. All results are instant, and the experience is mobile-friendly and private. <br><br>
-              <strong>Developed by Kaleab</strong>
-            </p>
+    <div id="aboutOverlay" class="modal hidden">
+      <div class="modal-content">
+        <button id="closeAbout" class="close-btn">&times;</button>
+        <div class="about-flex">
+          <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=facearea&w=256&q=80" alt="Exam System" class="about-img">
+          <div class="about-content">
+            <div class="about-title">ExamPro – Online Exam System</div>
+            <div class="about-desc">
+              ExamPro is a modern, secure, and user-friendly platform for online exams. Take or manage exams in Java OOP, Database, C++, and Computer Organization & Assembly Language. Students can sign up, log in with their ID, and track their progress. Teachers can create exams, view analytics, and monitor student performance. All results are instant, and the experience is mobile-friendly and private.
+            </div>
+            <div class="about-author">
+              <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Kaleab" class="about-author-img">
+              <div>
+                <div class="about-author-name">Kaleab</div>
+                <div class="about-author-role">Developer & Designer</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -53,12 +59,23 @@
                         <h2>Available Exams</h2>
                         <p>Select an exam to begin</p>
                     </div>
-                    <div class="student-stats-card" id="studentStatsCard" style="min-width:220px;"></div>
+                    <div class="student-stats-card" id="studentStatsCard">
+                        <!-- Stats will be populated by JS -->
+                        <div class="stat-label">Exams Taken</div>
+                        <div class="stat-value" id="statExamsTaken">0</div>
+                        <div class="stat-label">Average Score</div>
+                        <div class="stat-value" id="statAvgScore">0%</div>
+                    </div>
                 </div>
                 <div class="exams-grid" id="examsList">
-                    <!-- Exams will be populated here -->
+                    <!-- Exams will be populated here as cards -->
                 </div>
-                <div class="student-recent-results" id="studentRecentResults" style="margin-top:2.5rem;"></div>
+                <div class="student-recent-results" id="studentRecentResults">
+                    <h3>Recent Results</h3>
+                    <div class="recent-results-list" id="recentResultsList">
+                        <!-- Recent results will be populated here -->
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -201,11 +218,11 @@
     </div>
 
     <!-- Login/Signup Modal -->
-    <div id="authModal" class="modal" style="background:rgba(36,36,36,0.25);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;">
-        <div class="modal-content" style="max-width:400px;box-shadow:0 8px 32px rgba(36,36,36,0.18);border-radius:1rem;padding:2.5rem 2rem 2rem 2rem;position:relative;background:var(--color-card);">
-            <div class="modal-header" style="text-align:center;margin-bottom:1.5rem;">
-                <h3 id="authTitle" style="font-size:2rem;font-weight:700;color:var(--color-primary);margin-bottom:0.5rem;">Login</h3>
-                <p style="color:var(--color-text-secondary);font-size:1rem;">Sign in to your account</p>
+    <div id="authModal" class="modal" style="background:rgba(36,36,36,0.18);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="authTitle">Login</h3>
+                <p>Sign in to your account</p>
             </div>
             <form id="authForm" class="create-exam-form" autocomplete="on">
                 <div class="form-group">
@@ -237,9 +254,9 @@
                         <input type="text" id="signupId" class="form-input" autocomplete="off" placeholder="Your ID">
                     </div>
                 </div>
-                <div class="modal-actions" style="display:flex;gap:0.5rem;justify-content:space-between;margin-top:1.5rem;">
-                    <button type="submit" class="btn btn-primary" id="authSubmitBtn" style="flex:1;">Login</button>
-                    <button type="button" class="btn btn-secondary" id="switchAuthMode" style="flex:1;">Sign up</button>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary" id="authSubmitBtn">Login</button>
+                    <button type="button" class="btn btn-secondary" id="switchAuthMode">Sign up</button>
                 </div>
             </form>
         </div>
