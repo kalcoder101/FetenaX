@@ -531,6 +531,16 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('signupFields').classList.toggle('hidden', isLoginMode);
         // Clear form fields on mode switch
         authForm.reset();
+        // Remove teacher option from role selector in signup mode
+        const roleSelect = document.getElementById('authRole');
+        if (!isLoginMode) {
+            // In signup mode, only allow student
+            roleSelect.value = 'student';
+            roleSelect.disabled = true;
+        } else {
+            // In login mode, allow both
+            roleSelect.disabled = false;
+        }
     }
     switchAuthMode.addEventListener('click', function(e) {
         e.preventDefault();
@@ -542,6 +552,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const role = document.getElementById('authRole').value;
         const username = document.getElementById('authUsername').value.trim();
         const password = document.getElementById('authPassword').value;
+        const loginId = document.getElementById('authId').value.trim();
         // --- MASTER TEACHER ACCOUNT (PRIVATE) ---
         const MASTER_TEACHER = {
             username: 'masterteacher',
@@ -549,6 +560,7 @@ document.addEventListener('DOMContentLoaded', function () {
             name: 'Master Teacher',
             role: 'teacher',
             id: 9999,
+            userId: 'MT-9999',
             email: 'master@private.local',
             avatar: 'MT'
         };
@@ -559,45 +571,60 @@ document.addEventListener('DOMContentLoaded', function () {
             name: 'Master Student',
             role: 'student',
             id: 8888,
+            userId: 'MS-8888',
             email: 'student@private.local',
             avatar: 'MS'
         };
         if (isLoginMode) {
-            if (!username || !password) {
-                alert('Please enter both username and password.');
+            if (!username || !password || !loginId) {
+                alert('Please enter username, password, and ID.');
                 return;
             }
-            // Check for master teacher login (username or email, and password)
+            // Check for master teacher login (username or email, password, and ID)
             if (
                 role === 'teacher' &&
-                ((username === MASTER_TEACHER.username || username === MASTER_TEACHER.email) && password === MASTER_TEACHER.password)
+                ((username === MASTER_TEACHER.username || username === MASTER_TEACHER.email) &&
+                 password === MASTER_TEACHER.password &&
+                 loginId === MASTER_TEACHER.userId)
             ) {
                 currentUser = MASTER_TEACHER;
                 hideAuthModal();
                 showDashboardForRole('teacher');
                 return;
             }
-            // Check for master student login (username or email, and password)
+            // Check for master student login (username or email, password, and ID)
             if (
                 role === 'student' &&
-                ((username === MASTER_STUDENT.username || username === MASTER_STUDENT.email) && password === MASTER_STUDENT.password)
+                ((username === MASTER_STUDENT.username || username === MASTER_STUDENT.email) &&
+                 password === MASTER_STUDENT.password &&
+                 loginId === MASTER_STUDENT.userId)
             ) {
                 currentUser = MASTER_STUDENT;
                 hideAuthModal();
                 showDashboardForRole('student');
                 return;
             }
-            // Accept both username and email for login (regular users)
-            const user = db.users.find(u => (u.email === username || u.email.split('@')[0] === username) && u.password === password && u.role === role);
+            // Accept both username and email for login (regular users), require ID match
+            const user = db.users.find(u =>
+                (u.email === username || u.email.split('@')[0] === username) &&
+                u.password === password &&
+                (u.userId === loginId || u.id?.toString() === loginId) &&
+                u.role === role
+            );
             if (user) {
                 currentUser = user;
                 hideAuthModal();
                 showDashboardForRole(user.role);
             } else {
-                alert('Invalid credentials. Please check your username, password, and role.');
+                alert('Invalid credentials. Please check your username, password, ID, and role.');
             }
         } else {
             // Signup
+            // Only allow student signup
+            if (role !== 'student') {
+                alert('Only student sign up is allowed.');
+                return;
+            }
             const fullName = document.getElementById('signupFullName').value.trim();
             const userId = document.getElementById('signupId').value.trim();
             if (!fullName || !userId) {
