@@ -505,19 +505,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- AUTH LOGIC (Login/Signup) ---
     let currentUser = null;
 
-    // Demo users (for login info)
-    if (!db.users.some(u => u.email === 'student1')) {
-        db.addUser({ name: 'Demo Student', email: 'student1', password: 'studentpass', role: 'student' });
-    }
-    if (!db.users.some(u => u.email === 'teacher1')) {
-        db.addUser({ name: 'Demo Teacher', email: 'teacher1', password: 'teacherpass', role: 'teacher' });
-    }
-
     function showAuthModal() {
         authModal.classList.remove('hidden');
         dashboard.classList.add('hidden');
         resultsPage.classList.add('hidden');
         document.getElementById('examInterface').classList.add('hidden');
+        // Reset login/signup form fields and errors
+        authForm.reset();
+        document.getElementById('signupFields').classList.add('hidden');
+        isLoginMode = true;
+        authTitle.textContent = 'Login';
+        authSubmitBtn.textContent = 'Login';
+        switchAuthMode.textContent = 'Sign up';
     }
     function hideAuthModal() {
         authModal.classList.add('hidden');
@@ -530,6 +529,8 @@ document.addEventListener('DOMContentLoaded', function () {
         authSubmitBtn.textContent = isLoginMode ? 'Login' : 'Sign Up';
         switchAuthMode.textContent = isLoginMode ? 'Sign up' : 'Login';
         document.getElementById('signupFields').classList.toggle('hidden', isLoginMode);
+        // Clear form fields on mode switch
+        authForm.reset();
     }
     switchAuthMode.addEventListener('click', function(e) {
         e.preventDefault();
@@ -542,13 +543,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const username = document.getElementById('authUsername').value.trim();
         const password = document.getElementById('authPassword').value;
         if (isLoginMode) {
-            const user = db.users.find(u => u.email === username && u.password === password && u.role === role);
+            if (!username || !password) {
+                alert('Please enter both username and password.');
+                return;
+            }
+            // Accept both username and email for login
+            const user = db.users.find(u => (u.email === username || u.email.split('@')[0] === username) && u.password === password && u.role === role);
             if (user) {
                 currentUser = user;
                 hideAuthModal();
                 showDashboardForRole(user.role);
             } else {
-                alert('Invalid credentials. Try the demo logins below.');
+                alert('Invalid credentials. Please check your username, password, and role.');
             }
         } else {
             // Signup

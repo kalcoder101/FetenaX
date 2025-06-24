@@ -395,84 +395,57 @@ body {
 /* Modal */
 .modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(36,36,36,0.12);
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    background: rgba(36,36,36,0.85); /* Much darker overlay */
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-    z-index: 1000;
+    backdrop-filter: blur(8px); /* Strong blur */
 }
 .modal-content {
     background: var(--color-card);
     border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgba(36,36,36,0.10);
+    box-shadow: 0 8px 32px rgba(36,36,36,0.18);
+    padding: 2.5rem 2rem 2rem 2rem;
+    position: relative;
+    min-width: 320px;
+    max-width: 400px;
     width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    color: var(--color-text);
+    animation: modalIn 0.25s cubic-bezier(.4,2,.6,1) 1;
 }
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 1.5rem 0;
-    margin-bottom: 1rem;
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(40px) scale(0.98); }
+    to { opacity: 1; transform: none; }
 }
-.modal-header h3 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--color-text);
-}
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--color-text-secondary);
-    padding: 0;
-    width: 2rem;
-    height: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.close-btn:hover { color: var(--color-text); }
-.create-exam-form { padding: 0 1.5rem 1.5rem; }
-.question-block {
-    border: 1px solid var(--color-border);
+.demo-credentials {
+    background: #f3f4f6;
+    padding: 1rem 0.5rem;
     border-radius: 0.5rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background: var(--color-bg);
+    font-size: 0.98rem;
+    margin-top: 2rem;
+    text-align: center;
 }
-.question-block .form-group:last-child { margin-bottom: 0; }
-.options-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+.demo-credentials strong {
+    color: var(--color-primary);
 }
-.remove-question {
-    background: none;
-    border: none;
-    color: var(--color-danger);
-    font-size: 0.875rem;
-    cursor: pointer;
-    padding: 0.25rem 0;
-    margin-top: 0.5rem;
+/* Hide dashboard when modal is open */
+#authModal:not(.hidden) ~ #dashboard {
+    filter: blur(2px) grayscale(0.2) brightness(0.8);
+    pointer-events: none;
+    user-select: none;
 }
-.remove-question:hover { color: var(--color-text); }
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-border);
+#dashboard, #teacherDashboard, #studentDashboard, #examInterface, #resultsPage {
+    filter: none !important;
+    pointer-events: auto;
+    user-select: auto;
+}
+.modal:not(.hidden) ~ #dashboard,
+.modal:not(.hidden) ~ #examInterface,
+.modal:not(.hidden) ~ #resultsPage {
+    display: none !important;
 }
 
 /* Auth Modal (Login/Signup) */
@@ -523,9 +496,6 @@ body {
 #authForm .demo-credentials {
     color: var(--color-text-secondary);
     background: var(--color-bg);
-}
-#authForm .demo-credentials b {
-    color: var(--color-primary);
 }
 
 /* Forms */

@@ -181,12 +181,13 @@
     </div>
 
     <!-- Login/Signup Modal -->
-    <div id="authModal" class="modal">
-        <div class="modal-content" style="max-width:400px;">
-            <div class="modal-header">
-                <h3 id="authTitle">Login</h3>
+    <div id="authModal" class="modal" style="background:rgba(36,36,36,0.25);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;">
+        <div class="modal-content" style="max-width:400px;box-shadow:0 8px 32px rgba(36,36,36,0.18);border-radius:1rem;padding:2.5rem 2rem 2rem 2rem;position:relative;background:var(--color-card);">
+            <div class="modal-header" style="text-align:center;margin-bottom:1.5rem;">
+                <h3 id="authTitle" style="font-size:2rem;font-weight:700;color:var(--color-primary);margin-bottom:0.5rem;">Login</h3>
+                <p style="color:var(--color-text-secondary);font-size:1rem;">Sign in to your account</p>
             </div>
-            <form id="authForm" class="create-exam-form">
+            <form id="authForm" class="create-exam-form" autocomplete="on">
                 <div class="form-group">
                     <label for="authRole">Role</label>
                     <select id="authRole" class="form-input">
@@ -196,30 +197,25 @@
                 </div>
                 <div class="form-group">
                     <label for="authUsername">Username</label>
-                    <input type="text" id="authUsername" class="form-input" required autocomplete="username">
+                    <input type="text" id="authUsername" class="form-input" required autocomplete="username" placeholder="Enter your username">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="position:relative;">
                     <label for="authPassword">Password</label>
-                    <input type="password" id="authPassword" class="form-input" required autocomplete="current-password">
+                    <input type="password" id="authPassword" class="form-input" required autocomplete="current-password" placeholder="Enter your password">
                 </div>
                 <div id="signupFields" class="hidden">
                     <div class="form-group">
                         <label for="signupFullName">Full Name</label>
-                        <input type="text" id="signupFullName" class="form-input" autocomplete="name">
+                        <input type="text" id="signupFullName" class="form-input" autocomplete="name" placeholder="Your full name">
                     </div>
                     <div class="form-group">
                         <label for="signupId">ID</label>
-                        <input type="text" id="signupId" class="form-input" autocomplete="off">
+                        <input type="text" id="signupId" class="form-input" autocomplete="off" placeholder="Your ID">
                     </div>
                 </div>
-                <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary" id="authSubmitBtn">Login</button>
-                    <button type="button" class="btn btn-secondary" id="switchAuthMode">Sign up</button>
-                </div>
-                <div class="demo-credentials" style="margin-top:1.5rem;">
-                    <strong>Demo Logins:</strong><br>
-                    <span>Student: <b>student1</b> / <b>studentpass</b></span><br>
-                    <span>Teacher: <b>teacher1</b> / <b>teacherpass</b></span>
+                <div class="modal-actions" style="display:flex;gap:0.5rem;justify-content:space-between;margin-top:1.5rem;">
+                    <button type="submit" class="btn btn-primary" id="authSubmitBtn" style="flex:1;">Login</button>
+                    <button type="button" class="btn btn-secondary" id="switchAuthMode" style="flex:1;">Sign up</button>
                 </div>
             </form>
         </div>
