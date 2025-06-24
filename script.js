@@ -31,127 +31,130 @@ class Database {
         this.exams = [
             {
                 id: 1,
-                title: 'Mathematics Quiz',
-                subject: 'Mathematics',
-                duration: 30,
-                totalQuestions: 5,
+                title: 'Java OOP Fundamentals',
+                subject: 'Java OOP',
+                duration: 40,
+                totalQuestions: 20,
                 difficulty: 'Medium',
                 createdBy: 2,
-                createdAt: '2024-01-15',
+                createdAt: '2025-06-24',
                 questions: [
-                    {
-                        id: 1,
-                        question: 'What is 2 + 2?',
-                        options: ['3', '4', '5', '6'],
-                        correctAnswer: 1,
-                        points: 2
-                    },
-                    {
-                        id: 2,
-                        question: 'What is the square root of 16?',
-                        options: ['2', '3', '4', '5'],
-                        correctAnswer: 2,
-                        points: 2
-                    },
-                    {
-                        id: 3,
-                        question: 'What is 10 × 5?',
-                        options: ['45', '50', '55', '60'],
-                        correctAnswer: 1,
-                        points: 2
-                    },
-                    {
-                        id: 4,
-                        question: 'What is 15 ÷ 3?',
-                        options: ['3', '4', '5', '6'],
-                        correctAnswer: 2,
-                        points: 2
-                    },
-                    {
-                        id: 5,
-                        question: 'What is 7 × 8?',
-                        options: ['54', '56', '58', '60'],
-                        correctAnswer: 1,
-                        points: 2
-                    }
+                    { id: 1, question: 'What is encapsulation in Java?', options: ['Hiding data implementation', 'Inheritance', 'Polymorphism', 'Abstraction'], correctAnswer: 0, points: 1 },
+                    { id: 2, question: 'Which keyword is used to inherit a class in Java?', options: ['this', 'super', 'extends', 'implements'], correctAnswer: 2, points: 1 },
+                    { id: 3, question: 'What is the default value of an object reference in Java?', options: ['0', 'null', 'undefined', 'false'], correctAnswer: 1, points: 1 },
+                    { id: 4, question: 'Which of the following is not a Java access modifier?', options: ['public', 'private', 'protected', 'package'], correctAnswer: 3, points: 1 },
+                    { id: 5, question: 'What is method overloading?', options: ['Same method name, different parameters', 'Same method name, same parameters', 'Different method name, same parameters', 'None'], correctAnswer: 0, points: 1 },
+                    { id: 6, question: 'Which interface must be implemented by a Java class to support multithreading?', options: ['Runnable', 'Serializable', 'Cloneable', 'Comparable'], correctAnswer: 0, points: 1 },
+                    { id: 7, question: 'What is the parent class of all Java classes?', options: ['Object', 'Class', 'Main', 'Base'], correctAnswer: 0, points: 1 },
+                    { id: 8, question: 'Which keyword is used to prevent inheritance?', options: ['final', 'static', 'const', 'private'], correctAnswer: 0, points: 1 },
+                    { id: 9, question: 'What is polymorphism?', options: ['Many forms', 'Single form', 'No form', 'None'], correctAnswer: 0, points: 1 },
+                    { id: 10, question: 'Which method is called when an object is created?', options: ['constructor', 'finalize', 'main', 'init'], correctAnswer: 0, points: 1 },
+                    { id: 11, question: 'Which of the following is not a feature of Java?', options: ['Platform independent', 'Object-oriented', 'Pointer support', 'Automatic garbage collection'], correctAnswer: 2, points: 1 },
+                    { id: 12, question: 'Which keyword is used to refer to the current object?', options: ['this', 'super', 'self', 'current'], correctAnswer: 0, points: 1 },
+                    { id: 13, question: 'What is abstraction?', options: ['Hiding implementation details', 'Showing all details', 'Inheritance', 'None'], correctAnswer: 0, points: 1 },
+                    { id: 14, question: 'Which of the following is a valid interface declaration?', options: ['interface A {}', 'class A implements interface B {}', 'interface A implements B {}', 'None'], correctAnswer: 0, points: 1 },
+                    { id: 15, question: 'Which method is used to start a thread?', options: ['start()', 'run()', 'init()', 'main()'], correctAnswer: 0, points: 1 },
+                    { id: 16, question: 'Which of the following is not a type of inheritance in Java?', options: ['Single', 'Multiple', 'Multilevel', 'Hierarchical'], correctAnswer: 1, points: 1 },
+                    { id: 17, question: 'Which exception is thrown when a division by zero occurs?', options: ['ArithmeticException', 'NullPointerException', 'IOException', 'ClassNotFoundException'], correctAnswer: 0, points: 1 },
+                    { id: 18, question: 'Which package contains the Scanner class?', options: ['java.util', 'java.io', 'java.lang', 'java.awt'], correctAnswer: 0, points: 1 },
+                    { id: 19, question: 'What is the output of System.out.println(1 + "2" + 3);', options: ['123', '6', '33', '15'], correctAnswer: 0, points: 1 },
+                    { id: 20, question: 'Which of the following is used to handle exceptions?', options: ['try-catch', 'if-else', 'for loop', 'switch'], correctAnswer: 0, points: 1 }
                 ]
             },
             {
                 id: 2,
-                title: 'Science Basics',
-                subject: 'Science',
-                duration: 25,
-                totalQuestions: 4,
-                difficulty: 'Easy',
+                title: 'Fundamental Database Concepts',
+                subject: 'Fundamental Database',
+                duration: 40,
+                totalQuestions: 20,
+                difficulty: 'Medium',
                 createdBy: 2,
-                createdAt: '2024-01-20',
+                createdAt: '2025-06-24',
                 questions: [
-                    {
-                        id: 1,
-                        question: 'What is the chemical symbol for water?',
-                        options: ['H2O', 'CO2', 'NaCl', 'O2'],
-                        correctAnswer: 0,
-                        points: 2.5
-                    },
-                    {
-                        id: 2,
-                        question: 'How many planets are in our solar system?',
-                        options: ['7', '8', '9', '10'],
-                        correctAnswer: 1,
-                        points: 2.5
-                    },
-                    {
-                        id: 3,
-                        question: 'What gas do plants absorb from the atmosphere?',
-                        options: ['Oxygen', 'Carbon Dioxide', 'Nitrogen', 'Hydrogen'],
-                        correctAnswer: 1,
-                        points: 2.5
-                    },
-                    {
-                        id: 4,
-                        question: 'What is the fastest land animal?',
-                        options: ['Lion', 'Cheetah', 'Tiger', 'Leopard'],
-                        correctAnswer: 1,
-                        points: 2.5
-                    }
+                    { id: 1, question: 'What does SQL stand for?', options: ['Structured Query Language', 'Simple Query Language', 'Sequential Query Language', 'Standard Query Language'], correctAnswer: 0, points: 1 },
+                    { id: 2, question: 'Which of the following is a primary key?', options: ['Unique identifier', 'Foreign key', 'Duplicate value', 'None'], correctAnswer: 0, points: 1 },
+                    { id: 3, question: 'Which command is used to remove all records from a table?', options: ['DELETE', 'DROP', 'TRUNCATE', 'REMOVE'], correctAnswer: 2, points: 1 },
+                    { id: 4, question: 'Which normal form eliminates transitive dependency?', options: ['1NF', '2NF', '3NF', 'BCNF'], correctAnswer: 2, points: 1 },
+                    { id: 5, question: 'Which of the following is not a type of join?', options: ['Inner join', 'Outer join', 'Cross join', 'Side join'], correctAnswer: 3, points: 1 },
+                    { id: 6, question: 'Which SQL clause is used to filter records?', options: ['WHERE', 'ORDER BY', 'GROUP BY', 'HAVING'], correctAnswer: 0, points: 1 },
+                    { id: 7, question: 'Which command is used to add a new row to a table?', options: ['INSERT', 'UPDATE', 'ALTER', 'APPEND'], correctAnswer: 0, points: 1 },
+                    { id: 8, question: 'Which of the following is a DDL command?', options: ['CREATE', 'SELECT', 'INSERT', 'UPDATE'], correctAnswer: 0, points: 1 },
+                    { id: 9, question: 'Which of the following is not a NoSQL database?', options: ['MongoDB', 'MySQL', 'Cassandra', 'Redis'], correctAnswer: 1, points: 1 },
+                    { id: 10, question: 'Which key is used to link two tables?', options: ['Foreign key', 'Primary key', 'Super key', 'Candidate key'], correctAnswer: 0, points: 1 },
+                    { id: 11, question: 'Which command is used to change data in a table?', options: ['UPDATE', 'SELECT', 'ALTER', 'INSERT'], correctAnswer: 0, points: 1 },
+                    { id: 12, question: 'Which of the following is not a constraint in SQL?', options: ['UNIQUE', 'PRIMARY', 'FOREIGN', 'SELECT'], correctAnswer: 3, points: 1 },
+                    { id: 13, question: 'Which of the following is a transaction property?', options: ['ACID', 'BASE', 'CRUD', 'REST'], correctAnswer: 0, points: 1 },
+                    { id: 14, question: 'Which SQL statement is used to extract data from a database?', options: ['SELECT', 'GET', 'EXTRACT', 'OPEN'], correctAnswer: 0, points: 1 },
+                    { id: 15, question: 'Which of the following is not a valid SQL data type?', options: ['VARCHAR', 'INT', 'FLOAT', 'ARRAY'], correctAnswer: 3, points: 1 },
+                    { id: 16, question: 'Which command is used to remove a table from a database?', options: ['DROP', 'DELETE', 'REMOVE', 'TRUNCATE'], correctAnswer: 0, points: 1 },
+                    { id: 17, question: 'Which of the following is a database model?', options: ['Relational', 'Hierarchical', 'Network', 'All of the above'], correctAnswer: 3, points: 1 },
+                    { id: 18, question: 'Which SQL function returns the number of rows?', options: ['COUNT()', 'SUM()', 'AVG()', 'MAX()'], correctAnswer: 0, points: 1 },
+                    { id: 19, question: 'Which of the following is not a valid SQL constraint?', options: ['CHECK', 'DEFAULT', 'INDEX', 'UNIQUE'], correctAnswer: 2, points: 1 },
+                    { id: 20, question: 'Which command is used to modify the structure of a table?', options: ['ALTER', 'UPDATE', 'MODIFY', 'CHANGE'], correctAnswer: 0, points: 1 }
                 ]
             },
             {
                 id: 3,
-                title: 'English Grammar',
-                subject: 'English',
-                duration: 20,
-                totalQuestions: 3,
-                difficulty: 'Easy',
+                title: 'C++ Programming Basics',
+                subject: 'C++',
+                duration: 40,
+                totalQuestions: 20,
+                difficulty: 'Medium',
                 createdBy: 2,
-                createdAt: '2024-01-25',
+                createdAt: '2025-06-24',
                 questions: [
-                    {
-                        id: 1,
-                        question: 'Which word is a noun?',
-                        options: ['Run', 'Beautiful', 'Book', 'Quickly'],
-                        correctAnswer: 2,
-                        points: 3.33
-                    },
-                    {
-                        id: 2,
-                        question: 'What is the past tense of "go"?',
-                        options: ['Goed', 'Gone', 'Went', 'Going'],
-                        correctAnswer: 2,
-                        points: 3.33
-                    },
-                    {
-                        id: 3,
-                        question: 'Which sentence is grammatically correct?',
-                        options: [
-                            'She don\'t like pizza',
-                            'She doesn\'t like pizza',
-                            'She not like pizza',
-                            'She doesn\'t likes pizza'
-                        ],
-                        correctAnswer: 1,
-                        points: 3.34
-                    }
+                    { id: 1, question: 'Which of the following is the correct file extension for C++ source files?', options: ['.cpp', '.c', '.java', '.py'], correctAnswer: 0, points: 1 },
+                    { id: 2, question: 'Which operator is used to access members of a class using a pointer?', options: ['.', '->', '::', ':'], correctAnswer: 1, points: 1 },
+                    { id: 3, question: 'Which of the following is not a C++ data type?', options: ['int', 'float', 'real', 'char'], correctAnswer: 2, points: 1 },
+                    { id: 4, question: 'Which keyword is used to define a constant in C++?', options: ['const', 'constant', 'define', 'static'], correctAnswer: 0, points: 1 },
+                    { id: 5, question: 'Which of the following is used for input in C++?', options: ['cin', 'cout', 'printf', 'scanf'], correctAnswer: 0, points: 1 },
+                    { id: 6, question: 'Which of the following is not a loop structure in C++?', options: ['for', 'while', 'repeat', 'do-while'], correctAnswer: 2, points: 1 },
+                    { id: 7, question: 'Which of the following is used to create an object in C++?', options: ['new', 'malloc', 'alloc', 'create'], correctAnswer: 0, points: 1 },
+                    { id: 8, question: 'Which of the following is not a valid access specifier in C++?', options: ['public', 'private', 'protected', 'internal'], correctAnswer: 3, points: 1 },
+                    { id: 9, question: 'Which of the following is used to define a class in C++?', options: ['class', 'struct', 'object', 'define'], correctAnswer: 0, points: 1 },
+                    { id: 10, question: 'Which of the following is not a valid C++ operator?', options: ['+', '-', '*', '**'], correctAnswer: 3, points: 1 },
+                    { id: 11, question: 'Which of the following is used to terminate a statement in C++?', options: [';', '.', ':', ','], correctAnswer: 0, points: 1 },
+                    { id: 12, question: 'Which of the following is not a valid C++ loop?', options: ['for', 'foreach', 'while', 'do-while'], correctAnswer: 1, points: 1 },
+                    { id: 13, question: 'Which of the following is used to allocate memory dynamically in C++?', options: ['new', 'malloc', 'alloc', 'calloc'], correctAnswer: 0, points: 1 },
+                    { id: 14, question: 'Which of the following is not a valid C++ function?', options: ['main()', 'start()', 'printf()', 'scanf()'], correctAnswer: 1, points: 1 },
+                    { id: 15, question: 'Which of the following is used to print output in C++?', options: ['cout', 'cin', 'printf', 'print'], correctAnswer: 0, points: 1 },
+                    { id: 16, question: 'Which of the following is not a valid C++ keyword?', options: ['int', 'float', 'string', 'real'], correctAnswer: 3, points: 1 },
+                    { id: 17, question: 'Which of the following is used to define a function in C++?', options: ['function', 'def', 'void', 'fun'], correctAnswer: 2, points: 1 },
+                    { id: 18, question: 'Which of the following is not a valid C++ statement?', options: ['break', 'continue', 'exit', 'stop'], correctAnswer: 3, points: 1 },
+                    { id: 19, question: 'Which of the following is used to include a header file in C++?', options: ['#include', 'import', 'require', 'use'], correctAnswer: 0, points: 1 },
+                    { id: 20, question: 'Which of the following is not a valid C++ comment?', options: ['// comment', '/* comment */', '# comment', '-- comment'], correctAnswer: 3, points: 1 }
+                ]
+            },
+            {
+                id: 4,
+                title: 'Computer Organization and Assembly Language',
+                subject: 'Computer Organization and Assembly Language',
+                duration: 40,
+                totalQuestions: 20,
+                difficulty: 'Medium',
+                createdBy: 2,
+                createdAt: '2025-06-24',
+                questions: [
+                    { id: 1, question: 'What is the basic unit of data in a computer?', options: ['Bit', 'Byte', 'Word', 'Nibble'], correctAnswer: 0, points: 1 },
+                    { id: 2, question: 'Which register holds the address of the next instruction?', options: ['Program Counter', 'Accumulator', 'Instruction Register', 'Stack Pointer'], correctAnswer: 0, points: 1 },
+                    { id: 3, question: 'Which of the following is not a type of memory?', options: ['RAM', 'ROM', 'CPU', 'Cache'], correctAnswer: 2, points: 1 },
+                    { id: 4, question: 'Which of the following is a machine language instruction?', options: ['MOV', 'ADD', 'SUB', 'All of the above'], correctAnswer: 3, points: 1 },
+                    { id: 5, question: 'Which of the following is not a type of addressing mode?', options: ['Immediate', 'Direct', 'Indirect', 'Sequential'], correctAnswer: 3, points: 1 },
+                    { id: 6, question: 'Which of the following is used to store data temporarily?', options: ['RAM', 'ROM', 'Hard Disk', 'CD'], correctAnswer: 0, points: 1 },
+                    { id: 7, question: 'Which of the following is not a type of bus?', options: ['Data bus', 'Address bus', 'Control bus', 'Power bus'], correctAnswer: 3, points: 1 },
+                    { id: 8, question: 'Which of the following is used to convert assembly language to machine code?', options: ['Assembler', 'Compiler', 'Interpreter', 'Linker'], correctAnswer: 0, points: 1 },
+                    { id: 9, question: 'Which of the following is not a type of instruction?', options: ['Data transfer', 'Arithmetic', 'Logical', 'Painting'], correctAnswer: 3, points: 1 },
+                    { id: 10, question: 'Which of the following is used to store the result of an operation?', options: ['Accumulator', 'Program Counter', 'Stack Pointer', 'Instruction Register'], correctAnswer: 0, points: 1 },
+                    { id: 11, question: 'Which of the following is not a type of micro-operation?', options: ['Register transfer', 'Arithmetic', 'Logical', 'Painting'], correctAnswer: 3, points: 1 },
+                    { id: 12, question: 'Which of the following is used to store instructions?', options: ['ROM', 'RAM', 'Cache', 'Register'], correctAnswer: 0, points: 1 },
+                    { id: 13, question: 'Which of the following is not a type of instruction format?', options: ['Zero address', 'One address', 'Two address', 'Three address', 'Four address'], correctAnswer: 4, points: 1 },
+                    { id: 14, question: 'Which of the following is used to store the return address?', options: ['Stack', 'Heap', 'Register', 'Accumulator'], correctAnswer: 0, points: 1 },
+                    { id: 15, question: 'Which of the following is not a type of interrupt?', options: ['Hardware', 'Software', 'Manual', 'External'], correctAnswer: 2, points: 1 },
+                    { id: 16, question: 'Which of the following is used to store the status of a process?', options: ['Program Status Word', 'Program Counter', 'Stack Pointer', 'Accumulator'], correctAnswer: 0, points: 1 },
+                    { id: 17, question: 'Which of the following is not a type of assembly language directive?', options: ['ORG', 'END', 'MOV', 'EQU'], correctAnswer: 2, points: 1 },
+                    { id: 18, question: 'Which of the following is used to store the base address?', options: ['Base Register', 'Stack Pointer', 'Accumulator', 'Program Counter'], correctAnswer: 0, points: 1 },
+                    { id: 19, question: 'Which of the following is not a type of memory hierarchy?', options: ['Cache', 'RAM', 'ROM', 'CPU'], correctAnswer: 3, points: 1 },
+                    { id: 20, question: 'Which of the following is used to store the result of a multiplication operation?', options: ['Accumulator', 'Multiplier', 'Product Register', 'Quotient Register'], correctAnswer: 2, points: 1 }
                 ]
             }
         ];
