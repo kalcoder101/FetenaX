@@ -580,3 +580,51 @@ body {
         padding-bottom: 1rem;
     }
 }
+
+/* About Overlay Modal styles */
+#aboutOverlay.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  background: rgba(36,36,36,0.25);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#aboutOverlay .modal-content {
+  background: var(--color-card, #fff);
+  border-radius: 1.2rem;
+  box-shadow: 0 8px 32px rgba(36,36,36,0.18);
+  max-width: 520px;
+  width: 95vw;
+  padding: 2.5rem 2rem 2rem 2rem;
+  position: relative;
+  animation: fadeInScale 0.2s;
+}
+#aboutOverlay .close-btn {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  font-size: 2rem;
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+#aboutOverlay .close-btn:hover {
+  color: #23272f;
+}
+@media (max-width: 600px) {
+  #aboutOverlay .modal-content {
+    padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+    max-width: 98vw;
+  }
+  #aboutOverlay img {
+    width: 80px;
+    height: 80px;
+  }
+}

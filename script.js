@@ -1153,4 +1153,24 @@ document.addEventListener('DOMContentLoaded', function () {
             showAuthModal();
         });
     }
+
+    // Show/hide About overlay modal
+    const aboutBtn = document.getElementById('aboutBtn');
+    const aboutOverlay = document.getElementById('aboutOverlay');
+    const closeAbout = document.getElementById('closeAbout');
+
+    if (aboutBtn && aboutOverlay && closeAbout) {
+      aboutBtn.addEventListener('click', () => {
+        aboutOverlay.classList.remove('hidden');
+      });
+      closeAbout.addEventListener('click', () => {
+        aboutOverlay.classList.add('hidden');
+      });
+      // Optional: close overlay when clicking outside modal content
+      aboutOverlay.addEventListener('click', (e) => {
+        if (e.target === aboutOverlay) {
+          aboutOverlay.classList.add('hidden');
+        }
+      });
+    }
 });
