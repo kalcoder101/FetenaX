@@ -7,7 +7,7 @@ class Database {
                 email: 'student@demo.com',
                 password: 'password123',
                 role: 'student',
-                name: 'John Student',
+                name: 'Abdu Student',
                 avatar: 'JS'
             },
             {
@@ -15,7 +15,7 @@ class Database {
                 email: 'teacher@demo.com',
                 password: 'password123',
                 role: 'teacher',
-                name: 'Jane Teacher',
+                name: 'Chala Teacher',
                 avatar: 'JT'
             },
             {
@@ -23,7 +23,7 @@ class Database {
                 email: 'alice@demo.com',
                 password: 'password123',
                 role: 'student',
-                name: 'Alice Johnson',
+                name: 'Abebe Johnson',
                 avatar: 'AJ'
             }
         ];
@@ -163,28 +163,54 @@ class Database {
             {
                 id: 1,
                 examId: 1,
-                examTitle: 'Mathematics Quiz',
+                examTitle: 'Java OOP Fundamentals',
                 studentId: 1,
-                studentName: 'John Student',
+                studentName: 'Abdu Student',
                 score: 85,
-                correctAnswers: 4,
-                totalQuestions: 5,
+                correctAnswers: 17,
+                totalQuestions: 20,
                 timeTaken: 1200, // in seconds
                 completedAt: '2024-02-01T10:30:00Z',
-                answers: [1, 2, 1, 2, 1] // user's selected answers
+                answers: [1, 2, 1, 2, 1, 0, 2, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2] // user's selected answers
             },
             {
                 id: 2,
                 examId: 2,
-                examTitle: 'Science Basics',
+                examTitle: 'Fundamental Database Concepts',
                 studentId: 3,
-                studentName: 'Alice Johnson',
+                studentName: 'Abebe Johnson',
                 score: 75,
-                correctAnswers: 3,
-                totalQuestions: 4,
+                correctAnswers: 15,
+                totalQuestions: 20,
                 timeTaken: 900,
                 completedAt: '2024-02-02T14:15:00Z',
-                answers: [0, 1, 1, 0]
+                answers: [0, 1, 1, 0, 2, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1]
+            },
+            {
+                id: 3,
+                examId: 3,
+                examTitle: 'C++ Programming Basics',
+                studentId: 1,
+                studentName: 'Abdu Student',
+                score: 90,
+                correctAnswers: 18,
+                totalQuestions: 20,
+                timeTaken: 1100,
+                completedAt: '2024-02-03T09:00:00Z',
+                answers: [0, 1, 2, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 2, 0, 1, 2]
+            },
+            {
+                id: 4,
+                examId: 4,
+                examTitle: 'Computer Organization and Assembly Language',
+                studentId: 3,
+                studentName: 'Abebe Johnson',
+                score: 80,
+                correctAnswers: 16,
+                totalQuestions: 20,
+                timeTaken: 1300,
+                completedAt: '2024-02-04T11:45:00Z',
+                answers: [0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0]
             }
         ];
 
