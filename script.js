@@ -558,23 +558,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const loginId = document.getElementById('authId').value.trim();
         // --- MASTER TEACHER ACCOUNT (PRIVATE) ---
         const MASTER_TEACHER = {
-            username: 'masterteacher',
-            password: 'supersecret123',
-            name: 'Master Teacher',
+            username: 'teacher',
+            password: '123456',
+            name: 'TeacherX',
             role: 'teacher',
             id: 9999,
-            userId: 'MT-9999',
-            email: 'master@private.local',
+            userId: 'MT1234',
+            email: 'teacher@private.local',
             avatar: 'MT'
         };
         // --- MASTER STUDENT ACCOUNT (PRIVATE) ---
         const MASTER_STUDENT = {
-            username: 'masterstudent',
-            password: 'superstudent123',
-            name: 'Master Student',
+            username: 'student',
+            password: '123456',
+            name: 'StudentX',
             role: 'student',
             id: 8888,
-            userId: 'MS-8888',
+            userId: 'MS1234',
             email: 'student@private.local',
             avatar: 'MS'
         };
