@@ -973,27 +973,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Password visibility toggle for login and signup
-    function addPasswordToggle(inputId) {
-        const input = document.getElementById(inputId);
-        if (!input) return;
-        const wrapper = input.parentElement;
-        const toggle = document.createElement('span');
-        toggle.textContent = '👁️';
-        toggle.style.cursor = 'pointer';
-        toggle.style.position = 'absolute';
-        toggle.style.right = '1rem';
-        toggle.style.top = '50%';
-        toggle.style.transform = 'translateY(-50%)';
-        toggle.style.fontSize = '1.1rem';
-        toggle.title = 'Show/Hide Password';
-        wrapper.style.position = 'relative';
-        wrapper.appendChild(toggle);
-        toggle.addEventListener('click', function() {
-            input.type = input.type === 'password' ? 'text' : 'password';
+    const authPassword = document.getElementById('authPassword');
+    const toggleAuthPassword = document.getElementById('toggleAuthPassword');
+    if (authPassword && toggleAuthPassword) {
+        toggleAuthPassword.addEventListener('click', function() {
+            const svg = toggleAuthPassword.querySelector('svg');
+            if (authPassword.type === 'password') {
+                authPassword.type = 'text';
+                // Change SVG fill to a lighter color for feedback
+                svg.setAttribute('fill', '#81b8e7');
+            } else {
+                authPassword.type = 'password';
+                svg.setAttribute('fill', '#1A508B');
+            }
         });
     }
-    addPasswordToggle('authPassword');
-    addPasswordToggle('signupPassword');
 
     // --- THEME TOGGLE LOGIC ---
     const themeToggle = document.getElementById('themeToggle');

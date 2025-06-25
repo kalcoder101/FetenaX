@@ -133,6 +133,28 @@ body {
   margin-right: 2rem;
   transition: color 0.2s;
 }
+.logo-img {
+  height: 3.2rem;
+  width: 7.5rem;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+  border-radius: 0.35rem;
+  box-shadow: 0 1px 6px rgba(36,36,36,0.08);
+  background: #fff;
+  object-fit: contain;
+  transition: box-shadow 0.18s;
+}
+@media (max-width: 600px) {
+  .logo-img {
+    height: 2.1rem;
+    width: 5rem;
+    margin-right: 0.3rem;
+  }
+}
+.navbar .logo-img:hover, .navbar .logo-img:focus {
+  box-shadow: 0 2px 12px rgba(26,80,139,0.18);
+}
 .nav-actions {
   display: flex;
   align-items: center;
@@ -172,6 +194,11 @@ body {
   .logo {
     font-size: 1.4rem;
     margin-right: 0;
+  }
+  .logo-img {
+    height: 2.1rem;
+    width: 5rem;
+    margin-right: 0.3rem;
   }
   .nav-actions {
     width: 100%;
@@ -788,52 +815,18 @@ body {
 #aboutOverlay .about-img {
   width: 120px;
   height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
+  border-radius: 1.2rem;
+  object-fit: contain;
   box-shadow: 0 4px 16px rgba(36,36,36,0.13);
-  border: 5px solid #fff;
+  border: 4px solid #fff;
   background: #e0e7ff;
+  display: block;
+  margin: 0 auto 1.2rem auto;
+  transition: box-shadow 0.18s, border 0.18s;
 }
-#aboutOverlay .about-content {
-  flex: 1;
-  min-width: 220px;
-}
-#aboutOverlay .about-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  color: #2b4cff;
-  letter-spacing: 1px;
-}
-#aboutOverlay .about-desc {
-  font-size: 1.13rem;
-  color: #374151;
-  margin-bottom: 0.7rem;
-  line-height: 1.7;
-  font-weight: 500;
-}
-#aboutOverlay .about-author {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin-top: 1.1rem;
-}
-#aboutOverlay .about-author-img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #2b4cff;
-}
-#aboutOverlay .about-author-name {
-  font-weight: 700;
-  color: #2b4cff;
-  font-size: 1.08rem;
-}
-#aboutOverlay .about-author-role {
-  color: #6b7280;
-  font-size: 0.98rem;
-  font-weight: 500;
+.about-img:hover, .about-img:focus {
+  box-shadow: 0 8px 32px #1A508B22;
+  border-color: #7dd3fc;
 }
 @media (max-width: 600px) {
   #aboutOverlay .modal-content {
@@ -843,6 +836,11 @@ body {
   }
   #aboutOverlay .about-title {
     font-size: 1.1rem;
+  }
+  .about-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 0.7rem;
   }
 }
 
@@ -875,4 +873,172 @@ body {
 /* Remove Inter from #authForm #authId.form-input */
 #authForm #authId.form-input {
   font-family: 'VT323', 'Press Start 2P', 'Fira Mono', 'monospace', sans-serif !important;
+}
+
+/* Password visibility toggle button */
+#toggleAuthPassword {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s, box-shadow 0.15s;
+  z-index: 2;
+}
+#toggleAuthPassword:focus {
+  box-shadow: 0 0 0 2px #1A508B33;
+  background: #e6f0fa;
+}
+#toggleAuthPassword:hover {
+  background: #f0f4fa;
+}
+#toggleAuthPassword svg {
+  width: 1.35em;
+  height: 1.35em;
+  display: block;
+  transition: fill 0.2s;
+  fill: #1A508B;
+}
+#toggleAuthPassword.active svg {
+  fill: #F59E42;
+}
+
+/* For dark mode */
+body.dark #toggleAuthPassword svg {
+  fill: #F3F6F9;
+}
+body.dark #toggleAuthPassword.active svg {
+  fill: #F59E42;
+}
+
+/* Auth Modal Buttons (Login/Signup) */
+#authModal .modal-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'JetBrains Mono', 'Fira Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 1rem;
+  padding: 0.6em 1.2em;
+  border-radius: 0.5em;
+  border: none;
+  margin-right: 0.5em;
+  margin-bottom: 0.2em;
+  box-shadow: 0 1px 4px rgba(36,36,36,0.06);
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  gap: 0.3em;
+}
+#authModal .modal-actions .btn:last-child {
+  margin-right: 0;
+}
+#authModal .btn-primary {
+  background: #1A508B;
+  color: #fff;
+}
+#authModal .btn-primary:hover, #authModal .btn-primary:focus {
+  background: #163d66;
+  color: #fff;
+}
+#authModal .btn-secondary {
+  background: #e5e7eb;
+  color: #22223b;
+}
+#authModal .btn-secondary:hover, #authModal .btn-secondary:focus {
+  background: #cbd5e1;
+  color: #1A508B;
+}
+#authModal .btn svg {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.4em;
+  margin-bottom: 2px;
+  stroke: currentColor;
+  fill: none;
+  transition: stroke 0.15s, fill 0.15s;
+}
+#authModal .btn-primary svg {
+  stroke: #fff;
+}
+#authModal .btn-secondary svg {
+  stroke: #1A508B;
+}
+#authModal .btn:active {
+  box-shadow: 0 0 0 2px #1A508B33;
+}
+
+/* Dark mode styles */
+body.dark #authModal .btn-primary {
+  background: #22223b;
+  color: #fff;
+}
+body.dark #authModal .btn-primary:hover, body.dark #authModal .btn-primary:focus {
+  background: #1A508B;
+  color: #fff;
+}
+body.dark #authModal .btn-secondary {
+  background: #393a5a;
+  color: #e5e7eb;
+}
+body.dark #authModal .btn-secondary:hover, body.dark #authModal .btn-secondary:focus {
+  background: #1A508B;
+  color: #fff;
+}
+body.dark #authModal .btn-secondary svg {
+  stroke: #e5e7eb;
+}
+.site-footer {
+  width: 100%;
+  text-align: center;
+  padding: 1.2rem 0 1.5rem 0;
+  font-size: 1.08rem;
+  color: #7dd3fc;
+  background: transparent;
+  font-family: 'VT323', 'Fira Mono', 'monospace', sans-serif;
+  letter-spacing: 0.03em;
+  margin-top: 2.5rem;
+}
+.site-footer .footer-link {
+  color: #1A508B;
+  text-decoration: underline dotted;
+  transition: color 0.18s;
+}
+.site-footer .footer-link:hover {
+  color: #F59E42;
+}
+body.dark .site-footer {
+  color: #7dd3fc;
+}
+body.dark .site-footer .footer-link {
+  color: #7dd3fc;
+}
+body.dark .site-footer .footer-link:hover {
+  color: #F59E42;
+}
+.about-author-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid #1A508B;
+  box-shadow: 0 2px 8px rgba(36,36,36,0.13);
+  background: #fff;
+  margin-right: 0.5rem;
+  transition: box-shadow 0.18s, border 0.18s;
+}
+.about-author-img:hover, .about-author-img:focus {
+  box-shadow: 0 4px 16px #7dd3fc33;
+  border-color: #F59E42;
+}
+@media (max-width: 600px) {
+  .about-author-img {
+    width: 32px;
+    height: 32px;
+  }
 }
