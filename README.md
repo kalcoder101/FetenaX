@@ -44,9 +44,3 @@ Developed by [kalcoder101](https://github.com/kalcoder101). All rights reserved 
 ---
 
 For any issues or suggestions, please open an issue or contact the developer via GitHub.
-
-## 🚀 How to Make Your Own Site Public (GitHub + Vercel)
-
-...existing code...
-
-For more, see the [Vercel docs](https://vercel.com/docs) or [GitHub Pages guide](https://pages.github.com/).
