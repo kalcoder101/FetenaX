@@ -1,4 +1,4 @@
-// Database simulation for Online Exam System
+// Database simulation for FetenaX
 class Database {
     constructor() {
         this.users = [
