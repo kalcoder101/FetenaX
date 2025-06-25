@@ -1132,37 +1132,42 @@ document.addEventListener('DOMContentLoaded', function () {
         dashboard.classList.remove('hidden');
     }
 
-    function showResultsPage(score, correct, total, timeTaken) {
-        hideExamInterface();
+    function showResultsOverlay() {
         const resultsPage = document.getElementById('resultsPage');
         resultsPage.classList.remove('hidden');
-        resultsPage.classList.add('results-modal'); // Show as modal overlay
-        document.getElementById('finalScore').textContent = score + '%';
-        document.getElementById('correctAnswers').textContent = `${correct}/${total}`;
-        document.getElementById('timeTaken').textContent = db.formatTime(timeTaken);
-        let userInfo = '';
-        if (currentUser && currentUser.name && (currentUser.userId || currentUser.email)) {
-            userInfo = `<div style=\"margin-bottom:1rem;color:#3b82f6;font-weight:600;\">${currentUser.name}${currentUser.userId ? ' (ID: ' + currentUser.userId + ')' : ''}</div>`;
-        }
-        const resultsHeader = resultsPage.querySelector('.results-header');
-        if (resultsHeader && !resultsHeader.querySelector('.user-info')) {
-            const div = document.createElement('div');
-            div.className = 'user-info';
-            div.innerHTML = userInfo;
-            resultsHeader.insertBefore(div, resultsHeader.children[1]);
-        } else if (resultsHeader && resultsHeader.querySelector('.user-info')) {
-            resultsHeader.querySelector('.user-info').innerHTML = userInfo;
-        }
-        // Remove answer review section if present
-        let oldBreakdown = document.getElementById('resultsBreakdown');
-        if (oldBreakdown) oldBreakdown.remove();
-        // Do NOT append answer review anymore
-        document.getElementById('backToDashboard').onclick = function() {
-            resultsPage.classList.add('hidden');
-            resultsPage.classList.remove('results-modal'); // Remove modal overlay
+        resultsPage.style.position = 'fixed';
+        resultsPage.style.top = '0';
+        resultsPage.style.left = '0';
+        resultsPage.style.width = '100vw';
+        resultsPage.style.height = '100vh';
+        resultsPage.style.background = 'rgba(36,36,36,0.85)';
+        resultsPage.style.zIndex = '10000';
+        resultsPage.style.overflowY = 'auto';
+        resultsPage.style.display = 'flex';
+        resultsPage.style.alignItems = 'center';
+        resultsPage.style.justifyContent = 'center';
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+    }
+    function hideResultsOverlay() {
+        const resultsPage = document.getElementById('resultsPage');
+        resultsPage.classList.add('hidden');
+        resultsPage.removeAttribute('style');
+        document.body.style.overflow = '';
+    }
+    // Show overlay when exam is finished or submitted
+    const backToDashboardBtn = document.getElementById('backToDashboard');
+    if (backToDashboardBtn) {
+        backToDashboardBtn.addEventListener('click', function() {
+            hideResultsOverlay();
             dashboard.classList.remove('hidden');
-            renderExamsList();
-        };
+        });
+    }
+    function showResultsPage(score, correctAnswers, totalQuestions, timeTaken) {
+        // Update results values if needed
+        if (document.getElementById('finalScore')) document.getElementById('finalScore').textContent = score + '%';
+        if (document.getElementById('correctAnswers')) document.getElementById('correctAnswers').textContent = `${correctAnswers}/${totalQuestions}`;
+        if (document.getElementById('timeTaken')) document.getElementById('timeTaken').textContent = db.formatTime(timeTaken);
+        showResultsOverlay();
     }
 
     function startExam(examId) {
