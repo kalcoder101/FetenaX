@@ -31,6 +31,42 @@ FeteneX is a modern, secure, and mobile-first online exam system designed for bo
   - Password: `123456`
   - ID: `MS1234` or `8888`
 
+## 🌐 Public Demo
+
+FeteneX is live! Try it here:
+
+- [https://fetena-x.vercel.app/](https://fetena-x.vercel.app/)
+- [https://fetena-x-kalcoder101s-projects.vercel.app/](https://fetena-x-kalcoder101s-projects.vercel.app/)
+
+---
+
+## 🚀 How to Make Your Own Site Public (GitHub + Vercel)
+
+1. **Push your project to GitHub**
+   - Create a new repository on [GitHub](https://github.com/).
+   - In your project folder, run:
+     ```bash
+     git init
+     git add .
+     git commit -m "Initial commit"
+     git branch -M main
+     git remote add origin https://github.com/<your-username>/<repo-name>.git
+     git push -u origin main
+     ```
+
+2. **Deploy with Vercel**
+   - Go to [Vercel](https://vercel.com/) and sign in with GitHub.
+   - Click "New Project" and import your repo.
+   - Accept defaults (for static site) and click "Deploy".
+
+3. **Share your public link!**
+   - Vercel gives you a live URL (like above) to share.
+   - Push changes to GitHub to auto-update your site.
+
+---
+
+For more, see the [Vercel docs](https://vercel.com/docs) or [GitHub Pages guide](https://pages.github.com/).
+
 ## Developer
 Developed by [kalcoder101](https://github.com/kalcoder101). All rights reserved © 2025.
 
