@@ -1159,6 +1159,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (backToDashboardBtn) {
         backToDashboardBtn.addEventListener('click', function() {
             hideResultsOverlay();
+            document.getElementById('resultsPage').classList.add('hidden');
+            document.getElementById('examInterface').classList.add('hidden');
             dashboard.classList.remove('hidden');
         });
     }
