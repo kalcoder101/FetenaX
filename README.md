@@ -1,6 +1,6 @@
-# FeteneX – Your Exam, Your Vibe
+# FetenaX – Your Exam, Your Vibe
 
-FeteneX is a modern, secure, and mobile-first online exam system designed for both students and teachers. It features a pixel/monospace UI, dark/light mode, and a robust authentication system. The platform supports real-time analytics, instant scoring, and privacy-focused exam management.
+FetenaX is a modern, secure, and mobile-first online exam system designed for both students and teachers. It features a pixel/monospace UI, dark/light mode, and a robust authentication system. The platform supports real-time analytics, instant scoring, and privacy-focused exam management.
 
 ## Features
 
@@ -33,7 +33,7 @@ FeteneX is a modern, secure, and mobile-first online exam system designed for bo
 
 ## 🌐 Public Demo
 
-FeteneX is live! Try it here:
+FetenaX is live! Try it here:
 
 - [https://fetena-x.vercel.app/](https://fetena-x.vercel.app/)
 - [https://fetena-x-kalcoder101s-projects.vercel.app/](https://fetena-x-kalcoder101s-projects.vercel.app/)
@@ -44,3 +44,9 @@ Developed by [kalcoder101](https://github.com/kalcoder101). All rights reserved 
 ---
 
 For any issues or suggestions, please open an issue or contact the developer via GitHub.
+
+## 🚀 How to Make Your Own Site Public (GitHub + Vercel)
+
+...existing code...
+
+For more, see the [Vercel docs](https://vercel.com/docs) or [GitHub Pages guide](https://pages.github.com/).
