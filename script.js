@@ -829,6 +829,83 @@ document.addEventListener('DOMContentLoaded', function () {
             div.innerHTML = `<div class="result-info"><h4>${result.studentName}</h4><p>${result.examTitle}</p></div><div class="result-score"><span class="score ${result.score >= 60 ? 'score-pass' : 'score-fail'}">${result.score}%</span><br><span class="date">${result.completedAt.split('T')[0]}</span></div>`;
             recentResultsDiv.appendChild(div);
         });
+
+        // --- User Management Section ---
+        let oldUserMgmt = document.getElementById('teacherUserMgmt');
+        if (oldUserMgmt) oldUserMgmt.remove();
+        const userMgmtSection = document.createElement('section');
+        userMgmtSection.id = 'teacherUserMgmt';
+        userMgmtSection.style.margin = '2.5rem 0 1.5rem 0';
+        userMgmtSection.style.background = 'var(--card-bg, #fff)';
+        userMgmtSection.style.borderRadius = '1rem';
+        userMgmtSection.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)';
+        userMgmtSection.style.padding = '2rem 1.5rem';
+        userMgmtSection.style.fontFamily = 'var(--pixel-font, monospace)';
+        userMgmtSection.innerHTML = `<h3 style="margin-bottom:1.5rem;font-size:1.2rem;letter-spacing:1px;display:flex;align-items:center;gap:0.5em;"><span style='font-size:1.3em;'>👥</span> User Management</h3>`;
+        const students = db.users.filter(u => u.role === 'student');
+        if (students.length === 0) {
+            userMgmtSection.innerHTML += '<div style="color:#888;font-size:1rem;">No students registered.</div>';
+        } else {
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.fontSize = '0.97rem';
+            table.innerHTML = `
+                <thead>
+                    <tr style="background:var(--table-head-bg,#f3f4f6);color:#23272f;">
+                        <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Name</th>
+                        <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Email</th>
+                        <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">ID</th>
+                        <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${students.map(s => `
+                        <tr>
+                            <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${s.name}</td>
+                            <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${s.email}</td>
+                            <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${s.userId || s.id}</td>
+                            <td style='padding:10px 12px;border:1px solid #e5e7eb;'>
+                                <button class="btn btn-secondary btn-sm reset-pw" data-id="${s.id}">Reset Password</button>
+                                <button class="btn btn-danger btn-sm remove-student" data-id="${s.id}">Remove</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            userMgmtSection.appendChild(table);
+        }
+        // Insert after teacherReviewTable
+        const reviewTable = document.getElementById('teacherReviewTable');
+        if (reviewTable) reviewTable.parentNode.insertBefore(userMgmtSection, reviewTable.nextSibling);
+
+        // Action handlers
+        userMgmtSection.querySelectorAll('.reset-pw').forEach(btn => {
+            btn.onclick = function() {
+                const id = parseInt(this.getAttribute('data-id'));
+                const student = db.getUserById(id);
+                if (student) {
+                    const newPw = prompt(`Enter new password for ${student.name}:`, '');
+                    if (newPw && newPw.length >= 6) {
+                        student.password = newPw;
+                        alert('Password reset successfully.');
+                    } else if (newPw) {
+                        alert('Password must be at least 6 characters.');
+                    }
+                }
+            };
+        });
+        userMgmtSection.querySelectorAll('.remove-student').forEach(btn => {
+            btn.onclick = function() {
+                const id = parseInt(this.getAttribute('data-id'));
+                const student = db.getUserById(id);
+                if (student && confirm(`Remove student ${student.name}? This cannot be undone.`)) {
+                    db.users = db.users.filter(u => u.id !== id);
+                    alert('Student removed.');
+                    renderTeacherDashboard();
+                }
+            };
+        });
     }
 
     // --- Exam Creation Modal (basic, dynamic) ---
