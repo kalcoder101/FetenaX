@@ -1042,3 +1042,40 @@ body.dark .site-footer .footer-link:hover {
     height: 32px;
   }
 }
+
+/* Add scroll to the create exam modal content */
+#createExamModal .modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Improve close (exit) button for modals */
+.close-btn {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.3rem;
+    font-size: 2.1rem;
+    color: #1A508B;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.close-btn:hover, .close-btn:focus {
+    color: #fff;
+    background: #1A508B;
+    box-shadow: 0 2px 8px rgba(26,80,139,0.18);
+    outline: none;
+}
+
+/* Ensure modal-content is positioned relative for close-btn */
+.modal-content {
+    position: relative;
+}
