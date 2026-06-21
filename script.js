@@ -1,521 +1,7 @@
-// Database simulation for FetenaX
-class Database {
-    constructor() {
-        this.users = [
-            {
-                id: 1,
-                email: 'student@demo.com',
-                password: 'password123',
-                role: 'student',
-                name: 'Abdu Student',
-                avatar: 'JS'
-            },
-            {
-                id: 2,
-                email: 'teacher@demo.com',
-                password: 'password123',
-                role: 'teacher',
-                name: 'Chala Teacher',
-                avatar: 'JT'
-            },
-            {
-                id: 3,
-                email: 'alice@demo.com',
-                password: 'password123',
-                role: 'student',
-                name: 'Abebe Johnson',
-                avatar: 'AJ'
-            }
-        ];
+// script.js - FetenaX Frontend Logic connected to PHP API
 
-        this.exams = [
-            {
-                id: 1,
-                title: 'Java OOP Fundamentals',
-                subject: 'Java OOP',
-                duration: 40,
-                totalQuestions: 20,
-                difficulty: 'Medium',
-                createdBy: 2,
-                createdAt: '2025-06-24',
-                questions: [
-                    { id: 1, question: 'What is encapsulation in Java?', options: ['Hiding data implementation', 'Inheritance', 'Polymorphism', 'Abstraction'], correctAnswer: 0, points: 1 },
-                    { id: 2, question: 'Which keyword is used to inherit a class in Java?', options: ['this', 'super', 'extends', 'implements'], correctAnswer: 2, points: 1 },
-                    { id: 3, question: 'What is the default value of an object reference in Java?', options: ['0', 'null', 'undefined', 'false'], correctAnswer: 1, points: 1 },
-                    { id: 4, question: 'Which of the following is not a Java access modifier?', options: ['public', 'private', 'protected', 'package'], correctAnswer: 3, points: 1 },
-                    { id: 5, question: 'What is method overloading?', options: ['Same method name, different parameters', 'Same method name, same parameters', 'Different method name, same parameters', 'None'], correctAnswer: 0, points: 1 },
-                    { id: 6, question: 'Which interface must be implemented by a Java class to support multithreading?', options: ['Runnable', 'Serializable', 'Cloneable', 'Comparable'], correctAnswer: 0, points: 1 },
-                    { id: 7, question: 'What is the parent class of all Java classes?', options: ['Object', 'Class', 'Main', 'Base'], correctAnswer: 0, points: 1 },
-                    { id: 8, question: 'Which keyword is used to prevent inheritance?', options: ['final', 'static', 'const', 'private'], correctAnswer: 0, points: 1 },
-                    { id: 9, question: 'What is polymorphism?', options: ['Many forms', 'Single form', 'No form', 'None'], correctAnswer: 0, points: 1 },
-                    { id: 10, question: 'Which method is called when an object is created?', options: ['constructor', 'finalize', 'main', 'init'], correctAnswer: 0, points: 1 },
-                    { id: 11, question: 'Which of the following is not a feature of Java?', options: ['Platform independent', 'Object-oriented', 'Pointer support', 'Automatic garbage collection'], correctAnswer: 2, points: 1 },
-                    { id: 12, question: 'Which keyword is used to refer to the current object?', options: ['this', 'super', 'self', 'current'], correctAnswer: 0, points: 1 },
-                    { id: 13, question: 'What is abstraction?', options: ['Hiding implementation details', 'Showing all details', 'Inheritance', 'None'], correctAnswer: 0, points: 1 },
-                    { id: 14, question: 'Which of the following is a valid interface declaration?', options: ['interface A {}', 'class A implements interface B {}', 'interface A implements B {}', 'None'], correctAnswer: 0, points: 1 },
-                    { id: 15, question: 'Which method is used to start a thread?', options: ['start()', 'run()', 'init()', 'main()'], correctAnswer: 0, points: 1 },
-                    { id: 16, question: 'Which of the following is not a type of inheritance in Java?', options: ['Single', 'Multiple', 'Multilevel', 'Hierarchical'], correctAnswer: 1, points: 1 },
-                    { id: 17, question: 'Which exception is thrown when a division by zero occurs?', options: ['ArithmeticException', 'NullPointerException', 'IOException', 'ClassNotFoundException'], correctAnswer: 0, points: 1 },
-                    { id: 18, question: 'Which package contains the Scanner class?', options: ['java.util', 'java.io', 'java.lang', 'java.awt'], correctAnswer: 0, points: 1 },
-                    { id: 19, question: 'What is the output of System.out.println(1 + "2" + 3);', options: ['123', '6', '33', '15'], correctAnswer: 0, points: 1 },
-                    { id: 20, question: 'Which of the following is used to handle exceptions?', options: ['try-catch', 'if-else', 'for loop', 'switch'], correctAnswer: 0, points: 1 }
-                ]
-            },
-            {
-                id: 2,
-                title: 'Fundamental Database Concepts',
-                subject: 'Fundamental Database',
-                duration: 40,
-                totalQuestions: 20,
-                difficulty: 'Medium',
-                createdBy: 2,
-                createdAt: '2025-06-24',
-                questions: [
-                    { id: 1, question: 'What does SQL stand for?', options: ['Structured Query Language', 'Simple Query Language', 'Sequential Query Language', 'Standard Query Language'], correctAnswer: 0, points: 1 },
-                    { id: 2, question: 'Which of the following is a primary key?', options: ['Unique identifier', 'Foreign key', 'Duplicate value', 'None'], correctAnswer: 0, points: 1 },
-                    { id: 3, question: 'Which command is used to remove all records from a table?', options: ['DELETE', 'DROP', 'TRUNCATE', 'REMOVE'], correctAnswer: 2, points: 1 },
-                    { id: 4, question: 'Which normal form eliminates transitive dependency?', options: ['1NF', '2NF', '3NF', 'BCNF'], correctAnswer: 2, points: 1 },
-                    { id: 5, question: 'Which of the following is not a type of join?', options: ['Inner join', 'Outer join', 'Cross join', 'Side join'], correctAnswer: 3, points: 1 },
-                    { id: 6, question: 'Which SQL clause is used to filter records?', options: ['WHERE', 'ORDER BY', 'GROUP BY', 'HAVING'], correctAnswer: 0, points: 1 },
-                    { id: 7, question: 'Which command is used to add a new row to a table?', options: ['INSERT', 'UPDATE', 'ALTER', 'APPEND'], correctAnswer: 0, points: 1 },
-                    { id: 8, question: 'Which of the following is a DDL command?', options: ['CREATE', 'SELECT', 'INSERT', 'UPDATE'], correctAnswer: 0, points: 1 },
-                    { id: 9, question: 'Which of the following is not a NoSQL database?', options: ['MongoDB', 'MySQL', 'Cassandra', 'Redis'], correctAnswer: 1, points: 1 },
-                    { id: 10, question: 'Which key is used to link two tables?', options: ['Foreign key', 'Primary key', 'Super key', 'Candidate key'], correctAnswer: 0, points: 1 },
-                    { id: 11, question: 'Which command is used to change data in a table?', options: ['UPDATE', 'SELECT', 'ALTER', 'INSERT'], correctAnswer: 0, points: 1 },
-                    { id: 12, question: 'Which of the following is not a constraint in SQL?', options: ['UNIQUE', 'PRIMARY', 'FOREIGN', 'SELECT'], correctAnswer: 3, points: 1 },
-                    { id: 13, question: 'Which of the following is a transaction property?', options: ['ACID', 'BASE', 'CRUD', 'REST'], correctAnswer: 0, points: 1 },
-                    { id: 14, question: 'Which SQL statement is used to extract data from a database?', options: ['SELECT', 'GET', 'EXTRACT', 'OPEN'], correctAnswer: 0, points: 1 },
-                    { id: 15, question: 'Which of the following is not a valid SQL data type?', options: ['VARCHAR', 'INT', 'FLOAT', 'ARRAY'], correctAnswer: 3, points: 1 },
-                    { id: 16, question: 'Which command is used to remove a table from a database?', options: ['DROP', 'DELETE', 'REMOVE', 'TRUNCATE'], correctAnswer: 0, points: 1 },
-                    { id: 17, question: 'Which of the following is a database model?', options: ['Relational', 'Hierarchical', 'Network', 'All of the above'], correctAnswer: 3, points: 1 },
-                    { id: 18, question: 'Which SQL function returns the number of rows?', options: ['COUNT()', 'SUM()', 'AVG()', 'MAX()'], correctAnswer: 0, points: 1 },
-                    { id: 19, question: 'Which of the following is not a valid SQL constraint?', options: ['CHECK', 'DEFAULT', 'INDEX', 'UNIQUE'], correctAnswer: 2, points: 1 },
-                    { id: 20, question: 'Which command is used to modify the structure of a table?', options: ['ALTER', 'UPDATE', 'MODIFY', 'CHANGE'], correctAnswer: 0, points: 1 }
-                ]
-            },
-            {
-                id: 3,
-                title: 'C++ Programming Basics',
-                subject: 'C++',
-                duration: 40,
-                totalQuestions: 20,
-                difficulty: 'Medium',
-                createdBy: 2,
-                createdAt: '2025-06-24',
-                questions: [
-                    { id: 1, question: 'Which of the following is the correct file extension for C++ source files?', options: ['.cpp', '.c', '.java', '.py'], correctAnswer: 0, points: 1 },
-                    { id: 2, question: 'Which operator is used to access members of a class using a pointer?', options: ['.', '->', '::', ':'], correctAnswer: 1, points: 1 },
-                    { id: 3, question: 'Which of the following is not a C++ data type?', options: ['int', 'float', 'real', 'char'], correctAnswer: 2, points: 1 },
-                    { id: 4, question: 'Which keyword is used to define a constant in C++?', options: ['const', 'constant', 'define', 'static'], correctAnswer: 0, points: 1 },
-                    { id: 5, question: 'Which of the following is used for input in C++?', options: ['cin', 'cout', 'printf', 'scanf'], correctAnswer: 0, points: 1 },
-                    { id: 6, question: 'Which of the following is not a loop structure in C++?', options: ['for', 'while', 'repeat', 'do-while'], correctAnswer: 2, points: 1 },
-                    { id: 7, question: 'Which of the following is used to create an object in C++?', options: ['new', 'malloc', 'alloc', 'create'], correctAnswer: 0, points: 1 },
-                    { id: 8, question: 'Which of the following is not a valid access specifier in C++?', options: ['public', 'private', 'protected', 'internal'], correctAnswer: 3, points: 1 },
-                    { id: 9, question: 'Which of the following is used to define a class in C++?', options: ['class', 'struct', 'object', 'define'], correctAnswer: 0, points: 1 },
-                    { id: 10, question: 'Which of the following is not a valid C++ operator?', options: ['+', '-', '*', '**'], correctAnswer: 3, points: 1 },
-                    { id: 11, question: 'Which of the following is used to terminate a statement in C++?', options: [';', '.', ':', ','], correctAnswer: 0, points: 1 },
-                    { id: 12, question: 'Which of the following is not a valid C++ loop?', options: ['for', 'foreach', 'while', 'do-while'], correctAnswer: 1, points: 1 },
-                    { id: 13, question: 'Which of the following is used to allocate memory dynamically in C++?', options: ['new', 'malloc', 'alloc', 'calloc'], correctAnswer: 0, points: 1 },
-                    { id: 14, question: 'Which of the following is not a valid C++ function?', options: ['main()', 'start()', 'printf()', 'scanf()'], correctAnswer: 1, points: 1 },
-                    { id: 15, question: 'Which of the following is used to print output in C++?', options: ['cout', 'cin', 'printf', 'print'], correctAnswer: 0, points: 1 },
-                    { id: 16, question: 'Which of the following is not a valid C++ keyword?', options: ['int', 'float', 'string', 'real'], correctAnswer: 3, points: 1 },
-                    { id: 17, question: 'Which of the following is used to define a function in C++?', options: ['function', 'def', 'void', 'fun'], correctAnswer: 2, points: 1 },
-                    { id: 18, question: 'Which of the following is not a valid C++ statement?', options: ['break', 'continue', 'exit', 'stop'], correctAnswer: 3, points: 1 },
-                    { id: 19, question: 'Which of the following is used to include a header file in C++?', options: ['#include', 'import', 'require', 'use'], correctAnswer: 0, points: 1 },
-                    { id: 20, question: 'Which of the following is not a valid C++ comment?', options: ['// comment', '/* comment */', '# comment', '-- comment'], correctAnswer: 3, points: 1 }
-                ]
-            },
-            {
-                id: 4,
-                title: 'Computer Organization and Assembly Language',
-                subject: 'Computer Organization and Assembly Language',
-                duration: 40,
-                totalQuestions: 20,
-                difficulty: 'Medium',
-                createdBy: 2,
-                createdAt: '2025-06-24',
-                questions: [
-                    { id: 1, question: 'What is the basic unit of data in a computer?', options: ['Bit', 'Byte', 'Word', 'Nibble'], correctAnswer: 0, points: 1 },
-                    { id: 2, question: 'Which register holds the address of the next instruction?', options: ['Program Counter', 'Accumulator', 'Instruction Register', 'Stack Pointer'], correctAnswer: 0, points: 1 },
-                    { id: 3, question: 'Which of the following is not a type of memory?', options: ['RAM', 'ROM', 'CPU', 'Cache'], correctAnswer: 2, points: 1 },
-                    { id: 4, question: 'Which of the following is a machine language instruction?', options: ['MOV', 'ADD', 'SUB', 'All of the above'], correctAnswer: 3, points: 1 },
-                    { id: 5, question: 'Which of the following is not a type of addressing mode?', options: ['Immediate', 'Direct', 'Indirect', 'Sequential'], correctAnswer: 3, points: 1 },
-                    { id: 6, question: 'Which of the following is used to store data temporarily?', options: ['RAM', 'ROM', 'Hard Disk', 'CD'], correctAnswer: 0, points: 1 },
-                    { id: 7, question: 'Which of the following is not a type of bus?', options: ['Data bus', 'Address bus', 'Control bus', 'Power bus'], correctAnswer: 3, points: 1 },
-                    { id: 8, question: 'Which of the following is used to convert assembly language to machine code?', options: ['Assembler', 'Compiler', 'Interpreter', 'Linker'], correctAnswer: 0, points: 1 },
-                    { id: 9, question: 'Which of the following is not a type of instruction?', options: ['Data transfer', 'Arithmetic', 'Logical', 'Painting'], correctAnswer: 3, points: 1 },
-                    { id: 10, question: 'Which of the following is used to store the result of an operation?', options: ['Accumulator', 'Program Counter', 'Stack Pointer', 'Instruction Register'], correctAnswer: 0, points: 1 },
-                    { id: 11, question: 'Which of the following is not a type of micro-operation?', options: ['Register transfer', 'Arithmetic', 'Logical', 'Painting'], correctAnswer: 3, points: 1 },
-                    { id: 12, question: 'Which of the following is used to store instructions?', options: ['ROM', 'RAM', 'Cache', 'Register'], correctAnswer: 0, points: 1 },
-                    { id: 13, question: 'Which of the following is not a type of instruction format?', options: ['Zero address', 'One address', 'Two address', 'Three address', 'Four address'], correctAnswer: 4, points: 1 },
-                    { id: 14, question: 'Which of the following is used to store the return address?', options: ['Stack', 'Heap', 'Register', 'Accumulator'], correctAnswer: 0, points: 1 },
-                    { id: 15, question: 'Which of the following is not a type of interrupt?', options: ['Hardware', 'Software', 'Manual', 'External'], correctAnswer: 2, points: 1 },
-                    { id: 16, question: 'Which of the following is used to store the status of a process?', options: ['Program Status Word', 'Program Counter', 'Stack Pointer', 'Accumulator'], correctAnswer: 0, points: 1 },
-                    { id: 17, question: 'Which of the following is not a type of assembly language directive?', options: ['ORG', 'END', 'MOV', 'EQU'], correctAnswer: 2, points: 1 },
-                    { id: 18, question: 'Which of the following is used to store the base address?', options: ['Base Register', 'Stack Pointer', 'Accumulator', 'Program Counter'], correctAnswer: 0, points: 1 },
-                    { id: 19, question: 'Which of the following is not a type of memory hierarchy?', options: ['Cache', 'RAM', 'ROM', 'CPU'], correctAnswer: 3, points: 1 },
-                    { id: 20, question: 'Which of the following is used to store the result of a multiplication operation?', options: ['Accumulator', 'Multiplier', 'Product Register', 'Quotient Register'], correctAnswer: 2, points: 1 }
-                ]
-            }
-        ];
-
-        this.results = [
-            {
-                id: 1,
-                examId: 1,
-                examTitle: 'Java OOP Fundamentals',
-                studentId: 1,
-                studentName: 'Abdu Student',
-                score: 85,
-                correctAnswers: 17,
-                totalQuestions: 20,
-                timeTaken: 1200, // in seconds
-                completedAt: '2024-02-01T10:30:00Z',
-                answers: [1, 2, 1, 2, 1, 0, 2, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2] // user's selected answers
-            },
-            {
-                id: 2,
-                examId: 2,
-                examTitle: 'Fundamental Database Concepts',
-                studentId: 3,
-                studentName: 'Abebe Johnson',
-                score: 75,
-                correctAnswers: 15,
-                totalQuestions: 20,
-                timeTaken: 900,
-                completedAt: '2024-02-02T14:15:00Z',
-                answers: [0, 1, 1, 0, 2, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1]
-            },
-            {
-                id: 3,
-                examId: 3,
-                examTitle: 'C++ Programming Basics',
-                studentId: 1,
-                studentName: 'Abdu Student',
-                score: 90,
-                correctAnswers: 18,
-                totalQuestions: 20,
-                timeTaken: 1100,
-                completedAt: '2024-02-03T09:00:00Z',
-                answers: [0, 1, 2, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 2, 0, 1, 2]
-            },
-            {
-                id: 4,
-                examId: 4,
-                examTitle: 'Computer Organization and Assembly Language',
-                studentId: 3,
-                studentName: 'Abebe Johnson',
-                score: 80,
-                correctAnswers: 16,
-                totalQuestions: 20,
-                timeTaken: 1300,
-                completedAt: '2024-02-04T11:45:00Z',
-                answers: [0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0]
-            }
-        ];
-
-        this.categories = [
-            { id: 1, name: 'Mathematics', color: '#3B82F6' },
-            { id: 2, name: 'Science', color: '#10B981' },
-            { id: 3, name: 'English', color: '#8B5CF6' },
-            { id: 4, name: 'History', color: '#F59E0B' },
-            { id: 5, name: 'Geography', color: '#EF4444' }
-        ];
-    }
-
-    // User management methods
-    authenticate(email, password) {
-        return this.users.find(user => 
-            user.email === email && user.password === password
-        );
-    }
-
-    getUserById(id) {
-        return this.users.find(user => user.id === id);
-    }
-
-    addUser(userData) {
-        const newUser = {
-            id: this.users.length + 1,
-            ...userData,
-            avatar: this.generateAvatar(userData.name)
-        };
-        this.users.push(newUser);
-        return newUser;
-    }
-
-    generateAvatar(name) {
-        return name.split(' ')
-            .map(word => word[0])
-            .join('')
-            .toUpperCase()
-            .substring(0, 2);
-    }
-
-    // Exam management methods
-    getAllExams() {
-        return this.exams;
-    }
-
-    getExamById(id) {
-        return this.exams.find(exam => exam.id === id);
-    }
-
-    addExam(examData) {
-        const newExam = {
-            id: this.exams.length + 1,
-            ...examData,
-            createdAt: new Date().toISOString().split('T')[0],
-            totalQuestions: examData.questions.length
-        };
-        this.exams.push(newExam);
-        return newExam;
-    }
-
-    updateExam(id, examData) {
-        const index = this.exams.findIndex(exam => exam.id === id);
-        if (index !== -1) {
-            this.exams[index] = { ...this.exams[index], ...examData };
-            return this.exams[index];
-        }
-        return null;
-    }
-
-    deleteExam(id) {
-        const index = this.exams.findIndex(exam => exam.id === id);
-        if (index !== -1) {
-            return this.exams.splice(index, 1)[0];
-        }
-        return null;
-    }
-
-    getExamsByTeacher(teacherId) {
-        return this.exams.filter(exam => exam.createdBy === teacherId);
-    }
-
-    // Results management methods
-    addResult(resultData) {
-        const newResult = {
-            id: this.results.length + 1,
-            ...resultData,
-            completedAt: new Date().toISOString()
-        };
-        this.results.push(newResult);
-        return newResult;
-    }
-
-    getResultsByStudent(studentId) {
-        return this.results.filter(result => result.studentId === studentId);
-    }
-
-    getResultsByExam(examId) {
-        return this.results.filter(result => result.examId === examId);
-    }
-
-    getAllResults() {
-        return this.results;
-    }
-
-    getRecentResults(limit = 10) {
-        return this.results
-            .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
-            .slice(0, limit);
-    }
-
-    // Statistics methods
-    getExamStatistics(examId) {
-        const results = this.getResultsByExam(examId);
-        
-        if (results.length === 0) {
-            return {
-                totalAttempts: 0,
-                averageScore: 0,
-                highestScore: 0,
-                lowestScore: 0,
-                passRate: 0
-            };
-        }
-
-        const scores = results.map(result => result.score);
-        const passedCount = scores.filter(score => score >= 60).length;
-
-        return {
-            totalAttempts: results.length,
-            averageScore: Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length),
-            highestScore: Math.max(...scores),
-            lowestScore: Math.min(...scores),
-            passRate: Math.round((passedCount / results.length) * 100)
-        };
-    }
-
-    getStudentStatistics(studentId) {
-        const results = this.getResultsByStudent(studentId);
-        
-        if (results.length === 0) {
-            return {
-                totalExamsTaken: 0,
-                averageScore: 0,
-                bestScore: 0,
-                totalTimeSpent: 0
-            };
-        }
-
-        const scores = results.map(result => result.score);
-        const totalTime = results.reduce((sum, result) => sum + result.timeTaken, 0);
-
-        return {
-            totalExamsTaken: results.length,
-            averageScore: Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length),
-            bestScore: Math.max(...scores),
-            totalTimeSpent: totalTime
-        };
-    }
-
-    getOverallStatistics() {
-        return {
-            totalUsers: this.users.length,
-            totalStudents: this.users.filter(user => user.role === 'student').length,
-            totalTeachers: this.users.filter(user => user.role === 'teacher').length,
-            totalExams: this.exams.length,
-            totalResults: this.results.length,
-            averageScore: this.results.length > 0 
-                ? Math.round(this.results.reduce((sum, result) => sum + result.score, 0) / this.results.length)
-                : 0
-        };
-    }
-
-    // Utility methods
-    formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    }
-
-    calculateScore(correctAnswers, totalQuestions) {
-        return Math.round((correctAnswers / totalQuestions) * 100);
-    }
-
-    getGradeFromScore(score) {
-        if (score >= 90) return { grade: 'A+', color: '#10B981' };
-        if (score >= 80) return { grade: 'A', color: '#059669' };
-        if (score >= 70) return { grade: 'B', color: '#3B82F6' };
-        if (score >= 60) return { grade: 'C', color: '#F59E0B' };
-        if (score >= 50) return { grade: 'D', color: '#EF4444' };
-        return { grade: 'F', color: '#DC2626' };
-    }
-
-    // Search and filter methods
-    searchExams(query, subject = null, difficulty = null) {
-        let filteredExams = this.exams;
-
-        if (query) {
-            filteredExams = filteredExams.filter(exam =>
-                exam.title.toLowerCase().includes(query.toLowerCase()) ||
-                exam.subject.toLowerCase().includes(query.toLowerCase())
-            );
-        }
-
-        if (subject) {
-            filteredExams = filteredExams.filter(exam => exam.subject === subject);
-        }
-
-        if (difficulty) {
-            filteredExams = filteredExams.filter(exam => exam.difficulty === difficulty);
-        }
-
-        return filteredExams;
-    }
-
-    // Data validation methods
-    validateUser(userData) {
-        const errors = [];
-        
-        if (!userData.name || userData.name.length < 2) {
-            errors.push('Name must be at least 2 characters long');
-        }
-        
-        if (!userData.email || !this.isValidEmail(userData.email)) {
-            errors.push('Valid email address is required');
-        }
-        
-        if (this.users.some(user => user.email === userData.email)) {
-            errors.push('Email address already exists');
-        }
-        
-        if (!userData.password || userData.password.length < 6) {
-            errors.push('Password must be at least 6 characters long');
-        }
-        
-        return errors;
-    }
-
-    validateExam(examData) {
-        const errors = [];
-        
-        if (!examData.title || examData.title.length < 3) {
-            errors.push('Exam title must be at least 3 characters long');
-        }
-        
-        if (!examData.subject) {
-            errors.push('Subject is required');
-        }
-        
-        if (!examData.duration || examData.duration < 1) {
-            errors.push('Duration must be at least 1 minute');
-        }
-        
-        if (!examData.questions || examData.questions.length === 0) {
-            errors.push('At least one question is required');
-        }
-        
-        return errors;
-    }
-
-    isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    // Data export methods
-    exportResults(format = 'json') {
-        if (format === 'json') {
-            return JSON.stringify(this.results, null, 2);
-        } else if (format === 'csv') {
-            const headers = ['ID', 'Exam Title', 'Student Name', 'Score', 'Completed At'];
-            const rows = this.results.map(result => [
-                result.id,
-                result.examTitle,
-                result.studentName,
-                result.score,
-                result.completedAt
-            ]);
-            
-            return [headers, ...rows]
-                .map(row => row.join(','))
-                .join('\n');
-        }
-    }
-
-    // Reset methods (for testing)
-    resetDatabase() {
-        this.__proto__.constructor.call(this);
-    }
-
-    clearResults() {
-        this.results = [];
-    }
-}
-
-// Create and export database instance
-const db = new Database();
-
-// Attach db to window for browser use
-if (typeof window !== 'undefined') {
-    window.db = db;
-}
-
-// --- UI Logic for Login and Dashboard ---
 document.addEventListener('DOMContentLoaded', function () {
+    // --- DOM Elements ---
     const dashboard = document.getElementById('dashboard');
     const studentDashboard = document.getElementById('studentDashboard');
     const teacherDashboard = document.getElementById('teacherDashboard');
@@ -525,432 +11,750 @@ document.addEventListener('DOMContentLoaded', function () {
     const authSubmitBtn = document.getElementById('authSubmitBtn');
     const switchAuthMode = document.getElementById('switchAuthMode');
     const resultsPage = document.getElementById('resultsPage');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const themeToggle = document.getElementById('themeToggle');
+
+    // --- State variables ---
+    let currentUser = null;
     let isLoginMode = true;
 
-    // Hide teacher dashboard by default, show student dashboard
-    studentDashboard.classList.remove('hidden');
-    teacherDashboard.classList.add('hidden');
+    // --- SVG Icon Library ---
+    const ICONS = {
+        login: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:6px;"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none" /><path d="M4 20c0-2.5 3.5-4 8-4s8 1.5 8 4" stroke="currentColor" stroke-width="2" fill="none" /></svg>`,
+        signup: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:6px;"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none" /><path d="M4 20c0-2.5 3.5-4 8-4s8 1.5 8 4" stroke="currentColor" stroke-width="2" fill="none" /><path d="M19 8v6M22 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>`,
+        chart: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+        file: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`,
+        fileLg: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`,
+        users: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
+        trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`,
+        search: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`
+    };
 
-    // --- AUTH LOGIC (Login/Signup) ---
-    let currentUser = null;
+    // --- Format helper ---
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    // --- API Request Wrapper ---
+    async function apiRequest(action, data = {}, method = 'POST') {
+        const url = 'api.php';
+        let options = {
+            method: method,
+            headers: {}
+        };
+
+        if (method === 'POST') {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify({ action, ...data });
+        } else {
+            const queryParams = new URLSearchParams({ action, ...data }).toString();
+            return fetch(`${url}?${queryParams}`).then(res => res.json());
+        }
+
+        try {
+            const response = await fetch(url, options);
+            return await response.json();
+        } catch (error) {
+            console.error('API request failed:', error);
+            return { status: 'error', message: 'Network error. Please try again.' };
+        }
+    }
+
+    // --- Auth Logic ---
+    async function checkAuthStatus() {
+        const res = await apiRequest('status', {}, 'GET');
+        if (res.status === 'success' && res.user) {
+            currentUser = res.user;
+            hideAuthModal();
+            showDashboardForRole(currentUser.role);
+        } else {
+            showAuthModal();
+        }
+    }
 
     function showAuthModal() {
         authModal.classList.remove('hidden');
         dashboard.classList.add('hidden');
         resultsPage.classList.add('hidden');
         document.getElementById('examInterface').classList.add('hidden');
-        // Reset login/signup form fields and errors
+        logoutBtn.classList.add('hidden');
         authForm.reset();
         document.getElementById('signupFields').classList.add('hidden');
         isLoginMode = true;
         authTitle.textContent = 'Login';
-        authSubmitBtn.textContent = 'Login';
-        switchAuthMode.textContent = 'Sign up';
+        authSubmitBtn.innerHTML = `${ICONS.login} Login`;
+        switchAuthMode.innerHTML = `${ICONS.signup} Sign up`;
     }
+
     function hideAuthModal() {
         authModal.classList.add('hidden');
         dashboard.classList.remove('hidden');
+        logoutBtn.classList.remove('hidden');
     }
-    // Show/hide signup fields based on mode
+
     function switchMode() {
         isLoginMode = !isLoginMode;
         authTitle.textContent = isLoginMode ? 'Login' : 'Sign Up';
-        authSubmitBtn.textContent = isLoginMode ? 'Login' : 'Sign Up';
-        switchAuthMode.textContent = isLoginMode ? 'Sign up' : 'Login';
+        authSubmitBtn.innerHTML = isLoginMode
+            ? `${ICONS.login} Login`
+            : `${ICONS.signup} Sign up`;
+        switchAuthMode.innerHTML = isLoginMode
+            ? `${ICONS.signup} Sign up`
+            : `${ICONS.login} Login`;
         document.getElementById('signupFields').classList.toggle('hidden', isLoginMode);
-        // Clear form fields on mode switch
         authForm.reset();
-        // Remove teacher option from role selector in signup mode
-        const roleSelect = document.getElementById('authRole');
-        if (!isLoginMode) {
-            // In signup mode, only allow student
-            roleSelect.value = 'student';
-            roleSelect.disabled = true;
-        } else {
-            // In login mode, allow both
-            roleSelect.disabled = false;
-        }
     }
-    switchAuthMode.addEventListener('click', function(e) {
+
+    switchAuthMode.addEventListener('click', function (e) {
         e.preventDefault();
         switchMode();
     });
 
-    authForm.addEventListener('submit', function(e) {
+    // ---- FIXED: Simplified login — only username + password ----
+    authForm.addEventListener('submit', async function (e) {
         e.preventDefault();
-        const role = document.getElementById('authRole').value;
         const username = document.getElementById('authUsername').value.trim();
         const password = document.getElementById('authPassword').value;
-        const loginId = document.getElementById('authId').value.trim();
-        // --- MASTER TEACHER ACCOUNT (PRIVATE) ---
-        const MASTER_TEACHER = {
-            username: 'teacher',
-            password: '123456',
-            name: 'TeacherX',
-            role: 'teacher',
-            id: 9999,
-            userId: 'MT1234',
-            email: 'teacher@private.local',
-            avatar: 'MT'
-        };
-        // --- MASTER STUDENT ACCOUNT (PRIVATE) ---
-        const MASTER_STUDENT = {
-            username: 'student',
-            password: '123456',
-            name: 'StudentX',
-            role: 'student',
-            id: 8888,
-            userId: 'MS1234',
-            email: 'student@private.local',
-            avatar: 'MS'
-        };
+
         if (isLoginMode) {
-            if (!username || !password || !loginId) {
-                alert('Please enter username, password, and ID.');
+            if (!username || !password) {
+                alert('Please enter your username/ID and password.');
                 return;
             }
-            // Check for master teacher login (username or email, password, and ID)
-            if (
-                (username === MASTER_TEACHER.username || username === MASTER_TEACHER.email) &&
-                password === MASTER_TEACHER.password &&
-                (loginId === MASTER_TEACHER.userId || loginId === MASTER_TEACHER.id.toString())
-            ) {
-                currentUser = MASTER_TEACHER;
+            const res = await apiRequest('login', { username, password });
+            if (res.status === 'success') {
+                currentUser = res.user;
                 hideAuthModal();
-                showDashboardForRole('teacher');
-                return;
-            }
-            // Check for master student login (username or email, password, and ID)
-            if (
-                (username === MASTER_STUDENT.username || username === MASTER_STUDENT.email) &&
-                password === MASTER_STUDENT.password &&
-                (loginId === MASTER_STUDENT.userId || loginId === MASTER_STUDENT.id.toString())
-            ) {
-                currentUser = MASTER_STUDENT;
-                hideAuthModal();
-                showDashboardForRole('student');
-                return;
-            }
-            // Accept both username and email for login (regular users), require ID match and role
-            const user = db.users.find(u =>
-                (u.email === username || u.email.split('@')[0] === username) &&
-                u.password === password &&
-                (u.userId === loginId || u.id?.toString() === loginId) &&
-                u.role === role
-            );
-            if (user) {
-                currentUser = user;
-                hideAuthModal();
-                showDashboardForRole(user.role);
+                showDashboardForRole(currentUser.role);
             } else {
-                alert('Invalid credentials. Please check your username, password, ID, and role.');
+                alert(res.message || 'Login failed.');
             }
         } else {
-            // Signup
-            // Only allow student signup
-            if (role !== 'student') {
-                alert('Only student sign up is allowed.');
-                return;
-            }
             const fullName = document.getElementById('signupFullName').value.trim();
-            const userId = document.getElementById('signupId').value.trim();
-            if (!fullName || !userId) {
-                alert('Please enter your full name and ID.');
+            const userId = document.getElementById('signupUserId').value.trim();
+            if (!fullName || !username || !password || !userId) {
+                alert('Please fill in all signup fields (Full Name, Username, Password, Student ID).');
                 return;
             }
-            if (db.users.some(u => u.email === username)) {
-                alert('Username already exists.');
-                return;
+            const res = await apiRequest('signup', { name: fullName, username, password, userId });
+            if (res.status === 'success') {
+                currentUser = res.user;
+                hideAuthModal();
+                showDashboardForRole(currentUser.role);
+            } else {
+                alert(res.message || 'Sign up failed.');
             }
-            if (db.users.some(u => u.userId === userId)) {
-                alert('ID already exists.');
-                return;
-            }
-            if (username.length < 3 || password.length < 6) {
-                alert('Username must be at least 3 chars and password at least 6 chars.');
-                return;
-            }
-            const user = db.addUser({ name: fullName, email: username, password, role, userId });
-            currentUser = user;
-            hideAuthModal();
-            showDashboardForRole(user.role);
         }
     });
 
-    // Logout button logic (single setup)
-    function setupLogoutButton() {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.onclick = function() {
-                currentUser = null;
-                showAuthModal();
-            };
+    async function handleLogout() {
+        const res = await apiRequest('logout');
+        if (res.status === 'success') {
+            currentUser = null;
+            showAuthModal();
         }
     }
-    setupLogoutButton();
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+    const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
+    if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', handleLogout);
 
-    // Ensure logout button works after login and after DOM updates
-    // window.addEventListener('DOMContentLoaded', function() {
-    //     showAuthModal();
-    //     setupLogoutButton();
-    // });
-    // Also call after showing dashboard for role
+    function showCustomConfirm(title, message, onConfirm) {
+        const modal = document.getElementById('customConfirmModal');
+        const titleEl = document.getElementById('confirmModalTitle');
+        const msgEl = document.getElementById('confirmModalMessage');
+        const okBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+        modal.classList.remove('hidden');
+
+        const newOkBtn = okBtn.cloneNode(true);
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+        newOkBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            if (onConfirm) onConfirm();
+        });
+        newCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    }
+
+    function switchTab(role, tabId) {
+        const container = role === 'student' ? studentDashboard : teacherDashboard;
+        const nav = role === 'student' ? document.getElementById('studentNav') : document.getElementById('teacherNav');
+        container.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+        const targetTab = document.getElementById(tabId);
+        if (targetTab) targetTab.classList.remove('hidden');
+        nav.querySelectorAll('.menu-item').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+        });
+
+        const mainContentTitle = document.getElementById('mainContentTitle');
+        const mainContentSubtitle = document.getElementById('mainContentSubtitle');
+        const titles = {
+            'student-exams':    { title: 'Available Exams',      subtitle: 'Select an exam and test your knowledge' },
+            'student-history':  { title: 'My Performance',       subtitle: 'Track your progress and attempt history' },
+            'teacher-overview': { title: 'Dashboard Overview',   subtitle: 'Real-time statistics and recent activity summary' },
+            'teacher-exams':    { title: 'Exam Settings',        subtitle: 'Create, analyse and manage examinations' },
+            'teacher-students': { title: 'Student Accounts',     subtitle: 'Manage student registrations and credentials' },
+            'teacher-attempts': { title: 'Review Attempts',      subtitle: 'Inspect student exam papers and results' }
+        };
+        if (titles[tabId] && mainContentTitle && mainContentSubtitle) {
+            mainContentTitle.textContent = titles[tabId].title;
+            mainContentSubtitle.textContent = titles[tabId].subtitle;
+        }
+    }
+
     function showDashboardForRole(role) {
+        dashboard.classList.remove('hidden');
+        const topNavbar = document.querySelector('.navbar');
+        if (topNavbar) topNavbar.classList.add('hidden');
+
+        const studentNav = document.getElementById('studentNav');
+        const teacherNav = document.getElementById('teacherNav');
+
+        const initials = (currentUser.name || currentUser.email || 'US').substring(0, 2).toUpperCase();
+        document.getElementById('sidebarAvatar').textContent = initials;
+        document.getElementById('sidebarUserName').textContent = currentUser.name || currentUser.email;
+        document.getElementById('sidebarUserRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+
         if (role === 'student') {
-            document.getElementById('studentDashboard').classList.remove('hidden');
-            document.getElementById('teacherDashboard').classList.add('hidden');
-            renderExamsList();
+            studentDashboard.classList.remove('hidden');
+            teacherDashboard.classList.add('hidden');
+            studentNav.classList.remove('hidden');
+            teacherNav.classList.add('hidden');
+            studentNav.querySelectorAll('.menu-item').forEach(btn => btn.classList.remove('active'));
+            studentNav.querySelector('[data-tab="student-exams"]').classList.add('active');
+            switchTab('student', 'student-exams');
+            loadStudentDashboard();
         } else {
-            document.getElementById('teacherDashboard').classList.remove('hidden');
-            document.getElementById('studentDashboard').classList.add('hidden');
-            renderTeacherDashboard();
+            teacherDashboard.classList.remove('hidden');
+            studentDashboard.classList.add('hidden');
+            teacherNav.classList.remove('hidden');
+            studentNav.classList.add('hidden');
+            teacherNav.querySelectorAll('.menu-item').forEach(btn => btn.classList.remove('active'));
+            teacherNav.querySelector('[data-tab="teacher-overview"]').classList.add('active');
+            switchTab('teacher', 'teacher-overview');
+            loadTeacherDashboard();
         }
-        setupLogoutButton();
     }
 
-    function renderTeacherDashboard() {
-        // Stats
-        document.getElementById('totalExams').textContent = db.exams.length;
-        document.getElementById('totalAttempts').textContent = db.results.length;
-        document.getElementById('avgScore').textContent = db.results.length > 0 ? Math.round(db.results.reduce((sum, r) => sum + r.score, 0) / db.results.length) + '%' : '0%';
+    // =========================================================================
+    // --- STUDENT DASHBOARD ---
+    // =========================================================================
+    async function loadStudentDashboard() {
+        const examsRes   = await apiRequest('get_exams', {}, 'GET');
+        const resultsRes = await apiRequest('get_student_results', {}, 'GET');
 
-        // --- Modern Analytics Section ---
-        let oldChart = document.getElementById('teacherAnalytics');
-        if (oldChart) oldChart.remove();
-        const analyticsSection = document.createElement('section');
-        analyticsSection.id = 'teacherAnalytics';
-        analyticsSection.style.margin = '2rem 0 1.5rem 0';
-        analyticsSection.style.background = 'var(--card-bg, #fff)';
-        analyticsSection.style.borderRadius = '1rem';
-        analyticsSection.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)';
-        analyticsSection.style.padding = '2rem 1.5rem';
-        analyticsSection.style.fontFamily = 'var(--pixel-font, monospace)';
-        analyticsSection.innerHTML = `<h3 style="margin-bottom:1.5rem;font-size:1.2rem;letter-spacing:1px;display:flex;align-items:center;gap:0.5em;"><span style='font-size:1.3em;'>📊</span> Exam Performance Analytics</h3>`;
-        // Grid of stat cards for each exam
-        const grid = document.createElement('div');
-        grid.style.display = 'grid';
-        grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(260px, 1fr))';
-        grid.style.gap = '1.5rem';
-        db.exams.forEach(exam => {
-            const stats = db.getExamStatistics(exam.id);
-            const card = document.createElement('div');
-            card.style.background = 'var(--card-inner-bg, #f9fafb)';
-            card.style.border = '1.5px solid #e5e7eb';
-            card.style.borderRadius = '0.7rem';
-            card.style.padding = '1.2rem 1rem 1rem 1rem';
-            card.style.fontSize = '1rem';
-            card.style.display = 'flex';
-            card.style.flexDirection = 'column';
-            card.style.justifyContent = 'space-between';
-            card.style.transition = 'box-shadow 0.2s';
-            card.style.boxShadow = '0 1px 4px rgba(36,36,36,0.06)';
-            card.onmouseover = () => card.style.boxShadow = '0 4px 16px rgba(36,36,36,0.13)';
-            card.onmouseout = () => card.style.boxShadow = '0 1px 4px rgba(36,36,36,0.06)';
-            card.innerHTML = `
-                <div style="font-weight:700;font-size:1.08rem;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.5em;"><span style='font-size:1.1em;'>📝</span> ${exam.title}</div>
-                <div style="font-size:0.93rem;color:#6b7280;margin-bottom:0.5rem;">${exam.subject}</div>
-                <div style="display:flex;gap:1em;margin-bottom:0.5rem;">
-                    <span style="font-size:0.92em;">Attempts: <b>${stats.totalAttempts}</b></span>
-                    <span style="font-size:0.92em;">Avg: <b>${stats.averageScore}%</b></span>
-                </div>
-                <div style="height:16px;background:#e5e7eb;border-radius:7px;overflow:hidden;margin-bottom:0.5rem;">
-                    <div style="background:#3b82f6;height:100%;width:${stats.averageScore}%;min-width:2px;transition:width 0.5s;"></div>
-                </div>
-                <div style="font-size:0.91em;display:flex;gap:1em;">
-                    <span>High: <b>${stats.highestScore}%</b></span>
-                    <span>Low: <b>${stats.lowestScore}%</b></span>
-                    <span>Pass: <b>${stats.passRate}%</b></span>
+        // ---- Available Exams List ----
+        const examsList = document.getElementById('examsList');
+        examsList.innerHTML = '';
+
+        if (examsRes.status === 'success' && examsRes.exams) {
+            if (examsRes.exams.length === 0) {
+                examsList.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);">No exams available yet.</div>';
+            } else {
+                examsRes.exams.forEach(exam => {
+                    const card = document.createElement('div');
+                    card.className = 'exam-card';
+                    card.dataset.title   = (exam.title || '').toLowerCase();
+                    card.dataset.subject = (exam.subject || '').toLowerCase();
+                    card.innerHTML = `
+                        <div class="exam-card-header">
+                            <div class="exam-icon">${exam.subject[0]}</div>
+                            <div>
+                                <div class="exam-title">${exam.title}</div>
+                                <div class="exam-subject">${exam.subject}</div>
+                            </div>
+                        </div>
+                        <div class="exam-details">
+                            <div class="exam-detail"><span>Duration:</span><span>${exam.duration} min</span></div>
+                            <div class="exam-detail"><span>Questions:</span><span>${exam.totalQuestions}</span></div>
+                            <div class="exam-detail"><span>Difficulty:</span><span>${exam.difficulty || 'N/A'}</span></div>
+                        </div>
+                        <button class="btn btn-primary btn-full start-exam-btn" data-id="${exam.id}">Start Exam</button>
+                    `;
+                    examsList.appendChild(card);
+                });
+
+                examsList.querySelectorAll('.start-exam-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        startExam(parseInt(this.getAttribute('data-id')));
+                    });
+                });
+            }
+        }
+
+        // ---- Live Search for Exam Cards ----
+        const examSearchInput = document.getElementById('studentExamSearch');
+        if (examSearchInput) {
+            const freshSearch = examSearchInput.cloneNode(true);
+            examSearchInput.parentNode.replaceChild(freshSearch, examSearchInput);
+            freshSearch.value = '';
+            freshSearch.addEventListener('input', function () {
+                const q = this.value.toLowerCase().trim();
+                document.querySelectorAll('#examsList .exam-card').forEach(card => {
+                    const matches = card.dataset.title.includes(q) || card.dataset.subject.includes(q);
+                    card.style.display = matches ? '' : 'none';
+                });
+                const visible = [...document.querySelectorAll('#examsList .exam-card')].filter(c => c.style.display !== 'none');
+                const noResult = document.getElementById('examNoResult');
+                if (q && visible.length === 0) {
+                    if (!noResult) {
+                        const msg = document.createElement('div');
+                        msg.id = 'examNoResult';
+                        msg.style.cssText = 'padding:1.5rem;text-align:center;color:var(--color-text-secondary);grid-column:1/-1;';
+                        msg.textContent = `No exams found for "${this.value}".`;
+                        examsList.appendChild(msg);
+                    }
+                } else if (noResult) {
+                    noResult.remove();
+                }
+            });
+        }
+
+        // ---- Stats Card ----
+        const statsCard = document.getElementById('studentStatsCard');
+        if (resultsRes.status === 'success' && resultsRes.stats) {
+            const s = resultsRes.stats;
+            statsCard.innerHTML = `
+                <div style="background:var(--glass-bg);border-radius:0.75rem;box-shadow:var(--color-shadow);padding:1.2rem 1.5rem;min-width:200px;border:1px solid var(--color-border);">
+                    <div style="font-size:1.1rem;font-weight:600;margin-bottom:0.5rem;color:var(--color-text);">Your Stats</div>
+                    <div style="color:var(--color-primary);font-size:1.8rem;font-weight:700;">${s.averageScore}%</div>
+                    <div style="font-size:0.9rem;color:var(--color-text-secondary);margin-bottom:0.9rem;">Average Score</div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.95rem;color:var(--color-text);margin-bottom:0.35rem;">
+                        <span>Exams Taken</span><span><b>${s.totalExamsTaken}</b></span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.95rem;color:var(--color-text);">
+                        <span>Best Score</span><span><b>${s.bestScore}%</b></span>
+                    </div>
                 </div>
             `;
-            grid.appendChild(card);
-        });
-        analyticsSection.appendChild(grid);
-        // Insert after stats-list
-        const statsList = document.querySelector('.stats-list');
-        if (statsList) statsList.parentNode.insertBefore(analyticsSection, statsList.nextSibling);
+        }
 
-        // --- Modern Teacher Review Table ---
-        let oldReview = document.getElementById('teacherReviewTable');
-        if (oldReview) oldReview.remove();
-        const reviewSection = document.createElement('section');
-        reviewSection.id = 'teacherReviewTable';
-        reviewSection.style.margin = '2.5rem 0 1.5rem 0';
-        reviewSection.style.background = 'var(--card-bg, #fff)';
-        reviewSection.style.borderRadius = '1rem';
-        reviewSection.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)';
-        reviewSection.style.padding = '2rem 1.5rem';
-        reviewSection.style.fontFamily = 'var(--pixel-font, monospace)';
-        reviewSection.innerHTML = `<h3 style="margin-bottom:1.5rem;font-size:1.2rem;letter-spacing:1px;display:flex;align-items:center;gap:0.5em;"><span style='font-size:1.3em;'>📋</span> All Student Attempts</h3>`;
-        const tableWrap = document.createElement('div');
-        tableWrap.style.overflowX = 'auto';
-        tableWrap.style.maxHeight = '340px';
-        tableWrap.style.borderRadius = '0.7rem';
-        tableWrap.style.boxShadow = '0 1px 3px rgba(0,0,0,0.07)';
-        const table = document.createElement('table');
-        table.style.width = '100%';
-        table.style.borderCollapse = 'collapse';
-        table.style.fontSize = '0.97rem';
-        table.innerHTML = `
-            <thead>
-                <tr style="background:var(--table-head-bg,#f3f4f6);color:#23272f;">
-                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Student</th>
-                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Exam</th>
-                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Score</th>
-                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Correct</th>
-                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Time</th>
-                    <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${db.getAllResults().map(r => `
-                    <tr style="background:var(--table-row-bg,#fff);color:#23272f;transition:background 0.2s;">
-                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${r.studentName}</td>
-                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${r.examTitle}</td>
-                        <td style='padding:10px 12px;border:1px solid #e5e7eb;font-weight:600;color:${r.score >= 60 ? '#10B981' : '#EF4444'};'>${r.score}%</td>
-                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${r.correctAnswers}/${r.totalQuestions}</td>
-                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${db.formatTime(r.timeTaken)}</td>
-                        <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${r.completedAt.split('T')[0]}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        `;
-        tableWrap.appendChild(table);
-        reviewSection.appendChild(tableWrap);
-        // Insert after analyticsSection
-        analyticsSection.parentNode.insertBefore(reviewSection, analyticsSection.nextSibling);
+        // ---- Recent Results with Filter ----
+        const studentRecentResults = document.getElementById('studentRecentResults');
+        studentRecentResults.innerHTML = '';
 
-        // Recent Results (unchanged)
-        const recentResults = db.getRecentResults(5);
+        let allResults = [];
+        if (resultsRes.status === 'success' && resultsRes.results) {
+            allResults = resultsRes.results;
+        }
+
+        if (allResults.length > 0) {
+            const listDiv = document.createElement('div');
+            listDiv.className = 'recent-results-list';
+            listDiv.id = 'attemptsListContainer';
+
+            allResults.forEach(result => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.dataset.passed = result.score >= 60 ? 'true' : 'false';
+                div.innerHTML = `
+                    <div class="result-info">
+                        <h4>${result.examTitle}</h4>
+                        <p>${result.completedAt.split(' ')[0]}</p>
+                    </div>
+                    <div class="result-score">
+                        <span class="score ${result.score >= 60 ? 'score-pass' : 'score-fail'}">${result.score}%</span>
+                        <br>
+                        <span class="date">${formatTime(result.timeTaken)}</span>
+                    </div>
+                `;
+                listDiv.appendChild(div);
+            });
+            studentRecentResults.appendChild(listDiv);
+        } else {
+            studentRecentResults.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--color-text-secondary);">No attempts yet. Take your first exam!</div>';
+        }
+
+        // ---- Bind Attempt Filter Buttons (All / Passed / Failed) ----
+        bindAttemptFilters();
+    }
+
+    function bindAttemptFilters() {
+        const filterAll  = document.getElementById('filterAttemptAll');
+        const filterPass = document.getElementById('filterAttemptPass');
+        const filterFail = document.getElementById('filterAttemptFail');
+        if (!filterAll || !filterPass || !filterFail) return;
+
+        // Clone to clear any stale listeners
+        const newAll  = filterAll.cloneNode(true);
+        const newPass = filterPass.cloneNode(true);
+        const newFail = filterFail.cloneNode(true);
+        filterAll.parentNode.replaceChild(newAll, filterAll);
+        filterPass.parentNode.replaceChild(newPass, filterPass);
+        filterFail.parentNode.replaceChild(newFail, filterFail);
+
+        function applyFilter(type) {
+            newAll.classList.toggle('active',  type === 'all');
+            newPass.classList.toggle('active', type === 'pass');
+            newFail.classList.toggle('active', type === 'fail');
+
+            const container = document.getElementById('attemptsListContainer');
+            if (!container) return;
+            let visibleCount = 0;
+            container.querySelectorAll('.result-item').forEach(item => {
+                const passed = item.dataset.passed === 'true';
+                let show = true;
+                if (type === 'pass') show = passed;
+                if (type === 'fail') show = !passed;
+                item.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
+            });
+
+            const noMsg = document.getElementById('filterNoResult');
+            if (visibleCount === 0) {
+                if (!noMsg) {
+                    const m = document.createElement('div');
+                    m.id = 'filterNoResult';
+                    m.style.cssText = 'padding:1.5rem;text-align:center;color:var(--color-text-secondary);';
+                    m.textContent = type === 'pass' ? 'No passed attempts yet.' : 'No failed attempts.';
+                    const sr = document.getElementById('studentRecentResults');
+                    if (sr) sr.appendChild(m);
+                }
+            } else if (noMsg) {
+                noMsg.remove();
+            }
+        }
+
+        newAll.addEventListener('click',  () => applyFilter('all'));
+        newPass.addEventListener('click', () => applyFilter('pass'));
+        newFail.addEventListener('click', () => applyFilter('fail'));
+    }
+
+    // =========================================================================
+    // --- TEACHER DASHBOARD ---
+    // =========================================================================
+    async function loadTeacherDashboard() {
+        const statsRes    = await apiRequest('teacher_stats',    {}, 'GET');
+        const analyticsRes= await apiRequest('teacher_analytics',{}, 'GET');
+        const attemptsRes = await apiRequest('teacher_attempts', {}, 'GET');
+        const studentsRes = await apiRequest('teacher_students', {}, 'GET');
+
+        // ---- Stats Cards ----
+        if (statsRes.status === 'success') {
+            document.getElementById('totalExams').textContent    = statsRes.totalExams;
+            document.getElementById('totalAttempts').textContent = statsRes.totalAttempts;
+            document.getElementById('avgScore').textContent      = statsRes.avgScore + '%';
+        }
+
+        // ---- Recent Activity (Overview tab) ----
         const recentResultsDiv = document.getElementById('recentResults');
         recentResultsDiv.innerHTML = '';
-        recentResults.forEach(result => {
-            const div = document.createElement('div');
-            div.className = 'result-item';
-            div.innerHTML = `<div class="result-info"><h4>${result.studentName}</h4><p>${result.examTitle}</p></div><div class="result-score"><span class="score ${result.score >= 60 ? 'score-pass' : 'score-fail'}">${result.score}%</span><br><span class="date">${result.completedAt.split('T')[0]}</span></div>`;
-            recentResultsDiv.appendChild(div);
-        });
+        if (attemptsRes.status === 'success' && attemptsRes.attempts) {
+            if (attemptsRes.attempts.length === 0) {
+                recentResultsDiv.innerHTML = '<div style="color:var(--color-text-secondary);padding:1rem;">No activity yet.</div>';
+            } else {
+                attemptsRes.attempts.slice(0, 6).forEach(attempt => {
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.innerHTML = `
+                        <div class="result-info">
+                            <h4>${attempt.studentName}</h4>
+                            <p>${attempt.examTitle}</p>
+                        </div>
+                        <div class="result-score">
+                            <span class="score ${attempt.score >= 60 ? 'score-pass' : 'score-fail'}">${attempt.score}%</span>
+                            <br>
+                            <span class="date">${attempt.completedAt.split(' ')[0]}</span>
+                        </div>
+                    `;
+                    recentResultsDiv.appendChild(div);
+                });
+            }
+        }
 
-        // --- User Management Section ---
-        let oldUserMgmt = document.getElementById('teacherUserMgmt');
-        if (oldUserMgmt) oldUserMgmt.remove();
-        const userMgmtSection = document.createElement('section');
-        userMgmtSection.id = 'teacherUserMgmt';
-        userMgmtSection.style.margin = '2.5rem 0 1.5rem 0';
-        userMgmtSection.style.background = 'var(--card-bg, #fff)';
-        userMgmtSection.style.borderRadius = '1rem';
-        userMgmtSection.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)';
-        userMgmtSection.style.padding = '2rem 1.5rem';
-        userMgmtSection.style.fontFamily = 'var(--pixel-font, monospace)';
-        userMgmtSection.innerHTML = `<h3 style="margin-bottom:1.5rem;font-size:1.2rem;letter-spacing:1px;display:flex;align-items:center;gap:0.5em;"><span style='font-size:1.3em;'>👥</span> User Management</h3>`;
-        const students = db.users.filter(u => u.role === 'student');
-        if (students.length === 0) {
-            userMgmtSection.innerHTML += '<div style="color:#888;font-size:1rem;">No students registered.</div>';
-        } else {
+        // ---- Analytics Cards (with Delete button) ----
+        const analyticsDiv = document.getElementById('teacherAnalytics');
+        analyticsDiv.innerHTML = `
+            <h3 style="margin-bottom:1.5rem;font-size:1.15rem;font-weight:700;color:var(--color-text);display:flex;align-items:center;gap:0.6em;">
+                ${ICONS.chart}
+                Exam Performance Analytics
+            </h3>
+        `;
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:1.5rem;';
+
+        if (analyticsRes.status === 'success' && analyticsRes.analytics) {
+            if (analyticsRes.analytics.length === 0) {
+                grid.innerHTML = '<div style="color:var(--color-text-secondary);padding:1rem;">No exams created yet.</div>';
+            } else {
+                analyticsRes.analytics.forEach(exam => {
+                    const card = document.createElement('div');
+                    card.className = 'exam-analytics-card';
+                    card.innerHTML = `
+                        <div style="font-weight:700;font-size:1.05rem;margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5em;color:var(--color-text);">
+                            ${ICONS.file} ${exam.title}
+                        </div>
+                        <div style="font-size:0.9rem;color:var(--color-text-secondary);margin-bottom:0.6rem;">${exam.subject}</div>
+                        <div style="display:flex;gap:1.2em;margin-bottom:0.5rem;font-size:0.92em;color:var(--color-text);">
+                            <span>Attempts: <b>${exam.totalAttempts}</b></span>
+                            <span>Avg: <b>${exam.averageScore}%</b></span>
+                        </div>
+                        <div style="height:10px;background:var(--color-border);border-radius:99px;overflow:hidden;margin-bottom:0.6rem;">
+                            <div style="background:var(--color-primary);height:100%;width:${exam.averageScore}%;min-width:2px;border-radius:99px;transition:width 0.5s;"></div>
+                        </div>
+                        <div style="font-size:0.89em;display:flex;gap:0.8em;justify-content:space-between;color:var(--color-text);">
+                            <span>High: <b style="color:var(--color-success);">${exam.highestScore}%</b></span>
+                            <span>Low: <b style="color:var(--color-danger);">${exam.lowestScore}%</b></span>
+                            <span>Pass: <b>${exam.passRate}%</b></span>
+                        </div>
+                    `;
+
+                    // Delete Exam Button
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-danger btn-small';
+                    deleteBtn.style.cssText = 'margin-top:0.85rem;width:100%;font-size:0.87rem;justify-content:center;';
+                    deleteBtn.innerHTML = `${ICONS.trash} Delete Exam`;
+                    const examId    = exam.id;
+                    const examTitle = exam.title;
+                    deleteBtn.addEventListener('click', () => {
+                        showCustomConfirm(
+                            'Delete Exam',
+                            `Permanently delete "${examTitle}"? This will also remove all student results for this exam.`,
+                            async () => {
+                                const res = await apiRequest('teacher_delete_exam', { examId });
+                                if (res.status === 'success') {
+                                    loadTeacherDashboard();
+                                } else {
+                                    alert(res.message || 'Failed to delete exam.');
+                                }
+                            }
+                        );
+                    });
+                    card.appendChild(deleteBtn);
+                    grid.appendChild(card);
+                });
+            }
+        }
+        analyticsDiv.appendChild(grid);
+
+        // ---- Attempts Review Table ----
+        const reviewDiv = document.getElementById('teacherReviewTable');
+        reviewDiv.innerHTML = `
+            <h3 style="margin-bottom:1.25rem;font-size:1.1rem;font-weight:700;color:var(--color-text);display:flex;align-items:center;gap:0.6em;">
+                ${ICONS.fileLg} All Student Attempts
+            </h3>
+        `;
+        const tableWrap = document.createElement('div');
+        tableWrap.style.cssText = 'overflow-x:auto;max-height:420px;border-radius:0.7rem;box-shadow:0 1px 3px rgba(0,0,0,0.07);';
+
+        if (attemptsRes.status === 'success' && attemptsRes.attempts && attemptsRes.attempts.length > 0) {
             const table = document.createElement('table');
-            table.style.width = '100%';
-            table.style.borderCollapse = 'collapse';
-            table.style.fontSize = '0.97rem';
+            table.id = 'attemptsDataTable';
+            table.style.cssText = 'width:100%;border-collapse:collapse;font-size:0.95rem;';
             table.innerHTML = `
                 <thead>
-                    <tr style="background:var(--table-head-bg,#f3f4f6);color:#23272f;">
-                        <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Name</th>
-                        <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Email</th>
-                        <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">ID</th>
-                        <th style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:700;">Actions</th>
+                    <tr style="background:var(--glass-bg);color:var(--color-text);position:sticky;top:0;z-index:1;">
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Student</th>
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Exam</th>
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Score</th>
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Correct</th>
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Time</th>
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Date</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${students.map(s => `
-                        <tr>
-                            <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${s.name}</td>
-                            <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${s.email}</td>
-                            <td style='padding:10px 12px;border:1px solid #e5e7eb;'>${s.userId || s.id}</td>
-                            <td style='padding:10px 12px;border:1px solid #e5e7eb;'>
-                                <button class="btn btn-secondary btn-sm reset-pw" data-id="${s.id}">Reset Password</button>
-                                <button class="btn btn-danger btn-sm remove-student" data-id="${s.id}">Remove</button>
+                    ${attemptsRes.attempts.map(r => `
+                        <tr style="background:var(--glass-bg);color:var(--color-text);" data-search="${(r.studentName + ' ' + r.examTitle).toLowerCase()}">
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);">${r.studentName}</td>
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);">${r.examTitle}</td>
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);font-weight:700;color:${r.score >= 60 ? 'var(--color-success)' : 'var(--color-danger)'};">${r.score}%</td>
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);">${r.correctAnswers}/${r.totalQuestions}</td>
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);">${formatTime(r.timeTaken)}</td>
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);">${r.completedAt.split(' ')[0]}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            tableWrap.appendChild(table);
+        } else {
+            tableWrap.innerHTML = '<div style="color:var(--color-text-secondary);padding:1.2rem;">No attempts submitted yet.</div>';
+        }
+        reviewDiv.appendChild(tableWrap);
+
+        // Live search for attempts
+        const attemptSearchInput = document.getElementById('teacherAttemptSearch');
+        if (attemptSearchInput) {
+            const freshInput = attemptSearchInput.cloneNode(true);
+            attemptSearchInput.parentNode.replaceChild(freshInput, attemptSearchInput);
+            freshInput.value = '';
+            freshInput.addEventListener('input', function () {
+                const q = this.value.toLowerCase().trim();
+                tableWrap.querySelectorAll('tbody tr[data-search]').forEach(row => {
+                    row.style.display = row.dataset.search.includes(q) ? '' : 'none';
+                });
+            });
+        }
+
+        // ---- Student Management Table ----
+        const userMgmtDiv = document.getElementById('teacherUserMgmt');
+        userMgmtDiv.innerHTML = `
+            <h3 style="margin-bottom:1.25rem;font-size:1.1rem;font-weight:700;color:var(--color-text);display:flex;align-items:center;gap:0.6em;">
+                ${ICONS.users} Student Accounts
+            </h3>
+        `;
+        const userTableWrap = document.createElement('div');
+        userTableWrap.style.cssText = 'overflow-x:auto;border-radius:0.7rem;box-shadow:0 1px 3px rgba(0,0,0,0.07);';
+
+        if (studentsRes.status === 'success' && studentsRes.students && studentsRes.students.length > 0) {
+            const table = document.createElement('table');
+            table.id = 'studentsDataTable';
+            table.style.cssText = 'width:100%;border-collapse:collapse;font-size:0.95rem;';
+            table.innerHTML = `
+                <thead>
+                    <tr style="background:var(--glass-bg);color:var(--color-text);">
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Name</th>
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Email / Username</th>
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Student ID</th>
+                        <th style="padding:10px 12px;border:1px solid var(--color-border);font-weight:700;text-align:left;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${studentsRes.students.map(s => `
+                        <tr style="background:var(--glass-bg);color:var(--color-text);" data-search="${(s.name + ' ' + s.email + ' ' + s.userId).toLowerCase()}">
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);">${s.name}</td>
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);">${s.email}</td>
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);">${s.userId}</td>
+                            <td style="padding:9px 12px;border:1px solid var(--color-border);">
+                                <button class="btn btn-secondary btn-small reset-pw" data-id="${s.id}" data-name="${s.name}" style="margin-right:0.4rem;">Reset Password</button>
+                                <button class="btn btn-danger btn-small remove-student" data-id="${s.id}">Remove</button>
                             </td>
                         </tr>
                     `).join('')}
                 </tbody>
             `;
-            userMgmtSection.appendChild(table);
-        }
-        // Insert after teacherReviewTable
-        const reviewTable = document.getElementById('teacherReviewTable');
-        if (reviewTable) reviewTable.parentNode.insertBefore(userMgmtSection, reviewTable.nextSibling);
+            userTableWrap.appendChild(table);
 
-        // Action handlers
-        userMgmtSection.querySelectorAll('.reset-pw').forEach(btn => {
-            btn.onclick = function() {
-                const id = parseInt(this.getAttribute('data-id'));
-                const student = db.getUserById(id);
-                if (student) {
-                    const newPw = prompt(`Enter new password for ${student.name}:`, '');
-                    if (newPw && newPw.length >= 6) {
-                        student.password = newPw;
-                        alert('Password reset successfully.');
-                    } else if (newPw) {
-                        alert('Password must be at least 6 characters.');
-                    }
-                }
-            };
-        });
-        userMgmtSection.querySelectorAll('.remove-student').forEach(btn => {
-            btn.onclick = function() {
-                const id = parseInt(this.getAttribute('data-id'));
-                const student = db.getUserById(id);
-                if (student && confirm(`Remove student ${student.name}? This cannot be undone.`)) {
-                    db.users = db.users.filter(u => u.id !== id);
-                    alert('Student removed.');
-                    renderTeacherDashboard();
-                }
-            };
-        });
+            // Bind reset password buttons
+            table.querySelectorAll('.reset-pw').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const studentId   = parseInt(this.getAttribute('data-id'));
+                    const studentName = this.getAttribute('data-name');
+
+                    const modal    = document.getElementById('customResetPasswordModal');
+                    const form     = document.getElementById('resetPasswordForm');
+                    const input    = document.getElementById('newStudentPasswordInput');
+                    const closeBtn = document.getElementById('closeResetPasswordModal');
+                    const cancelBtn= document.getElementById('cancelResetPasswordBtn');
+                    const titleEl  = document.getElementById('resetPasswordTitle');
+
+                    titleEl.textContent = `Reset Password — ${studentName}`;
+                    input.value = '';
+                    modal.classList.remove('hidden');
+
+                    const newForm      = form.cloneNode(true);
+                    const newCloseBtn  = closeBtn.cloneNode(true);
+                    const newCancelBtn = cancelBtn.cloneNode(true);
+                    form.parentNode.replaceChild(newForm, form);
+                    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+                    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+                    newCloseBtn.addEventListener('click',  () => modal.classList.add('hidden'));
+                    newCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+
+                    newForm.addEventListener('submit', async function (e) {
+                        e.preventDefault();
+                        const newPassword = newForm.querySelector('#newStudentPasswordInput').value;
+                        if (newPassword.length < 6) {
+                            alert('Password must be at least 6 characters.');
+                            return;
+                        }
+                        const res = await apiRequest('teacher_reset_password', { studentId, newPassword });
+                        if (res.status === 'success') {
+                            alert('Password reset successfully.');
+                            modal.classList.add('hidden');
+                        } else {
+                            alert(res.message || 'Failed to reset password.');
+                        }
+                    });
+                });
+            });
+
+            // Bind remove student buttons
+            table.querySelectorAll('.remove-student').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const studentId = parseInt(this.getAttribute('data-id'));
+                    showCustomConfirm(
+                        'Remove Student',
+                        'Remove this student account? All their exam results will also be deleted.',
+                        async () => {
+                            const res = await apiRequest('teacher_remove_student', { studentId });
+                            if (res.status === 'success') {
+                                loadTeacherDashboard();
+                            } else {
+                                alert(res.message || 'Failed to remove student.');
+                            }
+                        }
+                    );
+                });
+            });
+        } else {
+            userTableWrap.innerHTML = '<div style="color:var(--color-text-secondary);padding:1.2rem;">No student accounts registered yet.</div>';
+        }
+        userMgmtDiv.appendChild(userTableWrap);
+
+        // Live search for students table
+        const studentSearchInput = document.getElementById('teacherStudentSearch');
+        if (studentSearchInput) {
+            const freshInput = studentSearchInput.cloneNode(true);
+            studentSearchInput.parentNode.replaceChild(freshInput, studentSearchInput);
+            freshInput.value = '';
+            freshInput.addEventListener('input', function () {
+                const q = this.value.toLowerCase().trim();
+                userTableWrap.querySelectorAll('tbody tr[data-search]').forEach(row => {
+                    row.style.display = row.dataset.search.includes(q) ? '' : 'none';
+                });
+            });
+        }
     }
 
-    // --- Exam Creation Modal (basic, dynamic) ---
-    const createExamBtn = document.getElementById('createExamBtn');
+    // =========================================================================
+    // --- EXAM CREATION MODAL (Teacher) ---
+    // =========================================================================
+    const createExamBtn   = document.getElementById('createExamBtn');
     const createExamModal = document.getElementById('createExamModal');
-    const closeModal = document.getElementById('closeModal');
-    const cancelCreate = document.getElementById('cancelCreate');
-    const createExamForm = document.getElementById('createExamForm');
+    const closeModal      = document.getElementById('closeModal');
+    const cancelCreate    = document.getElementById('cancelCreate');
+    const createExamForm  = document.getElementById('createExamForm');
     const questionsContainer = document.getElementById('questionsContainer');
-    const addQuestionBtn = document.getElementById('addQuestionBtn');
+    const addQuestionBtn  = document.getElementById('addQuestionBtn');
 
     if (createExamBtn) {
         createExamBtn.addEventListener('click', () => {
             createExamModal.classList.remove('hidden');
-            questionsContainer.innerHTML = '<label>Questions</label>';
+            questionsContainer.innerHTML = '<label style="font-weight:600;font-size:0.95rem;color:var(--color-text-secondary);margin-bottom:0.5rem;display:block;">Questions</label>';
             addQuestionBlock();
         });
     }
-    if (closeModal) closeModal.addEventListener('click', () => createExamModal.classList.add('hidden'));
-    if (cancelCreate) cancelCreate.addEventListener('click', () => createExamModal.classList.add('hidden'));
+    if (closeModal)    closeModal.addEventListener('click',   () => createExamModal.classList.add('hidden'));
+    if (cancelCreate)  cancelCreate.addEventListener('click', () => createExamModal.classList.add('hidden'));
 
     function addQuestionBlock() {
-        const idx = questionsContainer.querySelectorAll('.question-block').length;
         const block = document.createElement('div');
         block.className = 'question-block';
+        block.style.cssText = 'border:1.5px solid var(--color-border);border-radius:8px;padding:12px;margin-bottom:12px;background:var(--glass-bg);';
         block.innerHTML = `
             <div class="form-group">
-                <label>Question</label>
-                <input type="text" class="form-input question-input" required>
+                <label>Question Text</label>
+                <input type="text" class="form-input question-input" required placeholder="Enter question...">
             </div>
-            <div class="options-grid">
-                <div><input type="text" class="form-input option-input" placeholder="Option 1" required></div>
-                <div><input type="text" class="form-input option-input" placeholder="Option 2" required></div>
-                <div><input type="text" class="form-input option-input" placeholder="Option 3" required></div>
-                <div><input type="text" class="form-input option-input" placeholder="Option 4" required></div>
+            <div class="options-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <input type="text" class="form-input option-input" placeholder="Option A" required>
+                <input type="text" class="form-input option-input" placeholder="Option B" required>
+                <input type="text" class="form-input option-input" placeholder="Option C" required>
+                <input type="text" class="form-input option-input" placeholder="Option D" required>
             </div>
             <div class="form-group">
-                <label>Correct Answer (1-4)</label>
+                <label>Correct Option (1=A, 2=B, 3=C, 4=D)</label>
                 <input type="number" class="form-input correct-input" min="1" max="4" value="1" required>
             </div>
-            <div class="form-group">
-                <label>Points</label>
-                <input type="number" class="form-input points-input" min="1" value="1" required>
-            </div>
-            <button type="button" class="remove-question">Remove</button>
+            <button type="button" class="btn btn-danger btn-small remove-question">Remove Question</button>
         `;
         block.querySelector('.remove-question').addEventListener('click', () => block.remove());
         questionsContainer.appendChild(block);
@@ -958,393 +762,376 @@ document.addEventListener('DOMContentLoaded', function () {
     if (addQuestionBtn) addQuestionBtn.addEventListener('click', addQuestionBlock);
 
     if (createExamForm) {
-        createExamForm.addEventListener('submit', function(e) {
+        createExamForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            // Gather exam data
-            const title = document.getElementById('examTitleInput').value.trim();
+            const title    = document.getElementById('examTitleInput').value.trim();
             const duration = parseInt(document.getElementById('examDuration').value);
-            const subject = document.getElementById('examSubject').value.trim();
+            const subject  = document.getElementById('examSubject').value.trim();
             const questions = [];
+
             questionsContainer.querySelectorAll('.question-block').forEach(block => {
-                const q = block.querySelector('.question-input').value.trim();
-                const opts = Array.from(block.querySelectorAll('.option-input')).map(i => i.value.trim());
+                const qText   = block.querySelector('.question-input').value.trim();
+                const opts    = Array.from(block.querySelectorAll('.option-input')).map(i => i.value.trim());
                 const correct = parseInt(block.querySelector('.correct-input').value) - 1;
-                const points = parseFloat(block.querySelector('.points-input').value);
-                if (q && opts.every(o => o) && correct >= 0 && correct < 4) {
-                    questions.push({
-                        id: questions.length + 1,
-                        question: q,
-                        options: opts,
-                        correctAnswer: correct,
-                        points: points
-                    });
+                if (qText && opts.every(o => o) && correct >= 0 && correct < 4) {
+                    questions.push({ question: qText, options: opts, correctAnswer: correct });
                 }
             });
-            if (!title || !subject || !duration || questions.length === 0) {
-                alert('Please fill all exam fields and add at least one question.');
+
+            if (!title || !subject || duration <= 0 || questions.length === 0) {
+                alert('Please fill in exam details and add at least one complete question.');
                 return;
             }
-            db.addExam({
-                title,
-                subject,
-                duration,
-                questions,
-                createdBy: currentUser.id,
-                difficulty: 'Custom'
-            });
-            createExamModal.classList.add('hidden');
-            renderTeacherDashboard();
-        });
-    }
 
-    // Student Dashboard: Render Exams and Features
-    function renderExamsList() {
-        const examsList = document.getElementById('examsList');
-        examsList.innerHTML = '';
-        const exams = db.getAllExams();
-        if (exams.length === 0) {
-            examsList.innerHTML = '<div style="padding:2rem;text-align:center;color:#6b7280;">No exams available.</div>';
-        } else {
-            exams.forEach(exam => {
-                const card = document.createElement('div');
-                card.className = 'exam-card';
-                card.innerHTML = `
-                    <div class="exam-card-header">
-                        <div class="exam-icon">${exam.subject[0]}</div>
-                        <div>
-                            <div class="exam-title">${exam.title}</div>
-                            <div class="exam-subject">${exam.subject}</div>
-                        </div>
-                    </div>
-                    <div class="exam-details">
-                        <div class="exam-detail"><span>Duration:</span><span>${exam.duration} min</span></div>
-                        <div class="exam-detail"><span>Questions:</span><span>${exam.totalQuestions}</span></div>
-                        <div class="exam-detail"><span>Difficulty:</span><span>${exam.difficulty || 'N/A'}</span></div>
-                    </div>
-                    <button class="btn btn-primary btn-full start-exam-btn" data-id="${exam.id}">Start Exam</button>
-                `;
-                examsList.appendChild(card);
-            });
-            // Add event listeners
-            examsList.querySelectorAll('.start-exam-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const examId = parseInt(this.getAttribute('data-id'));
-                    startExam(examId);
-                });
-            });
-        }
-        renderStudentStats();
-        renderStudentRecentResults();
-    }
-
-    // Student Stats Card
-    function renderStudentStats() {
-        const statsCard = document.getElementById('studentStatsCard');
-        if (!currentUser || !statsCard) return;
-        const stats = db.getStudentStatistics(currentUser.id);
-        statsCard.innerHTML = `
-            <div style="background:#fff;border-radius:0.75rem;box-shadow:0 1px 4px rgba(36,36,36,0.06);padding:1.2rem 1.5rem;min-width:200px;">
-                <div style="font-size:1.1rem;font-weight:600;margin-bottom:0.5rem;color:#23272f;">Your Stats</div>
-                <div style="color:#3b82f6;font-size:1.5rem;font-weight:700;">${stats.averageScore}%</div>
-                <div style="font-size:0.95rem;color:#6b7280;margin-bottom:0.7rem;">Average Score</div>
-                <div style="display:flex;justify-content:space-between;font-size:0.95rem;color:#23272f;">
-                    <span>Exams Taken</span><span>${stats.totalExamsTaken}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:0.95rem;color:#23272f;">
-                    <span>Best Score</span><span>${stats.bestScore}%</span>
-                </div>
-            </div>
-        `;
-    }
-
-    // Student Recent Results
-    function renderStudentRecentResults() {
-        const recentDiv = document.getElementById('studentRecentResults');
-        if (!currentUser || !recentDiv) return;
-        const results = db.getResultsByStudent(currentUser.id).slice(-5).reverse();
-        if (results.length === 0) {
-            recentDiv.innerHTML = '';
-            return;
-        }
-        recentDiv.innerHTML = `<h3 style="font-size:1.15rem;font-weight:600;margin-bottom:1rem;color:#23272f;">Recent Attempts</h3>`;
-        results.forEach(result => {
-            const div = document.createElement('div');
-            div.className = 'result-item';
-            div.innerHTML = `<div class="result-info"><h4>${result.examTitle}</h4><p>${result.completedAt.split('T')[0]}</p></div><div class="result-score"><span class="score ${result.score >= 60 ? 'score-pass' : 'score-fail'}">${result.score}%</span><br><span class="date">${db.formatTime(result.timeTaken)}</span></div>`;
-            recentDiv.appendChild(div);
-        });
-    }
-
-    // Password visibility toggle for login and signup
-    const authPassword = document.getElementById('authPassword');
-    const toggleAuthPassword = document.getElementById('toggleAuthPassword');
-    if (authPassword && toggleAuthPassword) {
-        toggleAuthPassword.addEventListener('click', function() {
-            const svg = toggleAuthPassword.querySelector('svg');
-            if (authPassword.type === 'password') {
-                authPassword.type = 'text';
-                // Change SVG fill to a lighter color for feedback
-                svg.setAttribute('fill', '#81b8e7');
+            const res = await apiRequest('teacher_create_exam', { title, subject, duration, questions });
+            if (res.status === 'success') {
+                alert('Exam created successfully!');
+                createExamModal.classList.add('hidden');
+                loadTeacherDashboard();
             } else {
-                authPassword.type = 'password';
-                svg.setAttribute('fill', '#1A508B');
+                alert(res.message || 'Failed to create exam.');
             }
         });
     }
 
-    // --- THEME TOGGLE LOGIC ---
-    const themeToggle = document.getElementById('themeToggle');
-    function setTheme(dark) {
-        if (dark) {
-            document.body.classList.add('dark-mode');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.body.classList.remove('dark-mode');
-            localStorage.setItem('theme', 'light');
-        }
-    }
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function() {
-            setTheme(!document.body.classList.contains('dark-mode'));
-        });
-    }
-    // On load, set theme from localStorage
-    window.addEventListener('DOMContentLoaded', function() {
-        const saved = localStorage.getItem('theme');
-        if (saved === 'dark') setTheme(true);
-        else setTheme(false);
-    });
-
-    // --- EXAM INTERFACE LOGIC ---
+    // =========================================================================
+    // --- EXAM TAKING INTERFACE ---
+    // =========================================================================
     let currentExam = null;
     let currentExamAnswers = [];
-    let currentExamIndex = 0;
+    let currentExamFlags   = [];
+    let currentExamIndex   = 0;
     let currentExamStartTime = 0;
-    let examTimerInterval = null;
+    let examTimerInterval  = null;
 
-    function showExamInterface() {
-        dashboard.classList.add('hidden');
-        document.getElementById('examInterface').classList.remove('hidden');
-        if (currentExam && typeof renderExamQuestion === 'function') {
-            renderExamQuestion();
+    let warningsCount = 0;
+    function preventDefaultAction(e) { e.preventDefault(); }
+    function handleWindowBlur() {
+        if (!currentExam) return;
+        warningsCount++;
+        alert(`Security Warning #${warningsCount}: You navigated away from the active exam. Three violations trigger automatic submission.`);
+        if (warningsCount >= 3) {
+            alert('Automatic submission triggered due to repeated focus/tab violations.');
+            submitExam();
         }
     }
-
-    function startExamTimer(duration) {
-        let timer = duration, minutes, seconds;
-        examTimerInterval = setInterval(function () {
-            minutes = parseInt((timer / 60), 10);
-            seconds = parseInt((timer % 60), 10);
-            minutes = minutes < 10 ? "0" + minutes : minutes;
-            seconds = seconds < 10 ? "0" + seconds : seconds;
-            document.getElementById('examTimer').textContent = minutes + ":" + seconds;
-            if (--timer < 0) {
-                clearInterval(examTimerInterval);
-                document.getElementById('examTimer').textContent = "00:00";
-                submitExam();
-            }
-        }, 1000);
+    function handleVisibilityChange() {
+        if (document.hidden) handleWindowBlur();
+    }
+    function enableExamProtection() {
+        warningsCount = 0;
+        document.addEventListener('contextmenu',  preventDefaultAction);
+        document.addEventListener('copy',         preventDefaultAction);
+        document.addEventListener('cut',          preventDefaultAction);
+        document.addEventListener('paste',        preventDefaultAction);
+        document.addEventListener('selectstart',  preventDefaultAction);
+        window.addEventListener('blur',           handleWindowBlur);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+    function disableExamProtection() {
+        document.removeEventListener('contextmenu',  preventDefaultAction);
+        document.removeEventListener('copy',         preventDefaultAction);
+        document.removeEventListener('cut',          preventDefaultAction);
+        document.removeEventListener('paste',        preventDefaultAction);
+        document.removeEventListener('selectstart',  preventDefaultAction);
+        window.removeEventListener('blur',           handleWindowBlur);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
     }
 
-    function renderExamQuestion() {
-        if (!currentExam || !currentExam.questions || currentExam.questions.length === 0) {
-            document.getElementById('questionContainer').innerHTML = '<div style="padding:2rem;text-align:center;color:#ef4444;">No questions available for this exam.</div>';
+    async function startExam(examId) {
+        const res = await apiRequest('get_exam', { examId }, 'GET');
+        if (res.status === 'error' || !res.exam) {
+            alert(res.message || 'Failed to load exam.');
             return;
         }
+
+        currentExam = res.exam;
+        const total = currentExam.questions.length;
+        currentExamAnswers = Array(total).fill(null);
+        currentExamFlags   = Array(total).fill(false);
+
+        if (res.progress) {
+            currentExam.questions.forEach((q, idx) => {
+                if (res.progress[q.id]) {
+                    currentExamAnswers[idx] = res.progress[q.id].selectedAnswer;
+                    currentExamFlags[idx]   = res.progress[q.id].isFlagged;
+                }
+            });
+        }
+
+        currentExamIndex     = 0;
+        currentExamStartTime = Date.now();
+
+        document.getElementById('candidateName').textContent    = currentUser.name;
+        document.getElementById('candidateId').textContent      = currentUser.userId;
+        document.getElementById('examSubjectName').textContent  = currentExam.subject;
+        document.getElementById('examTitle').textContent        = currentExam.title;
+
+        dashboard.classList.add('hidden');
+        document.getElementById('examInterface').classList.remove('hidden');
+        const navbar = document.querySelector('.navbar');
+        const footer = document.querySelector('.site-footer');
+        if (navbar) navbar.classList.add('hidden');
+        if (footer) footer.classList.add('hidden');
+
+        enableExamProtection();
+        startExamTimer(currentExam.duration * 60);
+        renderQuestion();
+        renderQuestionsGrid();
+    }
+
+    function startExamTimer(durationSeconds) {
+        clearInterval(examTimerInterval);
+        let timeRemaining = durationSeconds;
+        function updateTimerDisplay() {
+            if (timeRemaining < 0) {
+                clearInterval(examTimerInterval);
+                document.getElementById('examTimer').textContent = '00:00';
+                autoSubmitExam();
+                return;
+            }
+            const min = Math.floor(timeRemaining / 60);
+            const sec = timeRemaining % 60;
+            document.getElementById('examTimer').textContent =
+                `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+            if (timeRemaining <= 60) {
+                document.getElementById('examTimer').style.color = 'var(--color-danger)';
+            }
+            timeRemaining--;
+        }
+        updateTimerDisplay();
+        examTimerInterval = setInterval(updateTimerDisplay, 1000);
+    }
+
+    function renderQuestion() {
         const q = currentExam.questions[currentExamIndex];
         const container = document.getElementById('questionContainer');
         container.innerHTML = `
-            <div class="question-title">Question ${currentExamIndex + 1} of ${currentExam.questions.length}</div>
+            <div class="question-header-strip">
+                <span class="question-number-label">Question ${currentExamIndex + 1} of ${currentExam.questions.length}</span>
+                <span class="question-points">(${q.points || 1} Point)</span>
+            </div>
             <div class="question-text">${q.question}</div>
             <div class="options-list">
-                ${q.options.map((opt, i) => `
-                    <label class="option-item">
-                        <input type="radio" name="option" value="${i}" ${currentExamAnswers[currentExamIndex] == i ? 'checked' : ''}>
-                        ${opt}
-                    </label>
-                `).join('')}
+                ${q.options.map((opt, i) => {
+                    const letter = String.fromCharCode(65 + i);
+                    const isChecked = currentExamAnswers[currentExamIndex] === i ? 'checked' : '';
+                    return `
+                        <label class="option-item ${isChecked ? 'selected' : ''}">
+                            <input type="radio" name="optionRadio" value="${i}" ${isChecked}>
+                            <span class="option-letter">${letter}</span>
+                            <span class="option-text-content">${opt}</span>
+                        </label>
+                    `;
+                }).join('')}
             </div>
         `;
-        container.querySelectorAll('input[type="radio"]').forEach(input => {
-            input.addEventListener('change', function() {
-                currentExamAnswers[currentExamIndex] = parseInt(this.value);
-                document.getElementById('nextBtn').disabled = false;
+
+        container.querySelectorAll('input[name="optionRadio"]').forEach(radio => {
+            radio.addEventListener('change', async function () {
+                const answer = parseInt(this.value);
+                currentExamAnswers[currentExamIndex] = answer;
+                container.querySelectorAll('.option-item').forEach(lbl => lbl.classList.remove('selected'));
+                this.closest('.option-item').classList.add('selected');
+                const questionId = currentExam.questions[currentExamIndex].id;
+                await apiRequest('save_answer', { examId: currentExam.id, questionId, selectedAnswer: answer });
+                updateQuestionsGridItem(currentExamIndex);
             });
         });
+
         document.getElementById('prevBtn').disabled = currentExamIndex === 0;
-        document.getElementById('nextBtn').textContent = currentExamIndex === currentExam.questions.length - 1 ? 'Submit' : 'Next';
-        document.getElementById('nextBtn').disabled = currentExamAnswers[currentExamIndex] == null;
-    }
-
-    function updateExamProgress() {
-        const progressBar = document.getElementById('examProgressBar');
-        const progressText = document.getElementById('examProgressText');
-        const total = currentExam.questions.length;
-        const current = currentExamIndex + 1;
-        const percentage = (current / total) * 100;
-        progressBar.style.width = `${percentage}%`;
-        progressText.textContent = `${current} / ${total}`;
-    }
-
-    function submitExam() {
-        clearInterval(examTimerInterval);
-        const correctAnswers = currentExamAnswers.filter((ans, index) => ans === currentExam.questions[index].correctAnswer).length;
-        const score = db.calculateScore(correctAnswers, currentExam.questions.length);
-        db.addResult({
-            examId: currentExam.id,
-            examTitle: currentExam.title,
-            studentId: currentUser.id,
-            studentName: currentUser.name,
-            score,
-            correctAnswers: correctAnswers,
-            totalQuestions: currentExam.questions.length,
-            timeTaken: Math.floor((Date.now() - currentExamStartTime) / 1000),
-            answers: currentExamAnswers
-        });
-        showResultsPage(score, correctAnswers, currentExam.questions.length, Math.floor((Date.now() - currentExamStartTime) / 1000));
-    }
-
-    function hideExamInterface() {
-        document.getElementById('examInterface').classList.add('hidden');
-        dashboard.classList.remove('hidden');
-    }
-
-    function showResultsOverlay() {
-        const resultsPage = document.getElementById('resultsPage');
-        resultsPage.classList.remove('hidden');
-        resultsPage.style.position = 'fixed';
-        resultsPage.style.top = '0';
-        resultsPage.style.left = '0';
-        resultsPage.style.width = '100vw';
-        resultsPage.style.height = '100vh';
-        resultsPage.style.background = 'rgba(36,36,36,0.85)';
-        resultsPage.style.zIndex = '10000';
-        resultsPage.style.overflowY = 'auto';
-        resultsPage.style.display = 'flex';
-        resultsPage.style.alignItems = 'center';
-        resultsPage.style.justifyContent = 'center';
-        document.body.style.overflow = 'hidden'; // Prevent background scroll
-    }
-    function hideResultsOverlay() {
-        const resultsPage = document.getElementById('resultsPage');
-        resultsPage.classList.add('hidden');
-        resultsPage.removeAttribute('style');
-        document.body.style.overflow = '';
-    }
-    // Show overlay when exam is finished or submitted
-    const backToDashboardBtn = document.getElementById('backToDashboard');
-    if (backToDashboardBtn) {
-        backToDashboardBtn.addEventListener('click', function() {
-            hideResultsOverlay();
-            document.getElementById('resultsPage').classList.add('hidden');
-            document.getElementById('examInterface').classList.add('hidden');
-            dashboard.classList.remove('hidden');
-        });
-    }
-    function showResultsPage(score, correctAnswers, totalQuestions, timeTaken) {
-        // Update results values if needed
-        if (document.getElementById('finalScore')) document.getElementById('finalScore').textContent = score + '%';
-        if (document.getElementById('correctAnswers')) document.getElementById('correctAnswers').textContent = `${correctAnswers}/${totalQuestions}`;
-        if (document.getElementById('timeTaken')) document.getElementById('timeTaken').textContent = db.formatTime(timeTaken);
-        showResultsOverlay();
-    }
-
-    function startExam(examId) {
-        currentExam = db.getExamById(examId);
-        currentExamAnswers = Array(currentExam.questions.length).fill(null);
-        currentExamIndex = 0;
-        currentExamStartTime = Date.now();
-        document.getElementById('examTitle').textContent = currentExam.title;
-        showExamInterface();
-        startExamTimer(currentExam.duration * 60);
-        renderExamQuestion();
-        updateExamProgress();
-    }
-
-    // Unified navigation for exam (no duplicate listeners)
-    document.getElementById('nextBtn').addEventListener('click', function() {
-        if (currentExamIndex < currentExam.questions.length - 1) {
-            if (currentExamAnswers[currentExamIndex] == null) {
-                alert('Please select an answer before proceeding to the next question.');
-                return;
-            }
-            currentExamIndex++;
-            renderExamQuestion();
-            updateExamProgress();
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentExamIndex === currentExam.questions.length - 1) {
+            nextBtn.textContent = 'Submit Exam';
+            nextBtn.className   = 'btn btn-success';
         } else {
-            const unanswered = currentExamAnswers.findIndex(ans => ans == null);
-            if (unanswered !== -1) {
-                alert('Please answer all questions before submitting.');
-                return;
-            }
-            submitExam();
+            nextBtn.textContent = 'Next';
+            nextBtn.className   = 'btn btn-primary';
         }
+
+        const flagBtn = document.getElementById('flagBtn');
+        if (currentExamFlags[currentExamIndex]) {
+            flagBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" stroke="currentColor" stroke-width="2"/></svg> Unflag`;
+            flagBtn.className = 'btn btn-warning';
+        } else {
+            flagBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg> Flag`;
+            flagBtn.className = 'btn btn-warning-outline';
+        }
+    }
+
+    document.getElementById('flagBtn').addEventListener('click', async function () {
+        if (!currentExam) return;
+        const newFlagState = !currentExamFlags[currentExamIndex];
+        currentExamFlags[currentExamIndex] = newFlagState;
+        const questionId = currentExam.questions[currentExamIndex].id;
+        await apiRequest('toggle_flag', {
+            examId: currentExam.id,
+            questionId,
+            isFlagged: newFlagState ? 1 : 0
+        });
+        renderQuestion();
+        updateQuestionsGridItem(currentExamIndex);
     });
-    document.getElementById('prevBtn').addEventListener('click', function() {
+
+    document.getElementById('prevBtn').addEventListener('click', function () {
         if (currentExamIndex > 0) {
             currentExamIndex--;
-            renderExamQuestion();
-            updateExamProgress();
+            renderQuestion();
+            highlightActiveGridItem();
         }
     });
 
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            currentUser = null;
-            showAuthModal();
+    document.getElementById('nextBtn').addEventListener('click', function () {
+        if (currentExamIndex < currentExam.questions.length - 1) {
+            currentExamIndex++;
+            renderQuestion();
+            highlightActiveGridItem();
+        } else {
+            confirmAndSubmit();
+        }
+    });
+
+    function renderQuestionsGrid() {
+        const grid = document.getElementById('questionsMapGrid');
+        grid.innerHTML = '';
+        currentExam.questions.forEach((_, idx) => {
+            const cell = document.createElement('button');
+            cell.className = 'grid-cell-btn';
+            cell.innerHTML = `<span class="cell-num">${idx + 1}</span><span class="cell-shading"></span><span class="cell-flag-dot"></span>`;
+            cell.addEventListener('click', function () {
+                currentExamIndex = idx;
+                renderQuestion();
+                highlightActiveGridItem();
+            });
+            grid.appendChild(cell);
+            updateQuestionsGridItem(idx);
+        });
+        highlightActiveGridItem();
+    }
+
+    function updateQuestionsGridItem(idx) {
+        const grid = document.getElementById('questionsMapGrid');
+        const cell = grid.children[idx];
+        if (!cell) return;
+        cell.classList.toggle('answered', currentExamAnswers[idx] !== null);
+        cell.classList.toggle('flagged',  currentExamFlags[idx]);
+    }
+
+    function highlightActiveGridItem() {
+        const grid = document.getElementById('questionsMapGrid');
+        Array.from(grid.children).forEach((cell, idx) => {
+            cell.classList.toggle('active', idx === currentExamIndex);
         });
     }
 
-    // About overlay show/hide logic with new .active class
-    const aboutBtn = document.getElementById('aboutBtn');
-    const aboutOverlay = document.getElementById('aboutOverlay');
-    const closeAbout = document.getElementById('closeAbout');
+    function confirmAndSubmit() {
+        const unanswered = currentExamAnswers.filter(a => a === null).length;
+        const msg = unanswered > 0
+            ? `You have ${unanswered} unanswered question(s). Submit anyway?`
+            : 'Are you sure you want to submit your exam?';
+        showCustomConfirm('Submit Exam', msg, () => submitExam());
+    }
 
-    if (aboutBtn && aboutOverlay && closeAbout) {
-      aboutBtn.addEventListener('click', () => {
-        aboutOverlay.classList.add('active');
-      });
-      closeAbout.addEventListener('click', () => {
-        aboutOverlay.classList.remove('active');
-      });
-      aboutOverlay.addEventListener('click', (e) => {
-        if (e.target === aboutOverlay) {
-          aboutOverlay.classList.remove('active');
+    async function autoSubmitExam() {
+        alert('Time is up! Your exam is being submitted automatically.');
+        submitExam();
+    }
+
+    async function submitExam() {
+        clearInterval(examTimerInterval);
+        disableExamProtection();
+        const timeTaken = Math.floor((Date.now() - currentExamStartTime) / 1000);
+        const res = await apiRequest('submit_exam', { examId: currentExam.id, timeTaken });
+
+        if (res.status === 'success') {
+            document.getElementById('finalScore').textContent    = res.score + '%';
+            document.getElementById('correctAnswers').textContent= `${res.correctAnswers}/${res.totalQuestions}`;
+            document.getElementById('timeTaken').textContent     = formatTime(res.timeTaken);
+
+            document.getElementById('examInterface').classList.add('hidden');
+            const rp = document.getElementById('resultsPage');
+            rp.classList.remove('hidden');
+            rp.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(20,20,20,0.82);z-index:10000;display:flex;align-items:center;justify-content:center;';
+            document.body.style.overflow = 'hidden';
+        } else {
+            alert(res.message || 'Failed to submit exam.');
         }
-      });
     }
 
-    // Student Dashboard Stats and Recent Results rendering
-    function renderStudentStats(stats) {
-      const statExamsTaken = document.getElementById('statExamsTaken');
-      const statAvgScore = document.getElementById('statAvgScore');
-      if (statExamsTaken && statAvgScore) {
-        statExamsTaken.textContent = stats.examsTaken || 0;
-        statAvgScore.textContent = (stats.avgScore || 0) + '%';
-      }
+    document.getElementById('backToDashboard').addEventListener('click', function () {
+        const rp = document.getElementById('resultsPage');
+        rp.classList.add('hidden');
+        rp.removeAttribute('style');
+        document.body.style.overflow = '';
+        currentExam = null;
+        loadStudentDashboard();
+        dashboard.classList.remove('hidden');
+    });
+
+    // =========================================================================
+    // --- ABOUT MODAL ---
+    // =========================================================================
+    const aboutBtn     = document.getElementById('aboutBtn');
+    const aboutOverlay = document.getElementById('aboutOverlay');
+    const closeAbout   = document.getElementById('closeAbout');
+    if (aboutBtn && aboutOverlay && closeAbout) {
+        aboutBtn.addEventListener('click',  () => aboutOverlay.classList.remove('hidden'));
+        closeAbout.addEventListener('click',() => aboutOverlay.classList.add('hidden'));
+        aboutOverlay.addEventListener('click', e => {
+            if (e.target === aboutOverlay) aboutOverlay.classList.add('hidden');
+        });
+    }
+    const mainAboutBtn = document.getElementById('mainAboutBtn');
+    if (mainAboutBtn && aboutOverlay) {
+        mainAboutBtn.addEventListener('click', () => aboutOverlay.classList.remove('hidden'));
     }
 
-    function renderRecentResults(results) {
-      const recentResultsList = document.getElementById('recentResultsList');
-      if (!recentResultsList) return;
-      recentResultsList.innerHTML = '';
-      if (!results || results.length === 0) {
-        recentResultsList.innerHTML = '<div style="color:#888;font-size:1rem;">No recent results yet.</div>';
-        return;
-      }
-      results.slice(0, 5).forEach(r => {
-        const item = document.createElement('div');
-        item.className = 'recent-result-item';
-        item.innerHTML = `<span>${r.examTitle}</span><span class="score">${r.score}%</span>`;
-        recentResultsList.appendChild(item);
-      });
+    // =========================================================================
+    // --- THEME TOGGLE ---
+    // =========================================================================
+    function setTheme(dark) {
+        document.body.classList.toggle('dark-mode', dark);
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+    }
+    if (themeToggle) themeToggle.addEventListener('click', () => setTheme(!document.body.classList.contains('dark-mode')));
+    const mainThemeToggle = document.getElementById('mainThemeToggle');
+    if (mainThemeToggle) mainThemeToggle.addEventListener('click', () => setTheme(!document.body.classList.contains('dark-mode')));
+    setTheme(localStorage.getItem('theme') === 'dark');
+
+    // =========================================================================
+    // --- PASSWORD VISIBILITY ---
+    // =========================================================================
+    const authPassword       = document.getElementById('authPassword');
+    const toggleAuthPassword = document.getElementById('toggleAuthPassword');
+    if (authPassword && toggleAuthPassword) {
+        toggleAuthPassword.addEventListener('click', function () {
+            const eyeIcon = document.getElementById('eyeIcon');
+            if (authPassword.type === 'password') {
+                authPassword.type = 'text';
+                if (eyeIcon) eyeIcon.setAttribute('fill', '#81b8e7');
+            } else {
+                authPassword.type = 'password';
+                if (eyeIcon) eyeIcon.setAttribute('fill', '#1A508B');
+            }
+        });
     }
 
-    // Example usage (replace with real data from your app logic):
-    // renderStudentStats({ examsTaken: 3, avgScore: 87 });
-    // renderRecentResults([
-    //   { examTitle: 'Java OOP', score: 90 },
-    //   { examTitle: 'C++', score: 80 },
-    // ]);
+    // =========================================================================
+    // --- SIDEBAR NAVIGATION ---
+    // =========================================================================
+    document.querySelectorAll('#studentNav .menu-item').forEach(btn => {
+        btn.addEventListener('click', function () {
+            switchTab('student', this.getAttribute('data-tab'));
+        });
+    });
+    document.querySelectorAll('#teacherNav .menu-item').forEach(btn => {
+        btn.addEventListener('click', function () {
+            switchTab('teacher', this.getAttribute('data-tab'));
+        });
+    });
+
+    // =========================================================================
+    // --- INIT ---
+    // =========================================================================
+    checkAuthStatus();
 });
