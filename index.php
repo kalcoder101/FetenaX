@@ -10,7 +10,7 @@ session_start();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FetenaX – Your Exam, Your Vibe</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -357,63 +357,109 @@ session_start();
 
     <!-- Results Overlay Page -->
     <div id="resultsPage" class="results-page hidden">
-        <div class="container">
+        <div class="results-outer-scroll">
             <div class="results-container">
-                <div class="results-header">
-                    <div class="success-icon">✓</div>
-                    <h2>Exam Completed!</h2>
-                    <p>Here are your results</p>
-                </div>
-                <div class="results-grid">
-                    <div class="result-card">
-                        <div class="result-value" id="finalScore">0%</div>
-                        <div class="result-label">Final Score</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-value" id="correctAnswers">0/0</div>
-                        <div class="result-label">Correct Answers</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-value" id="timeTaken">00:00</div>
-                        <div class="result-label">Time Taken</div>
+
+                <!-- Score Ring -->
+                <div class="results-score-ring-wrap">
+                    <svg class="score-ring-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <circle class="score-ring-track" cx="100" cy="100" r="82"/>
+                        <circle id="scoreRingFill" class="score-ring-fill" cx="100" cy="100" r="82"/>
+                    </svg>
+                    <div class="score-ring-inner">
+                        <div id="finalScore" class="score-ring-pct">0%</div>
+                        <div class="score-ring-lbl">Score</div>
                     </div>
                 </div>
-                <button id="backToDashboard" class="btn btn-primary">Back to Dashboard</button>
+
+                <!-- Exam title & pass/fail -->
+                <div id="reviewExamTitle" class="results-exam-title"></div>
+                <div id="passBadge" class="pass-badge">—</div>
+
+                <!-- Stats row -->
+                <div class="results-stats-row">
+                    <div class="result-stat-pill">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span id="correctAnswers" class="result-stat-val">0/0</span>
+                        <span class="result-stat-lbl">Correct</span>
+                    </div>
+                    <div class="result-stat-pill">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <span id="timeTaken" class="result-stat-val">00:00</span>
+                        <span class="result-stat-lbl">Time Taken</span>
+                    </div>
+                </div>
+
+                <!-- Answer Review -->
+                <div class="answer-review-section">
+                    <div class="answer-review-header">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Answer Review
+                    </div>
+                    <div id="answerReviewList" class="answer-review-list"></div>
+                </div>
+
+                <!-- Back button -->
+                <button id="backToDashboard" class="btn btn-primary btn-back-dash">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:7px;vertical-align:middle;"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                    Back to Dashboard
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Create Exam Modal -->
     <div id="createExamModal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content create-exam-modal-content">
             <div class="modal-header">
-                <h3>Create New Exam</h3>
+                <h3>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:7px;vertical-align:middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                    Create New Exam
+                </h3>
                 <button id="closeModal" class="close-btn">&times;</button>
             </div>
 
             <form id="createExamForm" class="create-exam-form">
-                <div class="form-group">
-                    <label for="examTitleInput">Exam Title</label>
-                    <input type="text" id="examTitleInput" class="form-input" required>
+                <div class="form-row">
+                    <div class="form-group" style="flex:2;">
+                        <label for="examTitleInput">Exam Title</label>
+                        <input type="text" id="examTitleInput" class="form-input" required placeholder="e.g. Java OOP Fundamentals">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label for="examDifficulty">Difficulty</label>
+                        <select id="examDifficulty" class="form-input form-select">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="examDuration">Duration (minutes)</label>
-                        <input type="number" id="examDuration" class="form-input" min="1" value="30" required>
-                    </div>
-                    <div class="form-group">
+                    <div class="form-group" style="flex:2;">
                         <label for="examSubject">Subject</label>
-                        <input type="text" id="examSubject" class="form-input" required>
+                        <input type="text" id="examSubject" class="form-input" required placeholder="e.g. Computer Science">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label for="examDuration">Duration (min)</label>
+                        <input type="number" id="examDuration" class="form-input" min="1" max="300" value="30" required>
                     </div>
                 </div>
-                <div id="questionsContainer">
-                    <label>Questions</label>
+                <div class="questions-section-header">
+                    <span id="questionCount" class="question-count-badge">0 Questions</span>
+                    <button type="button" id="addQuestionBtn" class="btn btn-secondary btn-small">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Add Question
+                    </button>
+                </div>
+                <div id="questionsContainer" class="questions-builder-container">
                     <!-- Questions will be added dynamically -->
                 </div>
-                <button type="button" id="addQuestionBtn" class="btn btn-secondary">Add Question</button>
-                <div class="modal-actions">
+                <div class="modal-actions" style="padding-top:1rem;border-top:1.5px solid var(--color-border);margin-top:0.5rem;">
                     <button type="button" id="cancelCreate" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-success">Create Exam</button>
+                    <button type="submit" class="btn btn-success">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Create Exam
+                    </button>
                 </div>
             </form>
         </div>

@@ -183,6 +183,34 @@ document.addEventListener('DOMContentLoaded', function () {
         newCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
     }
 
+    function showToast(message, type = 'success') {
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.style.cssText = `
+                position:fixed;bottom:1.5rem;right:1.5rem;z-index:99999;
+                display:flex;flex-direction:column;gap:0.5rem;pointer-events:none;
+            `;
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        const bg = type === 'success' ? 'var(--color-success)' : type === 'error' ? 'var(--color-danger)' : 'var(--color-primary)';
+        toast.style.cssText = `
+            background:${bg};color:#fff;padding:0.65rem 1.2rem;border-radius:0.65rem;
+            font-size:0.9rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);
+            transform:translateY(8px);opacity:0;transition:all 0.25s;pointer-events:auto;
+            font-family:'Plus Jakarta Sans','Inter',sans-serif;
+        `;
+        toast.textContent = message;
+        container.appendChild(toast);
+        requestAnimationFrame(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; });
+        setTimeout(() => {
+            toast.style.opacity = '0'; toast.style.transform = 'translateY(8px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3200);
+    }
+
     function switchTab(role, tabId) {
         const container = role === 'student' ? studentDashboard : teacherDashboard;
         const nav = role === 'student' ? document.getElementById('studentNav') : document.getElementById('teacherNav');
@@ -317,23 +345,51 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        // ---- Stats Card ----
+        // ---- Stats Card (4-card grid + subject breakdown) ----
         const statsCard = document.getElementById('studentStatsCard');
         if (resultsRes.status === 'success' && resultsRes.stats) {
             const s = resultsRes.stats;
-            statsCard.innerHTML = `
-                <div style="background:var(--glass-bg);border-radius:0.75rem;box-shadow:var(--color-shadow);padding:1.2rem 1.5rem;min-width:200px;border:1px solid var(--color-border);">
-                    <div style="font-size:1.1rem;font-weight:600;margin-bottom:0.5rem;color:var(--color-text);">Your Stats</div>
-                    <div style="color:var(--color-primary);font-size:1.8rem;font-weight:700;">${s.averageScore}%</div>
-                    <div style="font-size:0.9rem;color:var(--color-text-secondary);margin-bottom:0.9rem;">Average Score</div>
-                    <div style="display:flex;justify-content:space-between;font-size:0.95rem;color:var(--color-text);margin-bottom:0.35rem;">
-                        <span>Exams Taken</span><span><b>${s.totalExamsTaken}</b></span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;font-size:0.95rem;color:var(--color-text);">
-                        <span>Best Score</span><span><b>${s.bestScore}%</b></span>
-                    </div>
-                </div>
-            `;
+
+            const statCards = [
+                { icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`, value: s.totalExamsTaken, label: 'Exams Taken' },
+                { icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`, value: s.averageScore + '%', label: 'Average Score' },
+                { icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>`, value: s.bestScore + '%', label: 'Best Score' },
+                { icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`, value: (s.passRate || 0) + '%', label: 'Pass Rate' }
+            ];
+
+            let statsHTML = '<div class="student-perf-stats-grid">';
+            statCards.forEach(sc => {
+                statsHTML += `
+                    <div class="perf-stat-card">
+                        <div class="perf-stat-icon">${sc.icon}</div>
+                        <div class="perf-stat-body">
+                            <div class="perf-stat-num">${sc.value}</div>
+                            <div class="perf-stat-lbl">${sc.label}</div>
+                        </div>
+                    </div>`;
+            });
+            statsHTML += '</div>';
+
+            // Subject breakdown
+            if (resultsRes.subjectStats && resultsRes.subjectStats.length > 0) {
+                statsHTML += '<div class="subject-breakdown-section">';
+                statsHTML += '<div class="subject-breakdown-title">Performance by Subject</div>';
+                resultsRes.subjectStats.forEach(sub => {
+                    const avg = sub.avgScore || 0;
+                    const barColor = avg >= 75 ? 'var(--color-success)' : avg >= 50 ? '#f59e0b' : 'var(--color-danger)';
+                    statsHTML += `
+                        <div class="subject-bar-row">
+                            <div class="subject-bar-name" title="${sub.subject}">${sub.subject}</div>
+                            <div class="subject-bar-track">
+                                <div class="subject-bar-fill" style="width:${avg}%;background:${barColor};"></div>
+                            </div>
+                            <div class="subject-bar-pct">${avg}%</div>
+                        </div>`;
+                });
+                statsHTML += '</div>';
+            }
+
+            statsCard.innerHTML = statsHTML;
         }
 
         // ---- Recent Results with Filter ----
@@ -349,27 +405,31 @@ document.addEventListener('DOMContentLoaded', function () {
             const listDiv = document.createElement('div');
             listDiv.className = 'recent-results-list';
             listDiv.id = 'attemptsListContainer';
+            listDiv.style.cssText = 'display:flex;flex-direction:column;gap:0.6rem;';
 
-            allResults.forEach(result => {
+            allResults.forEach((result, idx) => {
                 const div = document.createElement('div');
-                div.className = 'result-item';
+                div.className = 'attempt-item';
                 div.dataset.passed = result.score >= 60 ? 'true' : 'false';
                 div.innerHTML = `
-                    <div class="result-info">
-                        <h4>${result.examTitle}</h4>
-                        <p>${result.completedAt.split(' ')[0]}</p>
+                    <div class="attempt-rank">${idx + 1}</div>
+                    <div class="attempt-info">
+                        <div class="attempt-title">${result.examTitle}</div>
+                        <div class="attempt-meta">
+                            ${result.completedAt.split(' ')[0]}
+                            &nbsp;·&nbsp;
+                            ${result.correctAnswers}/${result.totalQuestions} correct
+                            &nbsp;·&nbsp;
+                            ${formatTime(result.timeTaken)}
+                        </div>
                     </div>
-                    <div class="result-score">
-                        <span class="score ${result.score >= 60 ? 'score-pass' : 'score-fail'}">${result.score}%</span>
-                        <br>
-                        <span class="date">${formatTime(result.timeTaken)}</span>
-                    </div>
+                    <div class="attempt-score-badge ${result.score >= 60 ? 'pass' : 'fail'}">${result.score}%</div>
                 `;
                 listDiv.appendChild(div);
             });
             studentRecentResults.appendChild(listDiv);
         } else {
-            studentRecentResults.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--color-text-secondary);">No attempts yet. Take your first exam!</div>';
+            studentRecentResults.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);font-size:0.95rem;">No attempts yet. Take your first exam!</div>';
         }
 
         // ---- Bind Attempt Filter Buttons (All / Passed / Failed) ----
@@ -472,44 +532,66 @@ document.addEventListener('DOMContentLoaded', function () {
         // ---- Analytics Cards (with Delete button) ----
         const analyticsDiv = document.getElementById('teacherAnalytics');
         analyticsDiv.innerHTML = `
-            <h3 style="margin-bottom:1.5rem;font-size:1.15rem;font-weight:700;color:var(--color-text);display:flex;align-items:center;gap:0.6em;">
-                ${ICONS.chart}
-                Exam Performance Analytics
-            </h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:0.5rem;">
+                <h3 style="font-size:1.15rem;font-weight:700;color:var(--color-text);display:flex;align-items:center;gap:0.6em;margin:0;">
+                    ${ICONS.chart} Exam Performance Analytics
+                </h3>
+                <span style="font-size:0.82rem;color:var(--color-text-secondary);">${analyticsRes.status === 'success' ? (analyticsRes.analytics || []).length : 0} exam(s)</span>
+            </div>
         `;
         const grid = document.createElement('div');
-        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:1.5rem;';
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill, minmax(270px, 1fr));gap:1.25rem;';
 
         if (analyticsRes.status === 'success' && analyticsRes.analytics) {
             if (analyticsRes.analytics.length === 0) {
-                grid.innerHTML = '<div style="color:var(--color-text-secondary);padding:1rem;">No exams created yet.</div>';
+                grid.innerHTML = '<div style="color:var(--color-text-secondary);padding:2rem;text-align:center;grid-column:1/-1;">No exams created yet. Click "Create New Exam" to get started.</div>';
             } else {
                 analyticsRes.analytics.forEach(exam => {
                     const card = document.createElement('div');
                     card.className = 'exam-analytics-card';
+
+                    const avgPct = exam.averageScore || 0;
+                    const passRate = exam.passRate || 0;
+                    const barClass = avgPct >= 75 ? 'bar-high' : avgPct >= 50 ? 'bar-mid' : 'bar-low';
+                    const diffColor = { Easy: 'var(--color-success)', Medium: '#f59e0b', Hard: 'var(--color-danger)' }[exam.difficulty] || 'var(--color-primary)';
+
                     card.innerHTML = `
-                        <div style="font-weight:700;font-size:1.05rem;margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5em;color:var(--color-text);">
-                            ${ICONS.file} ${exam.title}
+                        <div style="margin-bottom:0.5rem;">
+                            <div style="font-weight:800;font-size:1rem;color:var(--color-text);margin-bottom:0.35rem;line-height:1.3;">${exam.title}</div>
+                            <div class="analytics-meta-row">
+                                <span class="analytics-meta-chip">${exam.subject}</span>
+                                ${exam.difficulty ? `<span class="analytics-meta-chip" style="color:${diffColor};background:${diffColor}18;">${exam.difficulty}</span>` : ''}
+                                ${exam.totalQuestions ? `<span class="analytics-meta-chip">${exam.totalQuestions}Q · ${exam.duration}min</span>` : ''}
+                            </div>
                         </div>
-                        <div style="font-size:0.9rem;color:var(--color-text-secondary);margin-bottom:0.6rem;">${exam.subject}</div>
-                        <div style="display:flex;gap:1.2em;margin-bottom:0.5rem;font-size:0.92em;color:var(--color-text);">
-                            <span>Attempts: <b>${exam.totalAttempts}</b></span>
-                            <span>Avg: <b>${exam.averageScore}%</b></span>
+                        <div class="analytics-score-bar-wrap">
+                            <div style="display:flex;justify-content:space-between;font-size:0.78rem;font-weight:700;color:var(--color-text-secondary);margin-bottom:4px;">
+                                <span>Avg Score</span><span>${avgPct}%</span>
+                            </div>
+                            <div class="analytics-score-bar-track">
+                                <div class="analytics-score-bar-fill ${barClass}" style="width:${avgPct}%;min-width:${avgPct>0?2:0}px;"></div>
+                            </div>
                         </div>
-                        <div style="height:10px;background:var(--color-border);border-radius:99px;overflow:hidden;margin-bottom:0.6rem;">
-                            <div style="background:var(--color-primary);height:100%;width:${exam.averageScore}%;min-width:2px;border-radius:99px;transition:width 0.5s;"></div>
-                        </div>
-                        <div style="font-size:0.89em;display:flex;gap:0.8em;justify-content:space-between;color:var(--color-text);">
-                            <span>High: <b style="color:var(--color-success);">${exam.highestScore}%</b></span>
-                            <span>Low: <b style="color:var(--color-danger);">${exam.lowestScore}%</b></span>
-                            <span>Pass: <b>${exam.passRate}%</b></span>
+                        <div class="analytics-stats-trio">
+                            <div class="analytics-stat-mini">
+                                <div class="val">${exam.totalAttempts}</div>
+                                <div class="lbl">Attempts</div>
+                            </div>
+                            <div class="analytics-stat-mini">
+                                <div class="val" style="color:var(--color-success);">${exam.highestScore}%</div>
+                                <div class="lbl">Best</div>
+                            </div>
+                            <div class="analytics-stat-mini">
+                                <div class="val" style="color:${passRate >= 60 ? 'var(--color-success)' : 'var(--color-danger)'};">${passRate}%</div>
+                                <div class="lbl">Pass Rate</div>
+                            </div>
                         </div>
                     `;
 
                     // Delete Exam Button
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'btn btn-danger btn-small';
-                    deleteBtn.style.cssText = 'margin-top:0.85rem;width:100%;font-size:0.87rem;justify-content:center;';
+                    deleteBtn.style.cssText = 'margin-top:0.85rem;width:100%;justify-content:center;font-size:0.85rem;';
                     deleteBtn.innerHTML = `${ICONS.trash} Delete Exam`;
                     const examId    = exam.id;
                     const examTitle = exam.title;
@@ -520,6 +602,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             async () => {
                                 const res = await apiRequest('teacher_delete_exam', { examId });
                                 if (res.status === 'success') {
+                                    showToast('Exam deleted.', 'success');
                                     loadTeacherDashboard();
                                 } else {
                                     alert(res.message || 'Failed to delete exam.');
@@ -728,65 +811,119 @@ document.addEventListener('DOMContentLoaded', function () {
     if (createExamBtn) {
         createExamBtn.addEventListener('click', () => {
             createExamModal.classList.remove('hidden');
-            questionsContainer.innerHTML = '<label style="font-weight:600;font-size:0.95rem;color:var(--color-text-secondary);margin-bottom:0.5rem;display:block;">Questions</label>';
+            questionsContainer.innerHTML = '';
+            updateQuestionCount();
             addQuestionBlock();
         });
+    }
+
+    function updateQuestionCount() {
+        const badge = document.getElementById('questionCount');
+        if (!badge) return;
+        const n = questionsContainer ? questionsContainer.querySelectorAll('.question-block').length : 0;
+        badge.textContent = n + (n === 1 ? ' Question' : ' Questions');
     }
     if (closeModal)    closeModal.addEventListener('click',   () => createExamModal.classList.add('hidden'));
     if (cancelCreate)  cancelCreate.addEventListener('click', () => createExamModal.classList.add('hidden'));
 
     function addQuestionBlock() {
+        const idx = questionsContainer.querySelectorAll('.question-block').length + 1;
         const block = document.createElement('div');
         block.className = 'question-block';
-        block.style.cssText = 'border:1.5px solid var(--color-border);border-radius:8px;padding:12px;margin-bottom:12px;background:var(--glass-bg);';
+
+        const uid = 'q' + Date.now() + '_' + idx;
         block.innerHTML = `
-            <div class="form-group">
-                <label>Question Text</label>
-                <input type="text" class="form-input question-input" required placeholder="Enter question...">
+            <div class="question-block-header">
+                <span class="question-block-num">Question ${idx}</span>
+                <button type="button" class="btn btn-danger btn-small remove-question" style="padding:0.2rem 0.65rem;font-size:0.78rem;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:3px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+                    Remove
+                </button>
             </div>
-            <div class="options-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-                <input type="text" class="form-input option-input" placeholder="Option A" required>
-                <input type="text" class="form-input option-input" placeholder="Option B" required>
-                <input type="text" class="form-input option-input" placeholder="Option C" required>
-                <input type="text" class="form-input option-input" placeholder="Option D" required>
+            <div class="form-group" style="margin-bottom:0.6rem;">
+                <label style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">Question Text</label>
+                <input type="text" class="form-input question-input" required placeholder="Enter your question here…">
             </div>
-            <div class="form-group">
-                <label>Correct Option (1=A, 2=B, 3=C, 4=D)</label>
-                <input type="number" class="form-input correct-input" min="1" max="4" value="1" required>
+            <div class="options-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.7rem;">
+                <div style="position:relative;">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:0.78rem;color:var(--color-primary);">A</span>
+                    <input type="text" class="form-input option-input" placeholder="Option A" required style="padding-left:26px;">
+                </div>
+                <div style="position:relative;">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:0.78rem;color:var(--color-primary);">B</span>
+                    <input type="text" class="form-input option-input" placeholder="Option B" required style="padding-left:26px;">
+                </div>
+                <div style="position:relative;">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:0.78rem;color:var(--color-primary);">C</span>
+                    <input type="text" class="form-input option-input" placeholder="Option C" required style="padding-left:26px;">
+                </div>
+                <div style="position:relative;">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:0.78rem;color:var(--color-primary);">D</span>
+                    <input type="text" class="form-input option-input" placeholder="Option D" required style="padding-left:26px;">
+                </div>
             </div>
-            <button type="button" class="btn btn-danger btn-small remove-question">Remove Question</button>
+            <div class="correct-answer-row">
+                <label style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">Correct Answer:</label>
+                <label class="correct-opt"><input type="radio" name="${uid}" value="0" checked> A</label>
+                <label class="correct-opt"><input type="radio" name="${uid}" value="1"> B</label>
+                <label class="correct-opt"><input type="radio" name="${uid}" value="2"> C</label>
+                <label class="correct-opt"><input type="radio" name="${uid}" value="3"> D</label>
+            </div>
         `;
-        block.querySelector('.remove-question').addEventListener('click', () => block.remove());
+
+        block.querySelector('.remove-question').addEventListener('click', () => {
+            block.remove();
+            updateQuestionCount();
+            // Re-number remaining blocks
+            questionsContainer.querySelectorAll('.question-block-num').forEach((el, i) => {
+                el.textContent = `Question ${i + 1}`;
+            });
+        });
         questionsContainer.appendChild(block);
+        updateQuestionCount();
     }
     if (addQuestionBtn) addQuestionBtn.addEventListener('click', addQuestionBlock);
 
     if (createExamForm) {
         createExamForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            const title    = document.getElementById('examTitleInput').value.trim();
-            const duration = parseInt(document.getElementById('examDuration').value);
-            const subject  = document.getElementById('examSubject').value.trim();
-            const questions = [];
+            const title      = document.getElementById('examTitleInput').value.trim();
+            const duration   = parseInt(document.getElementById('examDuration').value);
+            const subject    = document.getElementById('examSubject').value.trim();
+            const difficulty = (document.getElementById('examDifficulty') || {}).value || 'Medium';
+            const questions  = [];
 
-            questionsContainer.querySelectorAll('.question-block').forEach(block => {
+            let formError = null;
+            questionsContainer.querySelectorAll('.question-block').forEach((block, bi) => {
+                if (formError) return;
                 const qText   = block.querySelector('.question-input').value.trim();
                 const opts    = Array.from(block.querySelectorAll('.option-input')).map(i => i.value.trim());
-                const correct = parseInt(block.querySelector('.correct-input').value) - 1;
-                if (qText && opts.every(o => o) && correct >= 0 && correct < 4) {
-                    questions.push({ question: qText, options: opts, correctAnswer: correct });
-                }
+                const radioSel = block.querySelector('input[type="radio"]:checked');
+                const correct = radioSel ? parseInt(radioSel.value) : 0;
+
+                if (!qText) { formError = `Question ${bi + 1}: question text is empty.`; return; }
+                if (opts.some(o => !o)) { formError = `Question ${bi + 1}: all 4 options are required.`; return; }
+                questions.push({ question: qText, options: opts, correctAnswer: correct });
             });
 
+            if (formError) { alert(formError); return; }
             if (!title || !subject || duration <= 0 || questions.length === 0) {
-                alert('Please fill in exam details and add at least one complete question.');
+                alert('Please fill in all exam details and add at least one question.');
                 return;
             }
 
-            const res = await apiRequest('teacher_create_exam', { title, subject, duration, questions });
+            const submitBtn = createExamForm.querySelector('[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating…'; }
+
+            const res = await apiRequest('teacher_create_exam', { title, subject, difficulty, duration, questions });
+
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Create Exam'; }
+
             if (res.status === 'success') {
-                alert('Exam created successfully!');
                 createExamModal.classList.add('hidden');
+                questionsContainer.innerHTML = '';
+                updateQuestionCount();
+                showToast('Exam created successfully!', 'success');
                 loadTeacherDashboard();
             } else {
                 alert(res.message || 'Failed to create exam.');
@@ -873,6 +1010,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const footer = document.querySelector('.site-footer');
         if (navbar) navbar.classList.add('hidden');
         if (footer) footer.classList.add('hidden');
+        document.body.style.overflow = 'hidden';
 
         enableExamProtection();
         startExamTimer(currentExam.duration * 60);
@@ -1044,14 +1182,74 @@ document.addEventListener('DOMContentLoaded', function () {
         const res = await apiRequest('submit_exam', { examId: currentExam.id, timeTaken });
 
         if (res.status === 'success') {
-            document.getElementById('finalScore').textContent    = res.score + '%';
-            document.getElementById('correctAnswers').textContent= `${res.correctAnswers}/${res.totalQuestions}`;
-            document.getElementById('timeTaken').textContent     = formatTime(res.timeTaken);
+            // --- Score ring ---
+            const pct = res.score;
+            const circumference = 2 * Math.PI * 82; // r=82 → ≈515.2
+            const fillOffset = circumference - (pct / 100) * circumference;
+            const ring = document.getElementById('scoreRingFill');
+            if (ring) {
+                ring.style.strokeDasharray  = circumference;
+                ring.style.strokeDashoffset = circumference; // start at 0
+                ring.classList.remove('ring-pass','ring-fail');
+                ring.classList.add(pct >= 60 ? 'ring-pass' : 'ring-fail');
+                requestAnimationFrame(() => {
+                    ring.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1)';
+                    ring.style.strokeDashoffset = fillOffset;
+                });
+            }
+
+            // --- Stats ---
+            document.getElementById('finalScore').textContent     = pct + '%';
+            document.getElementById('correctAnswers').textContent = `${res.correctAnswers}/${res.totalQuestions}`;
+            document.getElementById('timeTaken').textContent      = formatTime(res.timeTaken);
+
+            // --- Exam title ---
+            const titleEl = document.getElementById('reviewExamTitle');
+            if (titleEl) titleEl.textContent = res.examTitle || '';
+
+            // --- Pass/Fail badge ---
+            const badge = document.getElementById('passBadge');
+            if (badge) {
+                badge.textContent = pct >= 60 ? '✓ Passed' : '✗ Failed';
+                badge.className = 'pass-badge ' + (pct >= 60 ? 'badge-pass' : 'badge-fail');
+            }
+
+            // --- Answer review ---
+            const reviewList = document.getElementById('answerReviewList');
+            if (reviewList && res.answerReview && res.answerReview.length > 0) {
+                reviewList.innerHTML = '';
+                const optLetters = ['A','B','C','D'];
+                res.answerReview.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'ar-item ' + (item.isCorrect ? 'ar-correct' : 'ar-wrong');
+                    const selLetter = item.selectedAnswer !== null ? optLetters[item.selectedAnswer] : '—';
+                    const corrLetter = optLetters[item.correctAnswer];
+                    const selText    = item.selectedAnswer !== null ? item.options[item.selectedAnswer] : 'No answer';
+                    const corrText   = item.options[item.correctAnswer];
+                    div.innerHTML = `
+                        <div class="ar-icon">${item.isCorrect ? '✓' : '✗'}</div>
+                        <div class="ar-body">
+                            <div class="ar-qnum">Q${idx + 1}</div>
+                            <div class="ar-qtext">${item.question}</div>
+                            <div class="ar-answer-row">
+                                ${item.isCorrect
+                                    ? `<span class="ar-your-answer">Your answer: <b>${selLetter}. ${selText}</b></span>`
+                                    : `<span class="ar-your-answer">Your answer: <b>${selLetter}. ${selText}</b></span>
+                                       &nbsp;·&nbsp;
+                                       <span class="ar-correct-answer">Correct: <b>${corrLetter}. ${corrText}</b></span>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                    reviewList.appendChild(div);
+                });
+            } else if (reviewList) {
+                reviewList.innerHTML = '<div style="color:var(--color-text-secondary);font-size:0.88rem;text-align:center;padding:1rem;">No answer data available.</div>';
+            }
 
             document.getElementById('examInterface').classList.add('hidden');
             const rp = document.getElementById('resultsPage');
             rp.classList.remove('hidden');
-            rp.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(20,20,20,0.82);z-index:10000;display:flex;align-items:center;justify-content:center;';
             document.body.style.overflow = 'hidden';
         } else {
             alert(res.message || 'Failed to submit exam.');
@@ -1063,7 +1261,11 @@ document.addEventListener('DOMContentLoaded', function () {
         rp.classList.add('hidden');
         rp.removeAttribute('style');
         document.body.style.overflow = '';
+        document.getElementById('examInterface').classList.add('hidden');
         currentExam = null;
+        const navbar = document.querySelector('.navbar');
+        const footer = document.querySelector('.site-footer');
+        if (footer) footer.classList.remove('hidden');
         loadStudentDashboard();
         dashboard.classList.remove('hidden');
     });

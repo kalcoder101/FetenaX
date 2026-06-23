@@ -223,8 +223,8 @@ if ($action === 'submit_exam') {
         respond('error', ['message' => 'Invalid Exam ID.']);
     }
 
-    // Fetch questions and correct answers
-    $stmt = $pdo->prepare("SELECT `id`, `correctAnswer` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
+    // Fetch questions with full detail for answer review
+    $stmt = $pdo->prepare("SELECT `id`, `question`, `option1`, `option2`, `option3`, `option4`, `correctAnswer` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
     $stmt->execute([$examId]);
     $questions = $stmt->fetchAll();
     if (count($questions) === 0) {
@@ -241,16 +241,27 @@ if ($action === 'submit_exam') {
     }
 
     $correctCount = 0;
-    $answersSaved = [];
+    $answerReview = [];
     foreach ($questions as $q) {
         $ans = isset($progressAnswers[$q['id']]) ? $progressAnswers[$q['id']] : null;
-        if ($ans !== null && (int)$ans === (int)$q['correctAnswer']) {
-            $correctCount++;
-        }
-        $answersSaved[] = $ans;
+        $isCorrect = ($ans !== null && (int)$ans === (int)$q['correctAnswer']);
+        if ($isCorrect) $correctCount++;
+        $answerReview[] = [
+            'question'       => $q['question'],
+            'options'        => [$q['option1'], $q['option2'], $q['option3'], $q['option4']],
+            'selectedAnswer' => $ans !== null ? (int)$ans : null,
+            'correctAnswer'  => (int)$q['correctAnswer'],
+            'isCorrect'      => $isCorrect
+        ];
     }
 
     $score = Math_round_or_ceil(($correctCount / count($questions)) * 100);
+
+    // Fetch exam title for results page
+    $stmtE = $pdo->prepare("SELECT `title` FROM `exams` WHERE `id` = ?");
+    $stmtE->execute([$examId]);
+    $examRow = $stmtE->fetch();
+    $examTitle = $examRow ? $examRow['title'] : '';
 
     // Save final result
     $stmt = $pdo->prepare("INSERT INTO `results` (`examId`, `studentId`, `score`, `correctAnswers`, `totalQuestions`, `timeTaken`, `completedAt`) VALUES (?, ?, ?, ?, ?, ?, NOW())");
@@ -261,10 +272,12 @@ if ($action === 'submit_exam') {
     $stmt->execute([$currentUser['id'], $examId]);
 
     respond('success', [
-        'score' => $score,
+        'score'          => $score,
         'correctAnswers' => $correctCount,
         'totalQuestions' => count($questions),
-        'timeTaken' => $timeTaken
+        'timeTaken'      => $timeTaken,
+        'examTitle'      => $examTitle,
+        'answerReview'   => $answerReview
     ]);
 }
 
@@ -278,18 +291,27 @@ if ($action === 'get_student_results') {
     $stmt->execute([$currentUser['id']]);
     $results = $stmt->fetchAll();
     
-    // Also get student stats
-    $stmt = $pdo->prepare("SELECT COUNT(*) as totalExamsTaken, AVG(score) as averageScore, MAX(score) as bestScore FROM `results` WHERE `studentId` = ?");
+    // Overall stats
+    $stmt = $pdo->prepare("SELECT COUNT(*) as totalExamsTaken, AVG(score) as averageScore, MAX(score) as bestScore, SUM(CASE WHEN score >= 60 THEN 1 ELSE 0 END) as totalPassed FROM `results` WHERE `studentId` = ?");
     $stmt->execute([$currentUser['id']]);
     $stats = $stmt->fetch();
 
+    // Subject breakdown
+    $stmt = $pdo->prepare("SELECT e.subject, COUNT(*) as attempts, ROUND(AVG(r.score)) as avgScore, MAX(r.score) as bestScore FROM `results` r JOIN `exams` e ON r.examId = e.id WHERE r.studentId = ? GROUP BY e.subject ORDER BY avgScore DESC");
+    $stmt->execute([$currentUser['id']]);
+    $subjectStats = $stmt->fetchAll();
+
+    $total = (int)$stats['totalExamsTaken'];
+    $passed = (int)$stats['totalPassed'];
     respond('success', [
         'results' => $results,
         'stats' => [
-            'totalExamsTaken' => (int)$stats['totalExamsTaken'],
-            'averageScore' => $stats['averageScore'] !== null ? (int)round($stats['averageScore']) : 0,
-            'bestScore' => $stats['bestScore'] !== null ? (int)$stats['bestScore'] : 0
-        ]
+            'totalExamsTaken' => $total,
+            'averageScore'    => $stats['averageScore'] !== null ? (int)round($stats['averageScore']) : 0,
+            'bestScore'       => $stats['bestScore'] !== null ? (int)$stats['bestScore'] : 0,
+            'passRate'        => $total > 0 ? (int)round(($passed / $total) * 100) : 0
+        ],
+        'subjectStats' => $subjectStats
     ]);
 }
 
@@ -314,7 +336,7 @@ if (strpos($action, 'teacher_') === 0) {
 
     if ($action === 'teacher_analytics') {
         // Performance metrics per exam
-        $stmt = $pdo->query("SELECT id, title, subject FROM `exams` ORDER BY `id` ASC");
+        $stmt = $pdo->query("SELECT id, title, subject, difficulty, duration, totalQuestions, createdAt FROM `exams` ORDER BY `id` ASC");
         $exams = $stmt->fetchAll();
         
         $analytics = [];
@@ -323,30 +345,33 @@ if (strpos($action, 'teacher_') === 0) {
             $stmt->execute([$exam['id']]);
             $scores = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
+            $base = [
+                'id'             => $exam['id'],
+                'title'          => $exam['title'],
+                'subject'        => $exam['subject'],
+                'difficulty'     => $exam['difficulty'],
+                'duration'       => (int)$exam['duration'],
+                'totalQuestions' => (int)$exam['totalQuestions'],
+                'createdAt'      => $exam['createdAt']
+            ];
             if (count($scores) === 0) {
-                $analytics[] = [
-                    'id' => $exam['id'],
-                    'title' => $exam['title'],
-                    'subject' => $exam['subject'],
+                $analytics[] = array_merge($base, [
                     'totalAttempts' => 0,
-                    'averageScore' => 0,
-                    'highestScore' => 0,
-                    'lowestScore' => 0,
-                    'passRate' => 0
-                ];
+                    'averageScore'  => 0,
+                    'highestScore'  => 0,
+                    'lowestScore'   => 0,
+                    'passRate'      => 0
+                ]);
             } else {
-                $total = count($scores);
+                $total  = count($scores);
                 $passed = count(array_filter($scores, function($s) { return $s >= 60; }));
-                $analytics[] = [
-                    'id' => $exam['id'],
-                    'title' => $exam['title'],
-                    'subject' => $exam['subject'],
+                $analytics[] = array_merge($base, [
                     'totalAttempts' => $total,
-                    'averageScore' => (int)round(array_sum($scores) / $total),
-                    'highestScore' => max($scores),
-                    'lowestScore' => min($scores),
-                    'passRate' => (int)round(($passed / $total) * 100)
-                ];
+                    'averageScore'  => (int)round(array_sum($scores) / $total),
+                    'highestScore'  => (int)max($scores),
+                    'lowestScore'   => (int)min($scores),
+                    'passRate'      => (int)round(($passed / $total) * 100)
+                ]);
             }
         }
         respond('success', ['analytics' => $analytics]);
@@ -407,10 +432,14 @@ if (strpos($action, 'teacher_') === 0) {
     }
 
     if ($action === 'teacher_create_exam') {
-        $title = isset($requestData['title']) ? trim($requestData['title']) : '';
-        $subject = isset($requestData['subject']) ? trim($requestData['subject']) : '';
-        $duration = isset($requestData['duration']) ? (int)$requestData['duration'] : 30;
-        $questions = isset($requestData['questions']) ? $requestData['questions'] : [];
+        $title      = isset($requestData['title'])      ? trim($requestData['title'])      : '';
+        $subject    = isset($requestData['subject'])    ? trim($requestData['subject'])    : '';
+        $duration   = isset($requestData['duration'])   ? (int)$requestData['duration']   : 30;
+        $difficulty = isset($requestData['difficulty']) ? trim($requestData['difficulty']) : 'Medium';
+        $questions  = isset($requestData['questions'])  ? $requestData['questions']        : [];
+
+        $allowed = ['Easy', 'Medium', 'Hard'];
+        if (!in_array($difficulty, $allowed)) $difficulty = 'Medium';
 
         if (empty($title) || empty($subject) || count($questions) === 0) {
             respond('error', ['message' => 'Please fill in all details and add at least one question.']);
@@ -420,8 +449,8 @@ if (strpos($action, 'teacher_') === 0) {
         try {
             // Insert exam
             $stmt = $pdo->prepare("INSERT INTO `exams` (`title`, `subject`, `duration`, `totalQuestions`, `difficulty`, `createdBy`, `createdAt`) 
-                                   VALUES (?, ?, ?, ?, 'Custom', ?, NOW())");
-            $stmt->execute([$title, $subject, $duration, count($questions), $currentUser['id']]);
+                                   VALUES (?, ?, ?, ?, ?, ?, NOW())");
+            $stmt->execute([$title, $subject, $duration, count($questions), $difficulty, $currentUser['id']]);
             $examId = $pdo->lastInsertId();
 
             // Insert questions
