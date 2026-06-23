@@ -223,8 +223,8 @@ if ($action === 'submit_exam') {
         respond('error', ['message' => 'Invalid Exam ID.']);
     }
 
-    // Fetch questions with full detail for answer review
-    $stmt = $pdo->prepare("SELECT `id`, `question`, `option1`, `option2`, `option3`, `option4`, `correctAnswer` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
+    // Fetch questions with full detail for answer review (including points for weighted scoring)
+    $stmt = $pdo->prepare("SELECT `id`, `question`, `option1`, `option2`, `option3`, `option4`, `correctAnswer`, `points` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
     $stmt->execute([$examId]);
     $questions = $stmt->fetchAll();
     if (count($questions) === 0) {
@@ -241,21 +241,27 @@ if ($action === 'submit_exam') {
     }
 
     $correctCount = 0;
+    $earnedPoints = 0;
+    $totalPoints  = 0;
     $answerReview = [];
     foreach ($questions as $q) {
+        $qPoints = isset($q['points']) ? (int)$q['points'] : 1;
+        $totalPoints += $qPoints;
         $ans = isset($progressAnswers[$q['id']]) ? $progressAnswers[$q['id']] : null;
         $isCorrect = ($ans !== null && (int)$ans === (int)$q['correctAnswer']);
-        if ($isCorrect) $correctCount++;
+        if ($isCorrect) { $correctCount++; $earnedPoints += $qPoints; }
         $answerReview[] = [
             'question'       => $q['question'],
             'options'        => [$q['option1'], $q['option2'], $q['option3'], $q['option4']],
             'selectedAnswer' => $ans !== null ? (int)$ans : null,
             'correctAnswer'  => (int)$q['correctAnswer'],
-            'isCorrect'      => $isCorrect
+            'isCorrect'      => $isCorrect,
+            'points'         => $qPoints
         ];
     }
 
-    $score = Math_round_or_ceil(($correctCount / count($questions)) * 100);
+    // Weighted score: earned points / total points * 100
+    $score = $totalPoints > 0 ? Math_round_or_ceil(($earnedPoints / $totalPoints) * 100) : 0;
 
     // Fetch exam title for results page
     $stmtE = $pdo->prepare("SELECT `title` FROM `exams` WHERE `id` = ?");
@@ -271,14 +277,50 @@ if ($action === 'submit_exam') {
     $stmt = $pdo->prepare("DELETE FROM `exam_progress` WHERE `studentId` = ? AND `examId` = ?");
     $stmt->execute([$currentUser['id'], $examId]);
 
+    // Award badges
+    $newBadges = check_and_award_badges($pdo, $currentUser['id']);
+
     respond('success', [
         'score'          => $score,
         'correctAnswers' => $correctCount,
         'totalQuestions' => count($questions),
+        'earnedPoints'   => $earnedPoints,
+        'totalPoints'    => $totalPoints,
         'timeTaken'      => $timeTaken,
         'examTitle'      => $examTitle,
-        'answerReview'   => $answerReview
+        'answerReview'   => $answerReview,
+        'newBadges'      => $newBadges
     ]);
+}
+
+// ---- Badge check helper ----
+function check_and_award_badges($pdo, $studentId) {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM `results` WHERE `studentId`=?");
+    $stmt->execute([$studentId]);
+    $total = (int)$stmt->fetchColumn();
+
+    $stmt2 = $pdo->prepare("SELECT MAX(score) FROM `results` WHERE `studentId`=?");
+    $stmt2->execute([$studentId]);
+    $best = (int)$stmt2->fetchColumn();
+
+    $stmt3 = $pdo->prepare("SELECT COUNT(*) FROM `results` WHERE `studentId`=? AND `score`>=60");
+    $stmt3->execute([$studentId]);
+    $passed = (int)$stmt3->fetchColumn();
+
+    $toAward = [];
+    if ($passed >= 1)  $toAward[] = 'first_pass';
+    if ($best === 100) $toAward[] = 'perfect_score';
+    if ($total >= 5)   $toAward[] = 'five_exams';
+    if ($total >= 10)  $toAward[] = 'ten_exams';
+
+    $newBadges = [];
+    foreach ($toAward as $type) {
+        try {
+            $pdo->prepare("INSERT IGNORE INTO `badges` (`studentId`,`type`) VALUES (?,?)")->execute([$studentId, $type]);
+            if ($pdo->lastInsertId() > 0) $newBadges[] = $type;
+        } catch (Exception $e) {}
+    }
+    return $newBadges;
 }
 
 function Math_round_or_ceil($val) {
@@ -475,6 +517,318 @@ if (strpos($action, 'teacher_') === 0) {
             $pdo->rollBack();
             respond('error', ['message' => 'Failed to create exam: ' . $e->getMessage()]);
         }
+    }
+}
+
+// ----------------- Practice Mode (Student) -----------------
+
+if ($action === 'practice_exam') {
+    $examId = isset($requestData['examId']) ? (int)$requestData['examId'] : 0;
+    if ($examId <= 0) respond('error', ['message' => 'Invalid Exam ID.']);
+
+    $stmt = $pdo->prepare("SELECT * FROM `exams` WHERE `id` = ?");
+    $stmt->execute([$examId]);
+    $exam = $stmt->fetch();
+    if (!$exam) respond('error', ['message' => 'Exam not found.']);
+
+    $stmt = $pdo->prepare("SELECT `id`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
+    $stmt->execute([$examId]);
+    $questions = $stmt->fetchAll();
+
+    $formatted = [];
+    foreach ($questions as $q) {
+        $formatted[] = [
+            'id'            => $q['id'],
+            'question'      => $q['question'],
+            'options'       => [$q['option1'],$q['option2'],$q['option3'],$q['option4']],
+            'correctAnswer' => (int)$q['correctAnswer'],
+            'points'        => (int)$q['points']
+        ];
+    }
+    $exam['questions'] = $formatted;
+    respond('success', ['exam' => $exam]);
+}
+
+// ----------------- Leaderboard (Student) -----------------
+
+if ($action === 'get_leaderboard') {
+    $examId = isset($requestData['examId']) ? (int)$requestData['examId'] : 0;
+    if ($examId <= 0) respond('error', ['message' => 'Invalid Exam ID.']);
+
+    $stmt = $pdo->prepare("SELECT u.name, MAX(r.score) as bestScore, COUNT(*) as attempts
+        FROM `results` r JOIN `users` u ON r.studentId = u.id
+        WHERE r.examId = ? GROUP BY r.studentId ORDER BY bestScore DESC LIMIT 20");
+    $stmt->execute([$examId]);
+    $leaderboard = $stmt->fetchAll();
+
+    $stmtE = $pdo->prepare("SELECT id, title, subject FROM `exams` ORDER BY id ASC");
+    $stmtE->execute();
+    $exams = $stmtE->fetchAll();
+
+    respond('success', ['leaderboard' => $leaderboard, 'exams' => $exams]);
+}
+
+// ----------------- Badges (Student) -----------------
+
+if ($action === 'get_badges') {
+    $stmt = $pdo->prepare("SELECT `type`, `earnedAt` FROM `badges` WHERE `studentId` = ? ORDER BY `earnedAt` ASC");
+    $stmt->execute([$currentUser['id']]);
+    respond('success', ['badges' => $stmt->fetchAll()]);
+}
+
+// ----------------- Profile Settings (Both) -----------------
+
+if ($action === 'update_profile') {
+    $newName     = isset($requestData['name'])          ? trim($requestData['name'])          : '';
+    $avatarColor = isset($requestData['avatar_color'])  ? trim($requestData['avatar_color'])  : '';
+    $newPassword = isset($requestData['new_password'])  ? $requestData['new_password']        : '';
+    $curPassword = isset($requestData['current_password']) ? $requestData['current_password'] : '';
+
+    if (empty($newName)) respond('error', ['message' => 'Name cannot be empty.']);
+
+    // If changing password, verify current password
+    if (!empty($newPassword)) {
+        if (strlen($newPassword) < 6) respond('error', ['message' => 'New password must be at least 6 characters.']);
+        $stmt = $pdo->prepare("SELECT `password` FROM `users` WHERE `id` = ?");
+        $stmt->execute([$currentUser['id']]);
+        $row = $stmt->fetch();
+        if (!$row || !password_verify($curPassword, $row['password'])) {
+            respond('error', ['message' => 'Current password is incorrect.']);
+        }
+    }
+
+    // Build avatar initials
+    $words = explode(' ', $newName);
+    $avatar = '';
+    foreach ($words as $w) $avatar .= strtoupper(substr($w, 0, 1));
+    $avatar = substr($avatar, 0, 2) ?: 'US';
+
+    if (!empty($newPassword)) {
+        $hashed = password_hash($newPassword, PASSWORD_BCRYPT);
+        $pdo->prepare("UPDATE `users` SET `name`=?, `avatar`=?, `avatar_color`=?, `password`=? WHERE `id`=?")
+            ->execute([$newName, $avatar, $avatarColor, $hashed, $currentUser['id']]);
+    } else {
+        $pdo->prepare("UPDATE `users` SET `name`=?, `avatar`=?, `avatar_color`=? WHERE `id`=?")
+            ->execute([$newName, $avatar, $avatarColor, $currentUser['id']]);
+    }
+
+    $_SESSION['user']['name']         = $newName;
+    $_SESSION['user']['avatar']       = $avatar;
+    $_SESSION['user']['avatar_color'] = $avatarColor;
+    respond('success', ['user' => $_SESSION['user']]);
+}
+
+// ----------------- Teacher — extended actions -----------------
+
+if (strpos($action, 'teacher_') === 0 && !in_array($action, [
+    'teacher_stats','teacher_analytics','teacher_attempts','teacher_students',
+    'teacher_reset_password','teacher_remove_student','teacher_delete_exam','teacher_create_exam'
+])) {
+    if ($currentUser['role'] !== 'teacher') respond('error', ['message' => 'Forbidden. Teachers only.']);
+
+    // ---- Student Profile View ----
+    if ($action === 'teacher_student_profile') {
+        $studentId = isset($requestData['studentId']) ? (int)$requestData['studentId'] : 0;
+        if ($studentId <= 0) respond('error', ['message' => 'Invalid student ID.']);
+
+        $stmt = $pdo->prepare("SELECT id, name, email, userId, avatar, avatar_color FROM `users` WHERE `id`=? AND `role`='student'");
+        $stmt->execute([$studentId]);
+        $student = $stmt->fetch();
+        if (!$student) respond('error', ['message' => 'Student not found.']);
+
+        $stmt = $pdo->prepare("SELECT r.*, e.title as examTitle, e.subject FROM `results` r JOIN `exams` e ON r.examId=e.id WHERE r.studentId=? ORDER BY r.completedAt DESC");
+        $stmt->execute([$studentId]);
+        $attempts = $stmt->fetchAll();
+
+        $stmt = $pdo->prepare("SELECT e.subject, COUNT(*) as attempts, ROUND(AVG(r.score)) as avgScore, MAX(r.score) as bestScore FROM `results` r JOIN `exams` e ON r.examId=e.id WHERE r.studentId=? GROUP BY e.subject ORDER BY avgScore DESC");
+        $stmt->execute([$studentId]);
+        $subjects = $stmt->fetchAll();
+
+        respond('success', ['student' => $student, 'attempts' => $attempts, 'subjects' => $subjects]);
+    }
+
+    // ---- Edit Exam ----
+    if ($action === 'teacher_get_exam_edit') {
+        $examId = isset($requestData['examId']) ? (int)$requestData['examId'] : 0;
+        if ($examId <= 0) respond('error', ['message' => 'Invalid Exam ID.']);
+
+        $stmt = $pdo->prepare("SELECT * FROM `exams` WHERE `id`=?");
+        $stmt->execute([$examId]);
+        $exam = $stmt->fetch();
+        if (!$exam) respond('error', ['message' => 'Exam not found.']);
+
+        $stmt = $pdo->prepare("SELECT * FROM `questions` WHERE `examId`=? ORDER BY `id` ASC");
+        $stmt->execute([$examId]);
+        $questions = $stmt->fetchAll();
+
+        $exam['questions'] = array_map(function($q) {
+            return [
+                'id'            => $q['id'],
+                'question'      => $q['question'],
+                'options'       => [$q['option1'],$q['option2'],$q['option3'],$q['option4']],
+                'correctAnswer' => (int)$q['correctAnswer'],
+                'points'        => (int)$q['points']
+            ];
+        }, $questions);
+        respond('success', ['exam' => $exam]);
+    }
+
+    if ($action === 'teacher_edit_exam') {
+        $examId     = isset($requestData['examId'])     ? (int)$requestData['examId']         : 0;
+        $title      = isset($requestData['title'])      ? trim($requestData['title'])          : '';
+        $subject    = isset($requestData['subject'])    ? trim($requestData['subject'])        : '';
+        $duration   = isset($requestData['duration'])   ? (int)$requestData['duration']       : 30;
+        $difficulty = isset($requestData['difficulty']) ? trim($requestData['difficulty'])     : 'Medium';
+        $questions  = isset($requestData['questions'])  ? $requestData['questions']            : [];
+
+        if ($examId <= 0 || empty($title) || empty($subject) || count($questions) === 0)
+            respond('error', ['message' => 'Missing required fields.']);
+
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare("UPDATE `exams` SET `title`=?,`subject`=?,`duration`=?,`difficulty`=?,`totalQuestions`=? WHERE `id`=?")
+                ->execute([$title, $subject, $duration, $difficulty, count($questions), $examId]);
+            $pdo->prepare("DELETE FROM `questions` WHERE `examId`=?")->execute([$examId]);
+            $stmtQ = $pdo->prepare("INSERT INTO `questions` (`examId`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points`) VALUES (?,?,?,?,?,?,?,?)");
+            foreach ($questions as $q) {
+                $stmtQ->execute([$examId, $q['question'], $q['options'][0], $q['options'][1], $q['options'][2], $q['options'][3], (int)$q['correctAnswer'], isset($q['points']) ? (int)$q['points'] : 1]);
+            }
+            $pdo->commit();
+            respond('success');
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            respond('error', ['message' => 'Edit failed: ' . $e->getMessage()]);
+        }
+    }
+
+    // ---- Question Bank ----
+    if ($action === 'teacher_bank_list') {
+        $stmt = $pdo->prepare("SELECT * FROM `question_bank` WHERE `teacherId`=? ORDER BY `id` DESC");
+        $stmt->execute([$currentUser['id']]);
+        respond('success', ['questions' => $stmt->fetchAll()]);
+    }
+
+    if ($action === 'teacher_bank_add') {
+        $subject  = isset($requestData['subject'])       ? trim($requestData['subject'])       : '';
+        $question = isset($requestData['question'])      ? trim($requestData['question'])      : '';
+        $opts     = isset($requestData['options'])       ? $requestData['options']             : [];
+        $correct  = isset($requestData['correctAnswer']) ? (int)$requestData['correctAnswer']  : 0;
+        $points   = isset($requestData['points'])        ? (int)$requestData['points']         : 1;
+        if (empty($question) || count($opts) < 4) respond('error', ['message' => 'Missing fields.']);
+        $pdo->prepare("INSERT INTO `question_bank` (`teacherId`,`subject`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points`) VALUES (?,?,?,?,?,?,?,?,?)")
+            ->execute([$currentUser['id'], $subject, $question, $opts[0], $opts[1], $opts[2], $opts[3], $correct, $points]);
+        respond('success', ['id' => $pdo->lastInsertId()]);
+    }
+
+    if ($action === 'teacher_bank_delete') {
+        $bankId = isset($requestData['bankId']) ? (int)$requestData['bankId'] : 0;
+        $pdo->prepare("DELETE FROM `question_bank` WHERE `id`=? AND `teacherId`=?")->execute([$bankId, $currentUser['id']]);
+        respond('success');
+    }
+
+    // ---- CSV Export ----
+    if ($action === 'teacher_export_csv') {
+        $examId   = isset($requestData['examId'])   && $requestData['examId']   ? (int)$requestData['examId']   : 0;
+        $dateFrom = isset($requestData['dateFrom']) && $requestData['dateFrom'] ? $requestData['dateFrom']       : '';
+        $dateTo   = isset($requestData['dateTo'])   && $requestData['dateTo']   ? $requestData['dateTo']         : '';
+
+        $sql = "SELECT u.name as studentName, u.userId, e.title as examTitle, e.subject,
+                       r.score, r.correctAnswers, r.totalQuestions, r.timeTaken, r.completedAt
+                FROM `results` r
+                JOIN `users` u ON r.studentId=u.id
+                JOIN `exams` e ON r.examId=e.id WHERE 1=1";
+        $params = [];
+        if ($examId > 0) { $sql .= " AND r.examId=?"; $params[] = $examId; }
+        if ($dateFrom)   { $sql .= " AND DATE(r.completedAt) >= ?"; $params[] = $dateFrom; }
+        if ($dateTo)     { $sql .= " AND DATE(r.completedAt) <= ?"; $params[] = $dateTo; }
+        $sql .= " ORDER BY r.completedAt DESC";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+
+        // Output CSV directly
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="fetenax_results_' . date('Ymd_His') . '.csv"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['Student Name','Student ID','Exam Title','Subject','Score (%)','Correct','Total','Time (s)','Completed At']);
+        foreach ($rows as $r) {
+            fputcsv($out, [$r['studentName'],$r['userId'],$r['examTitle'],$r['subject'],$r['score'],$r['correctAnswers'],$r['totalQuestions'],$r['timeTaken'],$r['completedAt']]);
+        }
+        fclose($out);
+        exit;
+    }
+
+    // ---- Bulk Student Import ----
+    if ($action === 'teacher_bulk_import') {
+        if (!isset($_FILES['csvfile'])) respond('error', ['message' => 'No file uploaded.']);
+        $file = $_FILES['csvfile']['tmp_name'];
+        $handle = fopen($file, 'r');
+        if (!$handle) respond('error', ['message' => 'Cannot read file.']);
+        $results2 = []; $row = 0;
+        while (($data = fgetcsv($handle)) !== false) {
+            $row++;
+            if ($row === 1 && strtolower(trim($data[0])) === 'name') continue; // skip header
+            if (count($data) < 4) { $results2[] = ['row'=>$row,'status'=>'error','msg'=>'Insufficient columns']; continue; }
+            [$name, $email, $userId, $password] = array_map('trim', $data);
+            if (empty($name)||empty($email)||empty($userId)||empty($password)) { $results2[] = ['row'=>$row,'status'=>'error','msg'=>'Empty fields']; continue; }
+            $chk = $pdo->prepare("SELECT COUNT(*) FROM `users` WHERE `email`=? OR `userId`=?");
+            $chk->execute([$email, $userId]);
+            if ($chk->fetchColumn() > 0) { $results2[] = ['row'=>$row,'status'=>'skip','msg'=>"$email or ID $userId already exists"]; continue; }
+            $words2 = explode(' ', $name); $av = '';
+            foreach ($words2 as $w) $av .= strtoupper(substr($w,0,1));
+            $av = substr($av,0,2) ?: 'ST';
+            $pdo->prepare("INSERT INTO `users` (`email`,`password`,`role`,`name`,`avatar`,`userId`,`avatar_color`) VALUES (?,?,?,?,?,?,?)")
+                ->execute([$email, password_hash($password, PASSWORD_BCRYPT), 'student', $name, $av, $userId, '#6366f1']);
+            $results2[] = ['row'=>$row,'status'=>'ok','msg'=>"Imported: $name"];
+        }
+        fclose($handle);
+        respond('success', ['results' => $results2]);
+    }
+
+    // ---- Class Groups ----
+    if ($action === 'teacher_list_groups') {
+        $stmt = $pdo->prepare("SELECT g.*, COUNT(gm.studentId) as memberCount FROM `groups` g LEFT JOIN `group_members` gm ON g.id=gm.groupId WHERE g.teacherId=? GROUP BY g.id ORDER BY g.id ASC");
+        $stmt->execute([$currentUser['id']]);
+        respond('success', ['groups' => $stmt->fetchAll()]);
+    }
+
+    if ($action === 'teacher_create_group') {
+        $name = isset($requestData['name']) ? trim($requestData['name']) : '';
+        if (empty($name)) respond('error', ['message' => 'Group name required.']);
+        $pdo->prepare("INSERT INTO `groups` (`teacherId`,`name`) VALUES (?,?)")->execute([$currentUser['id'], $name]);
+        respond('success', ['id' => $pdo->lastInsertId()]);
+    }
+
+    if ($action === 'teacher_delete_group') {
+        $groupId = isset($requestData['groupId']) ? (int)$requestData['groupId'] : 0;
+        $pdo->prepare("DELETE FROM `groups` WHERE `id`=? AND `teacherId`=?")->execute([$groupId, $currentUser['id']]);
+        respond('success');
+    }
+
+    if ($action === 'teacher_group_members') {
+        $groupId = isset($requestData['groupId']) ? (int)$requestData['groupId'] : 0;
+        $stmt = $pdo->prepare("SELECT u.id, u.name, u.email, u.userId FROM `group_members` gm JOIN `users` u ON gm.studentId=u.id WHERE gm.groupId=?");
+        $stmt->execute([$groupId]);
+        $members = $stmt->fetchAll();
+        $stmt2 = $pdo->prepare("SELECT id, name, email, userId FROM `users` WHERE `role`='student' AND `id` NOT IN (SELECT studentId FROM `group_members` WHERE groupId=?) ORDER BY name ASC");
+        $stmt2->execute([$groupId]);
+        $available = $stmt2->fetchAll();
+        respond('success', ['members' => $members, 'available' => $available]);
+    }
+
+    if ($action === 'teacher_group_add_member') {
+        $groupId   = isset($requestData['groupId'])   ? (int)$requestData['groupId']   : 0;
+        $studentId = isset($requestData['studentId']) ? (int)$requestData['studentId'] : 0;
+        $pdo->prepare("INSERT IGNORE INTO `group_members` (`groupId`,`studentId`) VALUES (?,?)")->execute([$groupId, $studentId]);
+        respond('success');
+    }
+
+    if ($action === 'teacher_group_remove_member') {
+        $groupId   = isset($requestData['groupId'])   ? (int)$requestData['groupId']   : 0;
+        $studentId = isset($requestData['studentId']) ? (int)$requestData['studentId'] : 0;
+        $pdo->prepare("DELETE FROM `group_members` WHERE `groupId`=? AND `studentId`=?")->execute([$groupId, $studentId]);
+        respond('success');
     }
 }
 

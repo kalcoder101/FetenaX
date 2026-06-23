@@ -33,8 +33,14 @@ try {
         `role` VARCHAR(50) NOT NULL,
         `name` VARCHAR(255) NOT NULL,
         `avatar` VARCHAR(50) NOT NULL,
-        `userId` VARCHAR(50) UNIQUE NOT NULL
+        `userId` VARCHAR(50) UNIQUE NOT NULL,
+        `avatar_color` VARCHAR(20) NOT NULL DEFAULT '#6366f1'
     ) ENGINE=InnoDB;");
+
+    // Add avatar_color column if missing (for existing installs)
+    try {
+        $pdo->exec("ALTER TABLE `users` ADD COLUMN `avatar_color` VARCHAR(20) NOT NULL DEFAULT '#6366f1'");
+    } catch (PDOException $e) { /* column already exists */ }
 
     // Exams table
     $pdo->exec("CREATE TABLE IF NOT EXISTS `exams` (
@@ -88,25 +94,78 @@ try {
         FOREIGN KEY (`questionId`) REFERENCES `questions`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB;");
 
+    // Question Bank table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `question_bank` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `teacherId` INT NOT NULL,
+        `subject` VARCHAR(255) NOT NULL DEFAULT '',
+        `question` TEXT NOT NULL,
+        `option1` VARCHAR(255) NOT NULL,
+        `option2` VARCHAR(255) NOT NULL,
+        `option3` VARCHAR(255) NOT NULL,
+        `option4` VARCHAR(255) NOT NULL,
+        `correctAnswer` INT NOT NULL,
+        `points` INT NOT NULL DEFAULT 1,
+        `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (`teacherId`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB;");
+
+    // Badges table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `badges` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `studentId` INT NOT NULL,
+        `type` VARCHAR(50) NOT NULL,
+        `earnedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY `unique_badge` (`studentId`, `type`),
+        FOREIGN KEY (`studentId`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB;");
+
+    // Class Groups table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `groups` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `teacherId` INT NOT NULL,
+        `name` VARCHAR(255) NOT NULL,
+        `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (`teacherId`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB;");
+
+    // Group Members table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `group_members` (
+        `groupId` INT NOT NULL,
+        `studentId` INT NOT NULL,
+        PRIMARY KEY (`groupId`, `studentId`),
+        FOREIGN KEY (`groupId`) REFERENCES `groups`(`id`) ON DELETE CASCADE,
+        FOREIGN KEY (`studentId`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB;");
+
+    // Exam Groups table (restrict exam to specific group)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `exam_groups` (
+        `examId` INT NOT NULL,
+        `groupId` INT NOT NULL,
+        PRIMARY KEY (`examId`, `groupId`),
+        FOREIGN KEY (`examId`) REFERENCES `exams`(`id`) ON DELETE CASCADE,
+        FOREIGN KEY (`groupId`) REFERENCES `groups`(`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB;");
+
     // 3. Auto-seed default data if users table is empty
     $stmt = $pdo->query("SELECT COUNT(*) FROM `users`");
     if ($stmt->fetchColumn() == 0) {
         // Seed Users
         // Master Teacher
-        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`) VALUES (?, ?, ?, ?, ?, ?, ?)")
-            ->execute([1, 'teacher@private.local', password_hash('123456', PASSWORD_BCRYPT), 'teacher', 'TeacherX', 'MT', 'MT1234']);
+        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`, `avatar_color`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+            ->execute([1, 'teacher@private.local', password_hash('123456', PASSWORD_BCRYPT), 'teacher', 'TeacherX', 'MT', 'MT1234', '#6366f1']);
         // Master Student
-        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`) VALUES (?, ?, ?, ?, ?, ?, ?)")
-            ->execute([2, 'student@private.local', password_hash('123456', PASSWORD_BCRYPT), 'student', 'StudentX', 'MS', 'MS1234']);
+        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`, `avatar_color`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+            ->execute([2, 'student@private.local', password_hash('123456', PASSWORD_BCRYPT), 'student', 'StudentX', 'MS', 'MS1234', '#10b981']);
         // Demo Student 1
-        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`) VALUES (?, ?, ?, ?, ?, ?, ?)")
-            ->execute([3, 'student@demo.com', password_hash('password123', PASSWORD_BCRYPT), 'student', 'Abdu Student', 'JS', '1']);
+        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`, `avatar_color`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+            ->execute([3, 'student@demo.com', password_hash('password123', PASSWORD_BCRYPT), 'student', 'Abdu Student', 'JS', '1', '#f59e0b']);
         // Demo Teacher
-        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`) VALUES (?, ?, ?, ?, ?, ?, ?)")
-            ->execute([4, 'teacher@demo.com', password_hash('password123', PASSWORD_BCRYPT), 'teacher', 'Chala Teacher', 'JT', '2']);
+        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`, `avatar_color`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+            ->execute([4, 'teacher@demo.com', password_hash('password123', PASSWORD_BCRYPT), 'teacher', 'Chala Teacher', 'JT', '2', '#6366f1']);
         // Demo Student 2
-        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`) VALUES (?, ?, ?, ?, ?, ?, ?)")
-            ->execute([5, 'alice@demo.com', password_hash('password123', PASSWORD_BCRYPT), 'student', 'Abebe Johnson', 'AJ', '3']);
+        $pdo->prepare("INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`, `avatar_color`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+            ->execute([5, 'alice@demo.com', password_hash('password123', PASSWORD_BCRYPT), 'student', 'Abebe Johnson', 'AJ', '3', '#ec4899']);
 
         // Seed Exams
         $exams = [
@@ -242,7 +301,7 @@ try {
                 ['question' => 'Which of the following is used to store the result of an operation?', 'options' => ['Accumulator', 'Program Counter', 'Stack Pointer', 'Instruction Register'], 'correct' => 0],
                 ['question' => 'Which of the following is not a type of micro-operation?', 'options' => ['Register transfer', 'Arithmetic', 'Logical', 'Painting'], 'correct' => 3],
                 ['question' => 'Which of the following is used to store instructions?', 'options' => ['ROM', 'RAM', 'Cache', 'Register'], 'correct' => 0],
-                ['question' => 'Which of the following is not a type of instruction format?', 'options' => ['Zero address', 'One address', 'Two address', 'Three address', 'Four address'], 'correct' => 4],
+                ['question' => 'Which of the following is not a type of instruction format?', 'options' => ['Zero address', 'One address', 'Two address', 'Three address'], 'correct' => 3],
                 ['question' => 'Which of the following is used to store the return address?', 'options' => ['Stack', 'Heap', 'Register', 'Accumulator'], 'correct' => 0],
                 ['question' => 'Which of the following is not a type of interrupt?', 'options' => ['Hardware', 'Software', 'Manual', 'External'], 'correct' => 2],
                 ['question' => 'Which of the following is used to store the status of a process?', 'options' => ['Program Status Word', 'Program Counter', 'Stack Pointer', 'Accumulator'], 'correct' => 0],
@@ -261,8 +320,6 @@ try {
         }
 
         // Seed Attempts / Results
-        // Results fields: id, examId, studentId, score, correctAnswers, totalQuestions, timeTaken, completedAt
-        // studentId = 3 is Abdu Student, studentId = 5 is Abebe Johnson
         $results = [
             [1, 3, 85, 17, 20, 1200, '2024-02-01 10:30:00'], // Java OOP - student 3 (Abdu)
             [2, 5, 75, 15, 20, 900, '2024-02-02 14:15:00'],  // Database - student 5 (Abebe)
