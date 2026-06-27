@@ -1,0 +1,103 @@
+/* === PREMIUM CREAM GLASSMORPHISM NATURE THEME === */
+:root {
+    --color-bg: #faf7f0;
+    --color-bg-overlay: rgba(242, 239, 231, 0.45);
+    --color-card: rgba(254, 252, 248, 0.72);
+    --color-shadow: 0 8px 32px 0 rgba(74, 69, 60, 0.08);
+    --color-primary: #57785a;
+    --color-primary-hover: #466149;
+    --color-success: #6e9a72;
+    --color-danger: #e07a5f;
+    --color-text: #3c352e;
+    --color-text-secondary: #756a5e;
+    --color-border: rgba(255, 255, 255, 0.45);
+    --color-accent: #a3cc3b;
+    --glass-blur: blur(16px) saturate(120%);
+    --glass-border: rgba(255, 255, 255, 0.45);
+    --glass-bg: rgba(254, 252, 248, 0.72);
+    --body-bg: linear-gradient(135deg, #faf7f0 0%, #e5dfd0 100%);
+}
+
+body.dark-mode {
+    --color-bg: #131d16;
+    --color-bg-overlay: rgba(12, 20, 15, 0.72);
+    --color-card: rgba(24, 34, 28, 0.75);
+    --color-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    --color-primary: #a3cc3b;
+    --color-primary-hover: #b2df40;
+    --color-success: #6e9a72;
+    --color-danger: #e07a5f;
+    --color-text: #f0ede6;
+    --color-text-secondary: #a3b0a7;
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-accent: #a3cc3b;
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(24, 34, 28, 0.75);
+    --body-bg: linear-gradient(135deg, #131d16 0%, #0c140f 100%);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body, input, button, select, textarea, .btn, .modal-content,
+.dashboard, .exam-card, .stat-card, .results-container, .result-item,
+.recent-result-item, .student-stats-card, .exam-title, .exam-meta,
+.exam-detail, .exam-header, .question-title, .question-text,
+.option-item, .about-title, .about-desc, .about-author-name,
+.about-author-role {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+  letter-spacing: 0.01em;
+}
+
+html {
+  font-size: 15px;
+}
+
+@media (max-width: 600px) {
+  html { font-size: 13px; }
+}
+
+body {
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--body-bg);
+  transition: background 0.3s, color 0.3s;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--color-bg-overlay);
+  z-index: -1;
+  transition: background 0.3s;
+}
+
+.container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+.hidden { display: none !important; }
+
+/* --- Dark mode score ring overrides --- */
+body.dark-mode .score-ring-track { stroke: rgba(255,255,255,0.08); }
+body.dark-mode .score-ring-fill.ring-pass { stroke: #6e9a72; }
+body.dark-mode .score-ring-fill.ring-fail { stroke: #e07a5f; }
+
+/* Better heading weights across the board */
+.dashboard-content-area h1,
+.dashboard-content-area h2,
+.dashboard-content-area h3 {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+}
+
+/* --- prefers-color-scheme dark --- */
+@media (prefers-color-scheme: dark) {
+    /* Auto dark mode detection handled via body.dark-mode class and localStorage */
+}

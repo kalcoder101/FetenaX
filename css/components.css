@@ -1,0 +1,292 @@
+/* ============================
+   COMPONENTS — Buttons, Forms, Modals, Tables, Scrollbars
+   ============================ */
+
+/* --- Buttons --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    text-decoration: none;
+    background: var(--color-card);
+    color: var(--color-text);
+    box-shadow: var(--color-shadow);
+    gap: 0.5rem;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+    background: var(--color-primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(87, 120, 90, 0.18);
+}
+.btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(87, 120, 90, 0.25);
+}
+
+.btn-secondary {
+    background: rgba(255,255,255,0.5);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+}
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(87, 120, 90, 0.06);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-success {
+    background: var(--color-success);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(87, 120, 90, 0.18);
+}
+.btn-success:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(87, 120, 90, 0.25);
+}
+
+.btn-danger {
+    background: var(--color-danger);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(224, 122, 95, 0.18);
+}
+.btn-danger:hover:not(:disabled) {
+    background: #d66448;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(224, 122, 95, 0.25);
+}
+
+.btn-full { width: 100%; }
+.btn-sm, .btn-small {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 0.45rem;
+}
+.btn-small { padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: 0.45rem; }
+
+/* Filter button group active state */
+.filter-btn-group .btn.active,
+.filter-btn-group .btn-secondary.active {
+    background: var(--color-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(87, 120, 90, 0.25);
+}
+.filter-btn-group .btn.active:hover { background: var(--color-primary-hover); }
+
+.btn-warning-outline {
+    background: transparent;
+    color: #f59e0b;
+    border: 1.5px solid #f59e0b;
+    border-radius: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-warning-outline:hover { background: rgba(245, 158, 11, 0.08); }
+
+.btn-warning {
+    background: #f59e0b;
+    color: #fff;
+    border: 1.5px solid #f59e0b;
+    border-radius: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+}
+
+/* --- Form Inputs --- */
+.form-input, select.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.4);
+    color: var(--color-text);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+.form-input:focus, select.form-input:focus {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(87, 120, 90, 0.12);
+    outline: none;
+}
+.form-select {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23756a5e' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    padding-right: 2.2rem !important;
+}
+
+/* --- Modals --- */
+.modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    backdrop-filter: blur(6px) saturate(1.2);
+    background: rgba(19, 29, 22, 0.25) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 1.5rem !important;
+    box-shadow: var(--color-shadow) !important;
+    padding: 2.5rem 2rem 2rem 2rem;
+    position: relative;
+    min-width: 320px;
+    max-width: 400px;
+    width: 100%;
+    animation: modalIn 0.25s cubic-bezier(.4,2,.6,1) 1;
+}
+.modal-header h3 {
+    color: var(--color-text) !important;
+    font-weight: 800 !important;
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(40px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+}
+
+.modal:not(.hidden) ~ #dashboard,
+.modal:not(.hidden) ~ #examInterface,
+.modal:not(.hidden) ~ #resultsPage {
+    display: none !important;
+}
+
+/* Enhanced close button for modals */
+.close-btn {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.3rem;
+    font-size: 2.2rem;
+    color: #1A508B;
+    background: rgba(255,255,255,0.85);
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    transition: color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.15s;
+    border-radius: 50%;
+    width: 2.6rem;
+    height: 2.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(26,80,139,0.10);
+}
+.close-btn:hover, .close-btn:focus {
+    color: #fff;
+    background: #1A508B;
+    box-shadow: 0 4px 16px rgba(26,80,139,0.18);
+    outline: none;
+    transform: scale(1.08);
+}
+
+/* --- Glass Card --- */
+.glass-card, .results-container, .student-stats-card, .stat-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.85rem;
+    padding: 1.1rem 1.2rem;
+    box-shadow: var(--color-shadow);
+    margin-bottom: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-card:hover {
+    box-shadow: 0 12px 40px 0 rgba(74, 69, 60, 0.12);
+}
+
+/* --- Tables --- */
+.table-responsive { overflow-x: auto; width: 100%; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+th {
+    background: rgba(87, 120, 90, 0.08);
+    color: var(--color-primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    padding: 0.9rem 1.1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--color-border);
+}
+td {
+    padding: 0.9rem 1.1rem;
+    color: var(--color-text);
+    font-size: 0.92rem;
+    border-bottom: 1px solid var(--color-border);
+    background: transparent;
+}
+tr { transition: background 0.15s ease; }
+tr:hover td { background: rgba(87, 120, 90, 0.04); }
+
+/* Specific table overrides for teacher views */
+#studentsDataTable, #attemptsDataTable {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+}
+#studentsDataTable thead th, #attemptsDataTable thead th {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-secondary);
+    background: var(--glass-bg);
+}
+#studentsDataTable tbody td, #attemptsDataTable tbody td {
+    font-size: 0.9rem;
+    color: var(--color-text);
+}
+#studentsDataTable tbody tr:hover, #attemptsDataTable tbody tr:hover {
+    background: rgba(87,120,90,0.05) !important;
+}
+
+/* --- Custom scrollbar --- */
+.answer-review-list::-webkit-scrollbar,
+.questions-builder-container::-webkit-scrollbar,
+.exam-content-area::-webkit-scrollbar,
+.exam-navigation-panel::-webkit-scrollbar,
+.results-outer-scroll::-webkit-scrollbar {
+    width: 5px;
+}
+.answer-review-list::-webkit-scrollbar-track,
+.questions-builder-container::-webkit-scrollbar-track,
+.exam-content-area::-webkit-scrollbar-track,
+.exam-navigation-panel::-webkit-scrollbar-track,
+.results-outer-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.answer-review-list::-webkit-scrollbar-thumb,
+.questions-builder-container::-webkit-scrollbar-thumb,
+.exam-content-area::-webkit-scrollbar-thumb,
+.exam-navigation-panel::-webkit-scrollbar-thumb,
+.results-outer-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 99px;
+}

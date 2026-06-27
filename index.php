@@ -9,7 +9,13 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FetenaX – Your Exam, Your Vibe</title>
-    <link rel="stylesheet" href="styles.css?v=15">
+    <link rel="stylesheet" href="css/theme.css?v=16">
+    <link rel="stylesheet" href="css/components.css?v=16">
+    <link rel="stylesheet" href="css/layout.css?v=16">
+    <link rel="stylesheet" href="css/auth.css?v=16">
+    <link rel="stylesheet" href="css/student.css?v=16">
+    <link rel="stylesheet" href="css/teacher.css?v=16">
+    <link rel="stylesheet" href="css/exam.css?v=16">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
