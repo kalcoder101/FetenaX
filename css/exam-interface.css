@@ -383,10 +383,10 @@
 }
 
 /* --- Legacy fonts override --- */
-.dashboard, .exam-interface, .results-page, .results-container,
+.dashboard, .exam-interface,
 .exam-card, .stat-card, .student-stats-card, .recent-result-item,
-.result-item, .exam-title, .exam-meta, .exam-detail,
-.stat-label, .stat-value, .result-label, .result-score,
+.exam-title, .exam-meta, .exam-detail,
+.stat-label, .stat-value,
 .question-title, .question-text, .option-item {
   font-family: 'Inter', sans-serif !important;
 }
