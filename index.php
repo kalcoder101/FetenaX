@@ -9,15 +9,15 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FetenaX – Your Exam, Your Vibe</title>
-    <link rel="stylesheet" href="css/theme.css?v=16">
-    <link rel="stylesheet" href="css/components.css?v=16">
-    <link rel="stylesheet" href="css/layout.css?v=16">
-    <link rel="stylesheet" href="css/auth.css?v=16">
-    <link rel="stylesheet" href="css/student.css?v=16">
-    <link rel="stylesheet" href="css/teacher.css?v=16">
-    <link rel="stylesheet" href="css/exam-interface.css?v=16">
-    <link rel="stylesheet" href="css/results.css?v=16">
-    <link rel="stylesheet" href="css/exam-creation.css?v=16">
+    <link rel="stylesheet" href="css/theme.css?v=18">
+    <link rel="stylesheet" href="css/components.css?v=18">
+    <link rel="stylesheet" href="css/layout.css?v=18">
+    <link rel="stylesheet" href="css/auth.css?v=18">
+    <link rel="stylesheet" href="css/student.css?v=18">
+    <link rel="stylesheet" href="css/teacher.css?v=18">
+    <link rel="stylesheet" href="css/exam-interface.css?v=18">
+    <link rel="stylesheet" href="css/results.css?v=18">
+    <link rel="stylesheet" href="css/exam-creation.css?v=18">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
@@ -1263,13 +1263,13 @@ session_start();
         </div>
     </div>
 
-    <script src="js/core.js?v=16"></script>
-    <script src="js/auth.js?v=16"></script>
-    <script src="js/dashboard.js?v=16"></script>
-    <script src="js/student.js?v=16"></script>
-    <script src="js/teacher.js?v=16"></script>
-    <script src="js/exam.js?v=16"></script>
-    <script src="js/exam-creation.js?v=16"></script>
-    <script src="js/app.js?v=16"></script>
+    <script src="js/core.js?v=18"></script>
+    <script src="js/auth.js?v=18"></script>
+    <script src="js/dashboard.js?v=18"></script>
+    <script src="js/student.js?v=18"></script>
+    <script src="js/teacher.js?v=18"></script>
+    <script src="js/exam.js?v=18"></script>
+    <script src="js/exam-creation.js?v=18"></script>
+    <script src="js/app.js?v=18"></script>
 </body>
 </html>

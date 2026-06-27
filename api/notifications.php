@@ -15,7 +15,8 @@ if ($action === 'get_notifications') {
 }
 
 if ($action === 'mark_notification_read') {
-    $notifId = isset($requestData['notifId']) ? (int)$requestData['notifId'] : 0;
+    // Accept both 'notifId' and 'notificationId' for compatibility
+    $notifId = isset($requestData['notifId']) ? (int)$requestData['notifId'] : (isset($requestData['notificationId']) ? (int)$requestData['notificationId'] : 0);
     if ($notifId <= 0) respond('error', ['message' => 'Invalid notification ID.']);
     $pdo->prepare("UPDATE `notifications` SET `isRead` = 1 WHERE `id` = ? AND `userId` = ?")
         ->execute([$notifId, $currentUser['id']]);

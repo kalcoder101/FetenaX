@@ -291,15 +291,23 @@ async function loadLeaderboard() {
 }
 
 /**
- * Load the calendar tab.
+ * Load the calendar tab with month navigation.
+ * Uses .calendar-widget, .calendar-nav, .calendar-grid, .calendar-day classes
+ * defined in css/student.css for proper styling.
  */
+var calendarCurrentDate = new Date();
+
 async function loadCalendar() {
-    var now = new Date();
+    var container = document.getElementById('calendarContent');
+    if (!container) return;
+    container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);">Loading calendar…</div>';
+
+    var now = calendarCurrentDate;
     var year = now.getFullYear();
     var month = now.getMonth() + 1;
+
     var res = await apiRequest('get_calendar_data', { year: year, month: month }, 'GET');
 
-    var container = document.getElementById('calendarContent');
     if (res.status !== 'success') {
         container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);">Failed to load calendar.</div>';
         return;
@@ -308,6 +316,8 @@ async function loadCalendar() {
     var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     var daysInMonth = new Date(year, month, 0).getDate();
     var firstDay = new Date(year, month - 1, 1).getDay();
+    var today = new Date();
+    var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
     var eventsByDate = {};
     (res.events || []).forEach(function (ev) {
@@ -315,63 +325,97 @@ async function loadCalendar() {
         eventsByDate[ev.date].push(ev);
     });
 
-    var html = '<div class="glass-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">';
-    html += '<h3 style="font-size:1.1rem;font-weight:700;">' + monthNames[month - 1] + ' ' + year + '</h3>';
-    html += '</div><table style="width:100%;border-collapse:collapse;"><thead><tr>';
+    // Build the calendar widget using proper CSS classes
+    var html = '<div class="calendar-widget">';
+    // Navigation header
+    html += '<div class="calendar-nav">';
+    html += '<button id="calPrev" class="btn btn-secondary btn-small" title="Previous month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>';
+    html += '<h3>' + monthNames[month - 1] + ' ' + year + '</h3>';
+    html += '<button id="calNext" class="btn btn-secondary btn-small" title="Next month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>';
+    html += '</div>';
+
+    // Calendar grid (table-based for alignment)
+    html += '<table class="calendar-grid"><thead><tr>';
     ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function (d) {
-        html += '<th style="padding:0.5rem;text-align:center;font-size:0.78rem;font-weight:700;color:var(--color-text-secondary);">' + d + '</th>';
+        html += '<th>' + d + '</th>';
     });
     html += '</tr></thead><tbody><tr>';
 
+    // Empty cells before the first day
     for (var i = 0; i < firstDay; i++) {
-        html += '<td style="padding:0.5rem;text-align:center;"></td>';
+        html += '<td></td>';
     }
+
+    // Day cells
     for (var day = 1; day <= daysInMonth; day++) {
         var dateStr = year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
         var evts = eventsByDate[dateStr] || [];
         var hasEvent = evts.length > 0;
-        var dotColors = '';
-        if (hasEvent) {
-            var colors = [];
-            evts.forEach(function (ev) {
-                if (ev.type === 'exam_open') colors.push('#2ecc71');
-                else if (ev.type === 'exam_close') colors.push('#e74c3c');
-                else if (ev.type === 'attempt') colors.push('#3498db');
-            });
-            dotColors = ';box-shadow:' + colors.map(function (c) { return '0 1px 0 ' + c; }).join(','); 
-        }
+        var isToday = dateStr === todayStr;
+        var dayClass = 'calendar-day';
+        if (isToday) dayClass += ' is-today';
+        if (hasEvent) dayClass += ' has-event';
 
-        html += '<td style="padding:0.3rem;text-align:center;position:relative;vertical-align:top;">';
-        html += '<div style="width:100%;aspect-ratio:1;border-radius:0.4rem;background:' + (hasEvent ? 'rgba(87,120,90,0.08)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;font-weight:' + (hasEvent ? '700' : '400') + ';font-size:0.88rem;">' + day + '</div>';
+        html += '<td><div class="' + dayClass + '">';
+        html += '<span class="calendar-day-num">' + day + '</span>';
         if (hasEvent) {
-            html += '<div style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);display:flex;gap:2px;">';
-            evts.forEach(function () { html += '<div style="width:4px;height:4px;border-radius:50%;background:var(--color-primary);"></div>'; });
+            // Show colored dots for each event type
+            html += '<div class="calendar-dots">';
+            evts.forEach(function (ev) {
+                var dotClass = ev.type === 'exam_open' ? 'dot-open' : ev.type === 'exam_close' ? 'dot-close' : 'dot-attempt';
+                html += '<span class="calendar-dot ' + dotClass + '" title="' + escapeHtmlNotif(ev.title) + '"></span>';
+            });
             html += '</div>';
         }
-        html += '</td>';
+        html += '</div></td>';
+
         if ((firstDay + day) % 7 === 0 && day < daysInMonth) {
             html += '</tr><tr>';
         }
     }
     html += '</tr></tbody></table>';
 
+    // Legend
+    html += '<div class="calendar-legend">';
+    html += '<span class="legend-item"><span class="calendar-dot dot-open"></span> Exam opens</span>';
+    html += '<span class="legend-item"><span class="calendar-dot dot-close"></span> Exam closes</span>';
+    html += '<span class="legend-item"><span class="calendar-dot dot-attempt"></span> Your attempt</span>';
+    html += '</div>';
+
     // Event list below calendar
     if (res.events && res.events.length > 0) {
-        html += '<div style="margin-top:1rem;border-top:1.5px solid var(--color-border);padding-top:0.75rem;">';
-        html += '<div style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;margin-bottom:0.5rem;">Events this month</div>';
+        html += '<div class="calendar-events">';
+        html += '<div class="calendar-events-title">Events this month</div>';
         res.events.forEach(function (ev) {
-            var color = ev.type === 'exam_open' ? 'var(--color-success)' : ev.type === 'exam_close' ? 'var(--color-danger)' : 'var(--color-primary)';
+            var colorClass = ev.type === 'exam_open' ? 'ev-open' : ev.type === 'exam_close' ? 'ev-close' : 'ev-attempt';
             var icon = ev.type === 'exam_open' ? '📅' : ev.type === 'exam_close' ? '🔒' : '📝';
-            html += '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;font-size:0.85rem;">';
-            html += '<span>' + icon + '</span>';
-            html += '<span style="font-weight:600;min-width:80px;color:' + color + ';">' + ev.date.split('-').slice(1).join('/') + '</span>';
-            html += '<span style="color:var(--color-text);">' + ev.title + '</span>';
+            html += '<div class="calendar-event-item ' + colorClass + '">';
+            html += '<span class="ev-icon">' + icon + '</span>';
+            html += '<span class="ev-date">' + (ev.date || '').split('-').slice(1).join('/') + '</span>';
+            html += '<span class="ev-title">' + escapeHtmlNotif(ev.title) + '</span>';
             html += '</div>';
         });
         html += '</div>';
     }
-    html += '</div>';
+
+    html += '</div>'; // close .calendar-widget
     container.innerHTML = html;
+
+    // Wire navigation buttons
+    var prevBtn = document.getElementById('calPrev');
+    var nextBtn = document.getElementById('calNext');
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+            calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+            loadCalendar();
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+            calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+            loadCalendar();
+        });
+    }
 }
 
 /**

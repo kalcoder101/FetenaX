@@ -259,18 +259,219 @@
     background: none; border: none; padding: 0;
 }
 
-/* --- Question Bank --- */
-.bank-item {
+/* --- Question Bank (Redesigned) --- */
+.bank-header-bar { margin-bottom: 1.25rem; }
+.bank-search-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.bank-search-field {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+}
+.bank-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+    pointer-events: none;
+}
+.bank-search-field .form-input {
+    padding-left: 36px;
+}
+.bank-subject-select {
+    max-width: 160px;
+    width: 100%;
+}
+.bank-count-badge {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    background: var(--glass-bg);
+    border: 1px solid var(--color-border);
+    padding: 0.35rem 0.75rem;
+    border-radius: 99px;
+    white-space: nowrap;
+}
+
+.bank-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.bank-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.65rem 0.9rem;
-    border-radius: 0.55rem;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 0.7rem;
     background: var(--glass-bg);
-    border: 1px solid var(--color-border);
-    gap: 1rem;
+    border: 1.5px solid var(--color-border);
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
-.bank-count-badge { font-size: 0.85rem; color: var(--color-text-secondary); }
+.bank-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 10px rgba(87,120,90,0.08);
+}
+.bank-card-body {
+    flex: 1;
+    min-width: 0;
+}
+.bank-card-question {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.3rem;
+}
+.bank-card-meta {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+.bank-chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 99px;
+    background: rgba(87,120,90,0.08);
+    color: var(--color-text-secondary);
+}
+.bank-chip-subject { background: rgba(87,120,90,0.1); color: var(--color-primary); }
+.bank-chip-muted { opacity: 0.5; }
+.bank-card-actions {
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.35rem;
+}
+.bank-delete-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 0.45rem;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.bank-delete-btn:hover {
+    background: rgba(224,122,95,0.1);
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+
+/* Question Bank Empty State */
+.bank-empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+}
+.bank-empty-icon {
+    color: var(--color-text-secondary);
+    opacity: 0.4;
+    margin-bottom: 0.85rem;
+}
+.bank-empty-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.3rem;
+}
+.bank-empty-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+/* Question Bank Add Form */
+.bank-add-form {
+    margin-top: 1.25rem;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    background: var(--glass-bg);
+    border: 1.5px solid var(--color-primary);
+    box-shadow: 0 4px 20px rgba(87,120,90,0.1);
+    animation: bankSlideIn 0.2s ease-out;
+}
+@keyframes bankSlideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.bank-add-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.bank-add-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+}
+.bank-add-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+.bank-add-span-2 { grid-column: 1 / -1; }
+.bank-add-field label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+.bank-opt-wrap {
+    position: relative;
+}
+.bank-opt-letter {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 800;
+    font-size: 0.78rem;
+    color: var(--color-primary);
+    pointer-events: none;
+}
+.bank-opt-wrap .form-input { padding-left: 26px; }
+.bank-correct-row {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+.bank-add-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
+}
+.bank-new-msg {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Responsive: Bank */
+@media (max-width: 600px) {
+    .bank-search-row { flex-direction: column; align-items: stretch; }
+    .bank-subject-select { max-width: 100%; }
+    .bank-add-grid { grid-template-columns: 1fr; }
+}
 
 /* --- Student Profile Modal --- */
 .sp-info-card {
@@ -465,3 +666,281 @@
 }
 body.dark-mode .practice-mode-badge { color: #fcd34d; }
 #examTimerContainer.practice-hidden { display: none !important; }
+
+/* ============================================================
+   QUESTION ANALYTICS MODAL — per-question stats display
+   ============================================================ */
+.qa-question-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 0.7rem;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.75rem;
+}
+.qa-question-card.needs-review {
+    border-color: rgba(231,76,60,0.40);
+    background: rgba(231,76,60,0.04);
+}
+.qa-q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+}
+.qa-q-num {
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.35rem;
+    flex-shrink: 0;
+}
+.qa-q-text {
+    flex: 1;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1.4;
+}
+.qa-review-flag {
+    background: rgba(231,76,60,0.18);
+    color: #b02a37;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 99px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.qa-stats-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+.qa-pct-circle {
+    position: relative;
+    width: 48px; height: 48px;
+    flex-shrink: 0;
+}
+.qa-pct-circle svg { width: 48px; height: 48px; }
+.qa-pct-val {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--pct-color);
+}
+.qa-dist-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.35rem;
+    height: 60px;
+    flex-shrink: 0;
+}
+.qa-dist-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 28px;
+    height: 100%;
+    justify-content: flex-end;
+}
+.qa-dist-fill {
+    width: 100%;
+    min-height: 2px;
+    border-radius: 0.2rem 0.2rem 0 0;
+    transition: height 0.4s ease;
+}
+.qa-dist-letter {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    margin-top: 3px;
+}
+.qa-dist-bar.is-correct .qa-dist-letter { color: var(--color-success); font-weight: 800; }
+.qa-dist-count {
+    font-size: 0.6rem;
+    color: var(--color-text-secondary);
+}
+.qa-meta {
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.qa-meta-row {
+    font-size: 0.78rem;
+    color: var(--color-text);
+}
+.qa-meta-lbl { color: var(--color-text-secondary); }
+
+/* ============================================================
+   STUDENT PROFILE MODAL — additional missing classes
+   ============================================================ */
+.sp-lbl {
+    font-weight: 600;
+    color: var(--color-text);
+    min-width: 80px;
+    display: inline-block;
+}
+.sp-val {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+.sp-section {
+    margin-top: 1.25rem;
+}
+.sp-section-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1.5px solid var(--color-border);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.sp-subject-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+.sp-subject-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 50px;
+    align-items: center;
+    gap: 0.7rem;
+}
+.sp-subject-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sp-subject-track {
+    height: 9px;
+    background: var(--color-border);
+    border-radius: 5px;
+    overflow: hidden;
+}
+.sp-subject-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+.sp-subject-pct {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-align: right;
+}
+.sp-attempts-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+.sp-attempts-table th,
+.sp-attempts-table td {
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    text-align: left;
+}
+.sp-attempts-table th {
+    background: var(--glass-bg);
+    font-weight: 700;
+    color: var(--color-text);
+    position: sticky;
+    top: 0;
+}
+.sp-attempts-table tbody tr:nth-child(even) td {
+    background: rgba(255,255,255,0.35);
+}
+
+/* ============================================================
+   BANK CHIP VARIANTS — difficulty + usage colors
+   ============================================================ */
+.bank-chip-difficulty {
+    background: rgba(245,158,11,0.15);
+    color: #b45309;
+}
+.bank-chip-usage {
+    background: rgba(150,150,150,0.15);
+    color: var(--color-text-secondary);
+}
+
+/* ============================================================
+   GROUPS — additional missing classes
+   ============================================================ */
+.group-add-member {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.group-assign-exam {
+    margin-top: 0.5rem;
+}
+.group-delete-btn {
+    flex: 0 0 auto;
+}
+.group-remove-member {
+    cursor: pointer;
+    color: var(--color-danger);
+    font-weight: 900;
+    font-size: 0.85rem;
+    background: none;
+    border: none;
+    padding: 0 0.3rem;
+}
+.group-remove-member:hover {
+    color: #d66448;
+}
+.group-member-chip {
+    font-size: 0.77rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 99px;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* ============================================================
+   TEACHER EXAM CARD ACTION ROW — make buttons flex equally
+   ============================================================ */
+.eac-action-row .btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.4rem;
+    gap: 0.25rem;
+}
+.eac-action-row .btn svg {
+    margin-right: 0 !important;
+}
+
+/* ============================================================
+   APH-LEFT — analytics page header left column
+   ============================================================ */
+.aph-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+/* ============================================================
+   AEMS-ICON — empty state icon
+   ============================================================ */
+.aems-icon {
+    color: var(--color-text-secondary);
+    margin-bottom: 0.5rem;
+}
+.aems-icon svg { color: var(--color-text-secondary); }

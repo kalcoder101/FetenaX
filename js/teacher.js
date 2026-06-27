@@ -392,38 +392,71 @@ async function openQuestionAnalytics(examId, examTitle) {
 
     if (titleEl) titleEl.textContent = 'Question Analytics \u2014 ' + (examTitle || 'Exam');
     if (body) body.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--color-text-secondary);">Loading...</div>';
-    modal.classList.remove('hidden');
+    if (modal) modal.classList.remove('hidden');
 
-    var newClose = closeBtn.cloneNode(true);
-    closeBtn.parentNode.replaceChild(newClose, closeBtn);
-    newClose.addEventListener('click', function () { modal.classList.add('hidden'); });
+    if (closeBtn) {
+        var newClose = closeBtn.cloneNode(true);
+        closeBtn.parentNode.replaceChild(newClose, closeBtn);
+        newClose.addEventListener('click', function () { modal.classList.add('hidden'); });
+    }
 
     var res = await apiRequest('teacher_question_analytics', { examId: examId }, 'GET');
-    if (res.status !== 'success' || !res.questions) {
+    // API returns 'analytics' array, not 'questions'
+    if (res.status !== 'success' || !res.analytics) {
         if (body) body.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);">Failed to load question analytics.</div>';
         return;
     }
 
-    var html = '';
-    res.questions.forEach(function (q, idx) {
-        var pct = q.totalResponses > 0 ? Math.round((q.correctCount / q.totalResponses) * 100) : 0;
-        var barColor = pct >= 75 ? '#2ecc71' : pct >= 50 ? '#f59e0b' : '#e74c3c';
-        var needsReview = pct < 40;
+    var analytics = res.analytics;
+    if (analytics.length === 0) {
+        if (body) body.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);">No questions found.</div>';
+        return;
+    }
 
-        html += '<div class="qa-card" style="margin-bottom:0.85rem;padding:1rem;border-radius:0.65rem;background:var(--glass-bg);border:1px solid var(--color-border);">' +
-            '<div class="qa-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">' +
-                '<span style="font-weight:700;font-size:0.88rem;">Q' + (idx + 1) + '</span>' +
-                '<span style="font-size:0.8rem;color:var(--color-text-secondary);">' + q.totalResponses + ' responses</span>' +
-            '</div>' +
-            '<div class="qa-text" style="margin-bottom:0.5rem;font-size:0.9rem;">' + escapeHtmlNotif(q.question) + '</div>' +
-            '<div class="qa-bar-row" style="display:flex;align-items:center;gap:0.5rem;">' +
-                '<div class="qa-bar-track" style="flex:1;height:6px;border-radius:3px;background:var(--color-border);">' +
-                    '<div class="qa-bar-fill" style="width:' + pct + '%;height:100%;border-radius:3px;background:' + barColor + ';"></div>' +
-                '</div>' +
-                '<span class="qa-pct" style="font-weight:700;font-size:0.85rem;color:' + barColor + ';">' + pct + '%</span>' +
-            '</div>' +
-            (needsReview ? '<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--color-danger);font-weight:600;">\u26a0 Needs review \u2014 less than 40% correct</div>' : '') +
-        '</div>';
+    var letters = ['A','B','C','D'];
+    var html = '';
+    analytics.forEach(function (q, idx) {
+        var pct = q.pctCorrect || 0;
+        var barColor = pct >= 75 ? '#2ecc71' : pct >= 50 ? '#f59e0b' : '#e74c3c';
+        var needsReview = q.needsReview;
+        var maxDist = Math.max.apply(null, q.distribution.concat([1]));
+
+        html += '<div class="qa-question-card' + (needsReview ? ' needs-review' : '') + '">';
+        html += '<div class="qa-q-header">';
+        html += '<span class="qa-q-num">Q' + (idx + 1) + '</span>';
+        html += '<span class="qa-q-text">' + escapeHtmlNotif(q.question) + '</span>';
+        if (needsReview) html += '<span class="qa-review-flag">\u26a0 Needs Review</span>';
+        html += '</div>';
+        html += '<div class="qa-stats-row">';
+        // Percentage circle
+        html += '<div class="qa-pct-circle" style="--pct-color:' + barColor + ';">';
+        var circ = 2 * Math.PI * 16;
+        html += '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="var(--color-border)" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--pct-color)" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + circ + '" stroke-dashoffset="' + (circ - (pct / 100) * circ) + '" transform="rotate(-90 20 20)"/></svg>';
+        html += '<div class="qa-pct-val">' + pct + '%</div>';
+        html += '</div>';
+        // Distribution bars
+        html += '<div class="qa-dist-bars">';
+        q.distribution.forEach(function (count, i) {
+            var heightPct = (count / maxDist) * 100;
+            var isCorrect = i === q.correctAnswer;
+            html += '<div class="qa-dist-bar' + (isCorrect ? ' is-correct' : '') + '">';
+            html += '<div class="qa-dist-fill" style="height:' + heightPct + '%;background:' + (isCorrect ? '#2ecc71' : '#94a3b8') + ';"></div>';
+            html += '<div class="qa-dist-letter">' + letters[i] + '</div>';
+            html += '<div class="qa-dist-count">' + count + '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+        // Meta info
+        html += '<div class="qa-meta">';
+        html += '<div class="qa-meta-row"><span class="qa-meta-lbl">Attempts:</span> <b>' + q.totalAttempts + '</b></div>';
+        html += '<div class="qa-meta-row"><span class="qa-meta-lbl">Correct:</span> <b style="color:#2ecc71;">' + q.correctCount + '</b></div>';
+        html += '<div class="qa-meta-row"><span class="qa-meta-lbl">Unanswered:</span> <b>' + q.unanswered + '</b></div>';
+        if (q.mostCommonWrong) {
+            html += '<div class="qa-meta-row"><span class="qa-meta-lbl">Common wrong:</span> <b style="color:#e74c3c;">' + letters[q.mostCommonWrong.index] + ' (' + q.mostCommonWrong.count + '\u00d7)</b></div>';
+        }
+        html += '</div>';
+        html += '</div>'; // close qa-stats-row
+        html += '</div>'; // close qa-question-card
     });
 
     if (body) body.innerHTML = html;
@@ -618,18 +651,23 @@ async function previewExam(examId) {
 async function loadTeacherBank() {
     var container = document.getElementById('teacherBankContent');
     container.innerHTML =
-        '<div class="bank-toolbar" style="display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center;">' +
-            '<input type="text" id="bankSearchInput" class="form-input" placeholder="Search questions..." style="flex:1;min-width:160px;">' +
-            '<select id="bankSubjectFilter" class="form-input form-select" style="max-width:160px;width:100%;">' +
-                '<option value="">All Subjects</option>' +
-            '</select>' +
-            '<button id="bankAddBtn" class="btn btn-primary btn-small">' +
-                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
-                ' Add Question' +
-            '</button>' +
-            '<span id="bankCountDisplay" class="bank-count-badge" style="font-size:0.85rem;color:var(--color-text-secondary);margin-left:auto;"></span>' +
+        '<div class="bank-header-bar">' +
+            '<div class="bank-search-row">' +
+                '<div class="bank-search-field">' +
+                    '<svg class="bank-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+                    '<input type="text" id="bankSearchInput" class="form-input" placeholder="Search questions...">' +
+                '</div>' +
+                '<select id="bankSubjectFilter" class="form-input form-select bank-subject-select">' +
+                    '<option value="">All Subjects</option>' +
+                '</select>' +
+                '<div class="bank-count-badge" id="bankCountDisplay">0 questions</div>' +
+                '<button id="bankAddBtn" class="btn btn-primary">' +
+                    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+                    ' Add Question' +
+                '</button>' +
+            '</div>' +
         '</div>' +
-        '<div id="bankListContainer" style="display:flex;flex-direction:column;gap:0.5rem;"></div>' +
+        '<div id="bankListContainer" class="bank-list-container"></div>' +
         '<div id="bankAddFormContainer"></div>';
 
     await refetchBank();
@@ -666,40 +704,47 @@ async function refetchBank() {
 
     // Count badge
     var countEl = document.getElementById('bankCountDisplay');
-    if (countEl) countEl.textContent = res.totalCount || bankQuestions.length + ' question' + (bankQuestions.length !== 1 ? 's' : '');
+    if (countEl) countEl.textContent = (res.totalCount || bankQuestions.length) + ' question' + ((res.totalCount || bankQuestions.length) !== 1 ? 's' : '');
 
     // Render list
     var list = document.getElementById('bankListContainer');
     list.innerHTML = '';
     if (bankQuestions.length === 0) {
-        list.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--color-text-secondary);">No questions found. Add your first question above.</div>';
+        list.innerHTML =
+            '<div class="bank-empty-state">' +
+                '<div class="bank-empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>' +
+                '<div class="bank-empty-title">No questions found</div>' +
+                '<div class="bank-empty-desc">' + (search || subject ? 'Try adjusting your search or filter.' : 'Add your first question to the bank by clicking the button above.') + '</div>' +
+            '</div>';
         return;
     }
     bankQuestions.forEach(function (q) {
-        var div = document.createElement('div');
-        div.className = 'bank-item';
-        div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:0.65rem 0.9rem;border-radius:0.55rem;background:var(--glass-bg);border:1px solid var(--color-border);gap:1rem;';
-        div.innerHTML =
-            '<div style="flex:1;min-width:0;">' +
-                '<div style="font-weight:600;font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtmlNotif(q.question) + '</div>' +
-                '<div style="font-size:0.78rem;color:var(--color-text-secondary);margin-top:0.15rem;">' +
-                    (q.subject ? '<span>' + q.subject + '</span>' : '') +
-                    (q.difficulty ? '<span style="margin-left:0.5rem;">' + q.difficulty + '</span>' : '') +
-                    (q.usageCount > 0 ? '<span style="margin-left:0.5rem;">Used ' + q.usageCount + 'x</span>' : '') +
+        var diffColor = { Easy: 'var(--color-success)', Medium: '#f59e0b', Hard: 'var(--color-danger)' }[q.difficulty] || 'var(--color-text-secondary)';
+        var card = document.createElement('div');
+        card.className = 'bank-card';
+        card.innerHTML =
+            '<div class="bank-card-body">' +
+                '<div class="bank-card-question">' + escapeHtmlNotif(q.question) + '</div>' +
+                '<div class="bank-card-meta">' +
+                    (q.subject ? '<span class="bank-chip bank-chip-subject">' + escapeHtmlNotif(q.subject) + '</span>' : '') +
+                    (q.difficulty ? '<span class="bank-chip bank-chip-difficulty" style="color:' + diffColor + ';background:' + diffColor + '18;">' + q.difficulty + '</span>' : '') +
+                    (q.usageCount > 0 ? '<span class="bank-chip bank-chip-usage">Used ' + q.usageCount + ' time' + (q.usageCount !== 1 ? 's' : '') + '</span>' : '<span class="bank-chip bank-chip-usage bank-chip-muted">Not used yet</span>') +
                 '</div>' +
             '</div>' +
-            '<div style="display:flex;gap:0.35rem;flex-shrink:0;">' +
-                '<button class="btn btn-danger btn-small bank-delete-btn" data-id="' + q.id + '" style="padding:0.2rem 0.55rem;font-size:0.78rem;">Delete</button>' +
+            '<div class="bank-card-actions">' +
+                '<button class="bank-delete-btn" data-id="' + q.id + '" title="Remove question">' +
+                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>' +
+                '</button>' +
             '</div>';
 
-        div.querySelector('.bank-delete-btn').addEventListener('click', async function () {
+        card.querySelector('.bank-delete-btn').addEventListener('click', async function () {
             var qid = parseInt(this.getAttribute('data-id'));
             var r = await apiRequest('teacher_delete_from_bank', { questionId: qid });
             if (r.status === 'success') { showToast('Question removed.', 'success'); refetchBank(); }
             else { alert(r.message || 'Failed to delete question.'); }
         });
 
-        list.appendChild(div);
+        list.appendChild(card);
     });
 }
 
@@ -707,34 +752,54 @@ function openBankAddForm(callback) {
     var container = document.getElementById('bankAddFormContainer');
     if (!container) return;
     container.innerHTML =
-        '<div class="bank-add-form" style="margin-top:1rem;padding:1.25rem;border-radius:0.65rem;background:var(--glass-bg);border:1.5px solid var(--color-primary);">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.85rem;">' +
-                '<span style="font-weight:700;font-size:0.95rem;">Add New Question to Bank</span>' +
+        '<div class="bank-add-form">' +
+            '<div class="bank-add-header">' +
+                '<span class="bank-add-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Question</span>' +
                 '<button id="bankAddFormClose" class="btn btn-secondary btn-small">Cancel</button>' +
             '</div>' +
-            '<div class="form-group" style="margin-bottom:0.6rem;">' +
-                '<label style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">Question Text</label>' +
-                '<input type="text" id="bankNewQuestion" class="form-input" placeholder="Enter your question...">' +
+            '<div class="bank-add-grid">' +
+                '<div class="bank-add-field bank-add-span-2">' +
+                    '<label>Question Text</label>' +
+                    '<input type="text" id="bankNewQuestion" class="form-input" placeholder="Enter your question here\u2026">' +
+                '</div>' +
+                '<div class="bank-add-field">' +
+                    '<label>Option A</label>' +
+                    '<div class="bank-opt-wrap"><span class="bank-opt-letter">A</span><input type="text" id="bankNewOptA" class="form-input" placeholder="Option A"></div>' +
+                '</div>' +
+                '<div class="bank-add-field">' +
+                    '<label>Option B</label>' +
+                    '<div class="bank-opt-wrap"><span class="bank-opt-letter">B</span><input type="text" id="bankNewOptB" class="form-input" placeholder="Option B"></div>' +
+                '</div>' +
+                '<div class="bank-add-field">' +
+                    '<label>Option C</label>' +
+                    '<div class="bank-opt-wrap"><span class="bank-opt-letter">C</span><input type="text" id="bankNewOptC" class="form-input" placeholder="Option C"></div>' +
+                '</div>' +
+                '<div class="bank-add-field">' +
+                    '<label>Option D</label>' +
+                    '<div class="bank-opt-wrap"><span class="bank-opt-letter">D</span><input type="text" id="bankNewOptD" class="form-input" placeholder="Option D"></div>' +
+                '</div>' +
+                '<div class="bank-add-field bank-add-span-2">' +
+                    '<label>Correct Answer</label>' +
+                    '<div class="bank-correct-row">' +
+                        '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="0" checked> A</label>' +
+                        '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="1"> B</label>' +
+                        '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="2"> C</label>' +
+                        '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="3"> D</label>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="bank-add-field">' +
+                    '<label>Subject</label>' +
+                    '<input type="text" id="bankNewSubject" class="form-input" placeholder="e.g. Java OOP">' +
+                '</div>' +
+                '<div class="bank-add-field">' +
+                    '<label>Difficulty</label>' +
+                    '<select id="bankNewDifficulty" class="form-input form-select"><option value="Easy">Easy</option><option value="Medium" selected>Medium</option><option value="Hard">Hard</option></select>' +
+                '</div>' +
             '</div>' +
-            '<div class="options-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.6rem;">' +
-                '<div style="position:relative;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:0.78rem;color:var(--color-primary);">A</span><input type="text" id="bankNewOptA" class="form-input" placeholder="Option A" style="padding-left:26px;"></div>' +
-                '<div style="position:relative;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:0.78rem;color:var(--color-primary);">B</span><input type="text" id="bankNewOptB" class="form-input" placeholder="Option B" style="padding-left:26px;"></div>' +
-                '<div style="position:relative;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:0.78rem;color:var(--color-primary);">C</span><input type="text" id="bankNewOptC" class="form-input" placeholder="Option C" style="padding-left:26px;"></div>' +
-                '<div style="position:relative;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:0.78rem;color:var(--color-primary);">D</span><input type="text" id="bankNewOptD" class="form-input" placeholder="Option D" style="padding-left:26px;"></div>' +
+            '<div class="bank-add-footer">' +
+                '<button id="bankNewSaveBtn" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg> Save to Bank</button>' +
+                '<span id="bankNewMsg" class="bank-new-msg"></span>' +
             '</div>' +
-            '<div class="correct-answer-row" style="margin-bottom:0.6rem;">' +
-                '<label style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);margin-right:0.5rem;">Correct:</label>' +
-                '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="0" checked> A</label>' +
-                '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="1"> B</label>' +
-                '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="2"> C</label>' +
-                '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="3"> D</label>' +
-            '</div>' +
-            '<div style="display:flex;gap:0.75rem;margin-bottom:0.6rem;">' +
-                '<div class="form-group" style="flex:1;"><label style="font-size:0.78rem;font-weight:700;color:var(--color-text-secondary);">Subject</label><input type="text" id="bankNewSubject" class="form-input" placeholder="e.g. Java OOP"></div>' +
-                '<div class="form-group" style="flex:1;"><label style="font-size:0.78rem;font-weight:700;color:var(--color-text-secondary);">Difficulty</label><select id="bankNewDifficulty" class="form-input form-select"><option value="Easy">Easy</option><option value="Medium" selected>Medium</option><option value="Hard">Hard</option></select></div>' +
-            '</div>' +
-            '<button id="bankNewSaveBtn" class="btn btn-primary btn-small">Save to Bank</button>' +
-            '<span id="bankNewMsg" style="margin-left:0.5rem;font-size:0.85rem;"></span>' +
         '</div>';
 
     document.getElementById('bankAddFormClose').addEventListener('click', function () { container.innerHTML = ''; });
@@ -760,7 +825,7 @@ function openBankAddForm(callback) {
             subject: subject, difficulty: difficulty
         });
         if (r.status === 'success') {
-            document.getElementById('bankNewMsg').textContent = 'Saved!';
+            document.getElementById('bankNewMsg').textContent = '\u2713 Saved!';
             document.getElementById('bankNewMsg').style.color = 'var(--color-success)';
             container.innerHTML = '';
             refetchBank();
