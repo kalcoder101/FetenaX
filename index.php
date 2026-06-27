@@ -1255,6 +1255,13 @@ session_start();
         </div>
     </div>
 
-    <script src="script.js?v=15"></script>
+    <script src="js/core.js?v=16"></script>
+    <script src="js/auth.js?v=16"></script>
+    <script src="js/dashboard.js?v=16"></script>
+    <script src="js/student.js?v=16"></script>
+    <script src="js/teacher.js?v=16"></script>
+    <script src="js/exam.js?v=16"></script>
+    <script src="js/exam-creation.js?v=16"></script>
+    <script src="js/app.js?v=16"></script>
 </body>
 </html>
