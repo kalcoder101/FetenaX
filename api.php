@@ -2,16 +2,57 @@
 // api.php - Lightweight router for FetenaX API
 // Delegates to domain-specific handlers in the api/ directory.
 
+// ──────────────────────────────────────────────────
+// HTTPS Enforcement
+// ──────────────────────────────────────────────────
+// Only enforce if not on localhost
+$serverName = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+$isLocal = in_array(explode(':', $serverName)[0], ['127.0.0.1', '::1', 'localhost']);
+
+if (!$isLocal) {
+    // Secure cookie: only sent over HTTPS (set BEFORE session_start())
+    ini_set('session.cookie_secure', 1);
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.cookie_samesite', 'Lax');
+    ini_set('session.cookie_lifetime', 30 * 86400);
+    ini_set('session.gc_maxlifetime', 30 * 86400);
+
+    // HSTS — tell browsers to always use HTTPS
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+
+    // For GET requests only, redirect HTTP → HTTPS
+    // POST/API requests over HTTP will fail naturally (secure cookie won't be sent)
+    if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $httpsUrl = 'https://' . $serverName . $_SERVER['REQUEST_URI'];
+            header('Location: ' . $httpsUrl, true, 301);
+            exit;
+        }
+        // For POST requests: return an error instead of silently dropping data
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => 'HTTPS is required. Please use https://' . $serverName . '.']);
+        exit;
+    }
+} else {
+    // Local dev: standard session settings
+    ini_set('session.cookie_lifetime', 30 * 86400);
+    ini_set('session.gc_maxlifetime', 30 * 86400);
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.cookie_samesite', 'Lax');
+}
+
 session_start();
-// Make sessions persist for 30 days so users don't get logged out constantly
-ini_set('session.cookie_lifetime', 30 * 86400); // 30 days
-ini_set('session.gc_maxlifetime', 30 * 86400); // 30 days
-ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_samesite', 'Lax');
+
+// ──────────────────────────────────────────────────
+// Security Headers
+// ──────────────────────────────────────────────────
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: 0');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
 require_once 'db.php';
 

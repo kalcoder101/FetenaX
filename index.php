@@ -1,10 +1,49 @@
 <?php
 // index.php - Main Entrypoint for FetenaX
+
+// ── Error Display Settings (#10) ─────────────────────────────
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
+
+// ──────────────────────────────────────────────────
+// HTTPS Enforcement
+// ──────────────────────────────────────────────────
+// Only enforce if not on localhost
+$serverName = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+$isLocal = in_array(explode(':', $serverName)[0], ['127.0.0.1', '::1', 'localhost']);
+
+if (!$isLocal) {
+    // Secure session settings (set BEFORE session_start())
+    ini_set('session.cookie_secure', 1);
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.cookie_samesite', 'Lax');
+
+    // HSTS
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+
+    // Redirect HTTP → HTTPS
+    if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') {
+        $httpsUrl = 'https://' . $serverName . $_SERVER['REQUEST_URI'];
+        header('Location: ' . $httpsUrl, true, 301);
+        exit;
+    }
+}
+
 session_start();
+
+// ──────────────────────────────────────────────────
+// Security Headers
+// ──────────────────────────────────────────────────
 // Strong cache-busting headers — prevent browser from caching old CSS/JS
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: 0');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline';");
 ?>
 <!DOCTYPE html>
 <html lang="en">

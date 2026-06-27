@@ -1,0 +1,31 @@
+# =============================================================================
+# FetenaX – Apache .htaccess
+# Drop this file in the project root. Requires mod_rewrite and mod_headers.
+# =============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # ── HTTP → HTTPS redirect ──────────────────────────────────────────
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+    # ── Block access to hidden files/directories ───────────────────────
+    RewriteRule "(^|/)\.(?!well-known)" - [F]
+</IfModule>
+
+<IfModule mod_headers.c>
+    # ── Security headers ───────────────────────────────────────────────
+    Header always set X-Content-Type-Options    nosniff
+    Header always set X-Frame-Options           DENY
+    Header always set Referrer-Policy           "strict-origin-when-cross-origin"
+    Header always set X-XSS-Protection          "1; mode=block"
+</IfModule>
+
+# ── Block direct access to .env ────────────────────────────────────────
+<Files ".env">
+    Require all denied
+</Files>
+
+# ── Deny directory listing ─────────────────────────────────────────────
+Options -Indexes
