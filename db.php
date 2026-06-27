@@ -1,11 +1,31 @@
 <?php
 // db.php - Database connection & seeder for FetenaX
 
-$host = '127.0.0.1';
-$port = '3308';
-$user = 'root';
-$pass = '';
-$dbname = 'fetenax_db';
+// ============================================================
+// Load .env file if present (local dev convenience)
+// On production, set real env vars in your web server config
+// and omit the .env file entirely.
+// ============================================================
+$envFile = __DIR__ . '/.env';
+if (file_exists($envFile)) {
+    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') continue;
+        if (strpos($line, '=') !== false) {
+            [$key, $value] = explode('=', $line, 2);
+            $key   = trim($key);
+            $value = trim(trim($value), "'\"");
+            putenv("$key=$value");
+        }
+    }
+}
+
+// Read from environment (with fallback defaults for local dev)
+$host   = getenv('DB_HOST') ?: '127.0.0.1';
+$port   = getenv('DB_PORT') ?: '3308';
+$user   = getenv('DB_USER') ?: 'root';
+$pass   = getenv('DB_PASS') ?: '';
+$dbname = getenv('DB_NAME') ?: 'fetenax_db';
 
 try {
     // 1. Connect without db name first to check/create it

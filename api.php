@@ -55,6 +55,50 @@ if (!isset($_SESSION['user'])) {
 }
 $currentUser = $_SESSION['user'];
 
+// ──────────────────────────────────────────────────
+// CSRF Protection — validate token for state-changing POST actions
+// Skipped for GET requests and the auth actions already handled above.
+// ──────────────────────────────────────────────────
+$csrfRequiredActions = [
+    // Student
+    'save_answer', 'toggle_flag', 'submit_exam',
+    // Profile
+    'update_profile',
+    // Notifications
+    'mark_notification_read', 'mark_all_notifications_read',
+    // Question Bank
+    'teacher_add_to_bank', 'teacher_delete_from_bank',
+    'teacher_import_from_bank', 'teacher_save_exam_to_bank',
+    // Groups
+    'teacher_create_group', 'teacher_delete_group',
+    'teacher_group_member', 'teacher_assign_exam_group',
+    // Teacher (these are caught by the catch-all below, but listed explicitly for clarity)
+    'teacher_create_exam', 'teacher_edit_exam', 'teacher_delete_exam',
+    'teacher_reset_password', 'teacher_remove_student',
+    'teacher_bulk_import', 'teacher_bulk_import_exam',
+    'teacher_save_template', 'teacher_delete_template',
+];
+
+// Also require CSRF for any teacher_* action via POST that isn't explicitly read-only
+$readOnlyTeacherActions = [
+    'teacher_stats', 'teacher_analytics', 'teacher_attempts',
+    'teacher_students', 'teacher_preview_exam', 'teacher_question_analytics',
+    'teacher_export_csv', 'teacher_list_templates', 'teacher_student_profile',
+    'teacher_get_bank', 'teacher_list_groups'
+];
+
+$isPostMethod = ($_SERVER['REQUEST_METHOD'] === 'POST');
+$needsCsrf = in_array($action, $csrfRequiredActions, true)
+          || ($isPostMethod && strpos($action, 'teacher_') === 0 && !in_array($action, $readOnlyTeacherActions, true));
+
+if ($needsCsrf) {
+    $submittedToken = isset($requestData['csrf_token']) ? $requestData['csrf_token'] : '';
+    $sessionToken   = isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '';
+    if ($submittedToken === '' || $sessionToken === '' || !hash_equals($sessionToken, $submittedToken)) {
+        respond('error', ['message' => 'Invalid or missing CSRF token. Please refresh and try again.']);
+    }
+}
+
 // Load shared helpers (badge constants, check_badges, Math_round_or_ceil, etc.)
 require __DIR__ . '/api/init.php';
 

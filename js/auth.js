@@ -80,6 +80,7 @@ async function checkAuthStatus() {
     var res = await apiRequest('status', {}, 'GET');
     if (res.status === 'success' && res.user) {
         currentUser = res.user;
+        if (res.csrf_token) csrfToken = res.csrf_token;
         hideAuthModal();
         showDashboardForRole(currentUser.role);
     } else {

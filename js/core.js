@@ -8,6 +8,9 @@
 /** @var {object|null} Current logged-in user */
 var currentUser = null;
 
+/** @var {string|null} CSRF token for state-changing requests */
+var csrfToken = null;
+
 /** @var {boolean} Whether auth form is in login (true) or signup (false) mode */
 var isLoginMode = true;
 
@@ -79,8 +82,13 @@ async function apiRequest(action, data, method) {
     var options = { method: method, headers: {} };
 
     if (method === 'POST') {
+        // Auto-include CSRF token for all POST requests
+        var payload = Object.assign({ action: action }, data);
+        if (csrfToken) {
+            payload.csrf_token = csrfToken;
+        }
         options.headers['Content-Type'] = 'application/json';
-        options.body = JSON.stringify(Object.assign({ action: action }, data));
+        options.body = JSON.stringify(payload);
     } else {
         var params = new URLSearchParams(Object.assign({ action: action }, data)).toString();
         return fetch(url + '?' + params).then(function (res) { return res.json(); });
