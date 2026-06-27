@@ -1,0 +1,291 @@
+/* ============================
+   EXAM CREATION — Create Exam Modal (CEFP)
+   ============================ */
+
+/* Full-page overlay without .modal-content constraints */
+.create-exam-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 12000;
+    background: rgba(19, 29, 22, 0.25);
+    backdrop-filter: blur(12px) saturate(1.2);
+    overflow-y: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 1rem;
+}
+.create-exam-fullpage {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem;
+    box-shadow: var(--color-shadow);
+    width: 100%;
+    max-width: 960px;
+    margin: 1.5rem auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.cefp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.cefp-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.cefp-back-btn {
+    width: 36px; height: 36px;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+.cefp-back-btn:hover {
+    background: rgba(87,120,90,0.08);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.cefp-header-left h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.cefp-subtitle { font-size: 0.82rem; color: var(--color-text-secondary); }
+.cefp-header-right {
+    display: flex;
+    gap: 0.5rem;
+}
+.cefp-body { padding: 1.5rem; overflow-y: auto; max-height: 70vh; }
+.cefp-grid {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: 1.5rem;
+    align-items: start;
+}
+.cefp-main-col { min-width: 0; }
+.cefp-summary-col { position: sticky; top: 0; }
+
+/* Sections inside create exam */
+.cefp-section {
+    margin-bottom: 1.25rem;
+    background: var(--glass-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: 0.85rem;
+    padding: 1.2rem;
+}
+.cefp-section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.cefp-section-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+}
+.cefp-section-title { font-size: 0.95rem; font-weight: 700; color: var(--color-text); }
+.cefp-section-desc { font-size: 0.78rem; color: var(--color-text-secondary); }
+.cefp-section-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Form grid */
+.cefp-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+.cefp-span-2 { grid-column: 1 / -1; }
+.cefp-form-grid .form-group { display: flex; flex-direction: column; }
+.cefp-form-grid .form-group label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.25rem;
+}
+.req { color: var(--color-danger); }
+
+/* Toggle rows for options */
+.cefp-options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.cefp-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.5rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.cefp-toggle-row:hover { background: rgba(87,120,90,0.05); }
+.cefp-toggle-row input[type="checkbox"] { accent-color: var(--color-primary); width: 16px; height: 16px; }
+.cefp-toggle-label { font-size: 0.88rem; font-weight: 600; color: var(--color-text); display: block; }
+.cefp-toggle-desc { font-size: 0.74rem; color: var(--color-text-secondary); }
+.cefp-num-field {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.65rem;
+}
+.cefp-num-field label { font-size: 0.88rem; font-weight: 600; color: var(--color-text); }
+
+/* Question block builder */
+.questions-builder-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+.question-block {
+    border: 1.5px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 1rem 1.1rem 0.9rem;
+    background: var(--glass-bg);
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.question-block:hover { border-color: var(--color-primary); box-shadow: 0 2px 8px rgba(87,120,90,0.08); }
+.question-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+.question-block-num {
+    font-size: 0.78rem; font-weight: 800; color: var(--color-primary);
+    text-transform: uppercase; letter-spacing: 0.06em;
+}
+.question-count-badge {
+    font-size: 0.83rem; font-weight: 700;
+    color: var(--color-primary);
+    background: rgba(87,120,90,0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+}
+.correct-answer-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.6rem;
+}
+.correct-opt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    padding: 0.28rem 0.65rem;
+    border-radius: 0.45rem;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-bg);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-text);
+    transition: all 0.15s;
+}
+.correct-opt:has(input:checked) {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+.correct-opt input[type="radio"] { display: none; }
+.question-points-input {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+.question-points-input label {
+    font-size: 0.8rem; font-weight: 700;
+    color: var(--color-text-secondary); white-space: nowrap;
+}
+
+/* Summary card (right side) */
+.cefp-summary-card {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: 0.85rem;
+    padding: 1.2rem;
+    position: sticky;
+    top: 1rem;
+}
+.cefp-summary-title {
+    font-size: 0.85rem; font-weight: 700;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1.5px solid var(--color-border);
+}
+.cefp-summary-stat { margin-bottom: 0.4rem; }
+.ces-lbl { font-size: 0.7rem; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; display: block; line-height: 1.2; }
+.ces-val { font-size: 0.92rem; font-weight: 700; color: var(--color-text); }
+.cefp-summary-stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+.cefp-summary-divider {
+    border-top: 1px solid var(--color-border);
+    margin: 0.7rem 0;
+}
+.cefp-summary-big {
+    text-align: center;
+    padding: 0.3rem 0;
+}
+.ces-big-num { font-size: 2rem; font-weight: 800; color: var(--color-primary); line-height: 1; }
+.ces-big-lbl { font-size: 0.72rem; font-weight: 600; color: var(--color-text-secondary); text-transform: uppercase; }
+.cefp-summary-options { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.ces-opt-pill {
+    font-size: 0.7rem; font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 99px;
+    background: rgba(150,150,150,0.1);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+.ces-opt-pill.on { background: rgba(87,120,90,0.12); color: var(--color-primary); border-color: rgba(87,120,90,0.3); }
+
+/* === Responsive: Create exam === */
+@media (max-width: 900px) {
+    .cefp-grid { grid-template-columns: 1fr; }
+    .cefp-summary-col { order: -1; }
+}

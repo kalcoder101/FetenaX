@@ -1,0 +1,392 @@
+/* ============================
+   EXAM — Taking Interface & Practice Mode
+   ============================ */
+
+/* Fixed full-viewport, no body scroll during exam */
+.exam-interface {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--color-bg);
+    z-index: 5000;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+.exam-interface .container {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-width: 1280px;
+    padding: 0.9rem 1.2rem;
+    height: 100%;
+}
+.exam-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.exam-header h2 { font-size: 1.5rem; font-weight: 600; color: var(--color-text); }
+.timer {
+    background: var(--color-card);
+    color: var(--color-text);
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+/* --- Header strip with timer --- */
+.exam-header-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-card);
+    border-radius: 0.75rem;
+    box-shadow: var(--color-shadow);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1.5px solid var(--color-border);
+    flex-shrink: 0;
+}
+.exam-header-left h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+.exam-timer-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1.5px solid #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.04);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+.exam-timer-box.timer-warning {
+    background: rgba(239, 68, 68, 0.15);
+    animation: pulseRed 1s infinite alternate;
+}
+@keyframes pulseRed {
+    from { opacity: 0.8; }
+    to { opacity: 1; transform: scale(1.02); }
+}
+.timer-label { font-size: 0.85rem; text-transform: uppercase; }
+
+/* --- Double panel workspace --- */
+.exam-workspace {
+    display: flex;
+    gap: 1.2rem;
+    align-items: stretch;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+.exam-main-panel {
+    flex: 1;
+    display: flex;
+    gap: 1.2rem;
+    background: var(--color-card);
+    border-radius: 0.8rem;
+    box-shadow: var(--color-shadow);
+    padding: 1.2rem 1.5rem;
+    border: 1.5px solid var(--color-border);
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Left sub-column: Candidate Info */
+.exam-info-card {
+    width: 170px;
+    flex-shrink: 0;
+    border-right: 1.5px solid var(--color-border);
+    padding-right: 1.5rem;
+}
+.candidate-photo {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    margin: 0 auto 1.2rem auto;
+}
+.candidate-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+.detail-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.detail-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 0.4rem;
+    word-break: break-word;
+}
+
+/* Right sub-column: Question & Options */
+.exam-content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    min-height: 0;
+}
+.question-header-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid var(--color-border);
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.2rem;
+}
+.question-number-label { font-size: 1rem; font-weight: 700; color: var(--color-primary); }
+.question-points { font-size: 0.85rem; color: var(--color-text-secondary); font-weight: 600; }
+
+.question-text {
+    font-size: 1.08rem;
+    font-weight: 600;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    color: var(--color-text);
+}
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.option-item {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid var(--color-border);
+    border-radius: 0.6rem;
+    padding: 0.9rem 1.2rem;
+    cursor: pointer;
+    background: var(--color-bg);
+    transition: all 0.18s ease;
+    user-select: none;
+    font-size: 1rem;
+    color: var(--color-text);
+}
+.option-item:hover {
+    border-color: var(--color-primary);
+    background: rgba(87,120,90,0.06);
+}
+.option-item.selected {
+    border-color: var(--color-primary);
+    background: rgba(87,120,90,0.1);
+    font-weight: 600;
+}
+.option-item input[type="radio"] { display: none; }
+.option-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-text-secondary);
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+.option-item.selected .option-letter {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+.option-text-content { flex: 1; }
+
+/* Controls row */
+.exam-nav-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.8rem;
+    border-top: 1.5px solid var(--color-border);
+    padding-top: 1.2rem;
+}
+
+/* Right column: Navigation panel */
+.exam-navigation-panel {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--color-card);
+    border-radius: 0.8rem;
+    box-shadow: var(--color-shadow);
+    padding: 1rem 1rem;
+    border: 1.5px solid var(--color-border);
+    overflow-y: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.navigation-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 1.2rem;
+    border-bottom: 1.5px solid var(--color-border);
+    padding-bottom: 0.5rem;
+}
+.questions-grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+}
+.grid-cell-btn {
+    position: relative;
+    aspect-ratio: 1.05;
+    border-radius: 0.4rem;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-bg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: all 0.15s ease;
+    outline: none;
+}
+.grid-cell-btn:hover { border-color: var(--color-primary); }
+.grid-cell-btn.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    background: var(--color-card);
+}
+.grid-cell-btn .cell-num {
+    position: relative;
+    z-index: 5;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-text);
+}
+.grid-cell-btn.answered .cell-shading {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 50%;
+    background: #6b7280;
+    z-index: 1;
+}
+.grid-cell-btn.answered.active .cell-shading { background: #4b5563; }
+.grid-cell-btn.flagged .cell-flag-dot {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #f59e0b;
+    z-index: 6;
+    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+}
+
+/* Legend */
+.grid-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-top: 1.5px solid var(--color-border);
+    padding-top: 1rem;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+.legend-color {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    border: 1.5px solid var(--color-border);
+    display: inline-block;
+    flex-shrink: 0;
+}
+.legend-active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1.5px rgba(59, 130, 246, 0.25);
+}
+.legend-answered { position: relative; background: var(--color-bg); overflow: hidden; }
+.legend-answered::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 50%;
+    background: #6b7280;
+}
+.legend-flagged { position: relative; }
+.legend-flagged::after {
+    content: '';
+    position: absolute;
+    top: 3px; right: 3px;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #f59e0b;
+}
+
+/* --- Practice mode option feedback --- */
+.option-item.practice-correct {
+    border-color: var(--color-success) !important;
+    background: rgba(110,154,114,0.12) !important;
+}
+.option-item.practice-wrong {
+    border-color: var(--color-danger) !important;
+    background: rgba(224,122,95,0.10) !important;
+}
+.option-item.practice-correct .option-letter {
+    background: var(--color-success) !important;
+    color: #fff !important;
+    border-color: var(--color-success) !important;
+}
+.option-item.practice-wrong .option-letter {
+    background: var(--color-danger) !important;
+    color: #fff !important;
+    border-color: var(--color-danger) !important;
+}
+
+/* --- Responsive: Exam interface --- */
+@media (max-width: 900px) {
+    .exam-workspace { flex-direction: column; align-items: stretch; }
+    .exam-navigation-panel { width: 100%; }
+    .questions-grid-container { grid-template-columns: repeat(10, 1fr); }
+}
+@media (max-width: 600px) {
+    .exam-main-panel { flex-direction: column; padding: 1rem; }
+    .exam-info-card {
+        width: 100%; border-right: none;
+        border-bottom: 1.5px solid var(--color-border);
+        padding-right: 0; padding-bottom: 1rem; margin-bottom: 1rem;
+        display: flex; align-items: center; gap: 1.5rem;
+    }
+    .candidate-photo { margin: 0; }
+    .questions-grid-container { grid-template-columns: repeat(5, 1fr); }
+}
+
+/* --- Legacy fonts override --- */
+.dashboard, .exam-interface, .results-page, .results-container,
+.exam-card, .stat-card, .student-stats-card, .recent-result-item,
+.result-item, .exam-title, .exam-meta, .exam-detail,
+.stat-label, .stat-value, .result-label, .result-score,
+.question-title, .question-text, .option-item {
+  font-family: 'Inter', sans-serif !important;
+}

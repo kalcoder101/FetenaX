@@ -15,7 +15,9 @@ session_start();
     <link rel="stylesheet" href="css/auth.css?v=16">
     <link rel="stylesheet" href="css/student.css?v=16">
     <link rel="stylesheet" href="css/teacher.css?v=16">
-    <link rel="stylesheet" href="css/exam.css?v=16">
+    <link rel="stylesheet" href="css/exam-interface.css?v=16">
+    <link rel="stylesheet" href="css/results.css?v=16">
+    <link rel="stylesheet" href="css/exam-creation.css?v=16">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
