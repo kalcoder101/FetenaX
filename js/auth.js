@@ -47,6 +47,12 @@ function showAuthModal() {
     document.getElementById('resultsPage').classList.add('hidden');
     document.getElementById('examInterface').classList.add('hidden');
     document.getElementById('logoutBtn').classList.add('hidden');
+    // Hide the top navbar when login page is showing
+    var navbar = document.querySelector('.navbar');
+    if (navbar) navbar.classList.add('hidden');
+    // Hide about page if open
+    var aboutPage = document.getElementById('aboutFullPage');
+    if (aboutPage) aboutPage.classList.add('hidden');
     document.getElementById('authForm').reset();
     setAuthMode(true);
 }
@@ -58,6 +64,9 @@ function hideAuthModal() {
     document.getElementById('authModal').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
     document.getElementById('logoutBtn').classList.remove('hidden');
+    // Keep navbar hidden — dashboard has its own sidebar
+    var navbar = document.querySelector('.navbar');
+    if (navbar) navbar.classList.add('hidden');
 }
 
 // =========================================================================

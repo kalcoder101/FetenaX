@@ -2,31 +2,40 @@
    EXAM CREATION — Create Exam Modal (CEFP)
    ============================ */
 
-/* Full-page overlay without .modal-content constraints */
+/* Full-page overlay — true full viewport, not a centered card */
 .create-exam-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 12000;
-    background: rgba(19, 29, 22, 0.25);
-    backdrop-filter: blur(12px) saturate(1.2);
-    overflow-y: auto;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 1rem;
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 12000 !important;
+    background: var(--color-bg, #f7f8f5) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    padding: 0 !important;
 }
+.create-exam-overlay.hidden { display: none !important; }
+
 .create-exam-fullpage {
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
-    border-radius: 1.5rem;
-    box-shadow: var(--color-shadow);
-    width: 100%;
-    max-width: 960px;
-    margin: 1.5rem auto;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    background: var(--color-bg, #f7f8f5) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 .cefp-header {
     display: flex;

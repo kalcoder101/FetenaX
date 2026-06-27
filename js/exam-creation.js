@@ -43,6 +43,23 @@ function initExamCreation() {
         el.addEventListener(evt, updateExamSummary);
     });
 
+    // Auto-generate password button — use document-level delegation so it survives form cloning
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('#autoGeneratePasswordBtn');
+        if (!btn) return;
+        var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        var pw = '';
+        for (var i = 0; i < 8; i++) {
+            pw += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        var pwInput = document.getElementById('examAccessPassword');
+        if (pwInput) {
+            pwInput.value = pw;
+            pwInput.dispatchEvent(new Event('input'));
+            showToast('Access code generated: ' + pw, 'success');
+        }
+    });
+
     // Import from bank button
     var importBankBtn = document.getElementById('importFromBankBtn');
     if (importBankBtn) {
@@ -87,6 +104,13 @@ function resetCreateExamForm() {
         var el = document.getElementById(id);
         if (el) el.value = fields[id];
     });
+    // Auto-generate a password since it's now mandatory
+    // Directly generate instead of .click() since the button may have been cloned
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var pw = '';
+    for (var i = 0; i < 8; i++) { pw += chars.charAt(Math.floor(Math.random() * chars.length)); }
+    var pwInput = document.getElementById('examAccessPassword');
+    if (pwInput) { pwInput.value = pw; pwInput.dispatchEvent(new Event('input')); }
 
     var checks = {
         'optShuffle':       false,
@@ -116,6 +140,21 @@ function resetCreateExamForm() {
         addQuestionBlock();
         updateExamSummary();
     }
+
+    // CRITICAL: Restore the original create submit handler (openEditExam replaces the form)
+    // This fixes the bug where editing an exam then creating a new one shows old data
+    var form = document.getElementById('createExamForm');
+    if (form) {
+        var newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        newForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            await submitCreateExamForm();
+        });
+    }
+    // Clear any edit mode flag
+    var modal = document.getElementById('createExamModal');
+    if (modal) delete modal.dataset.editId;
 }
 
 /**
@@ -257,8 +296,13 @@ async function submitCreateExamForm() {
     });
 
     if (formError) { alert(formError); return; }
+    var pwVal = document.getElementById('examAccessPassword')?.value || '';
     if (!title || !subject || duration <= 0 || questions.length === 0) {
         alert('Please fill in all exam details and add at least one question.');
+        return;
+    }
+    if (!pwVal) {
+        alert('Access password is required. Click "Auto-Generate" to create one.');
         return;
     }
 
@@ -455,9 +499,69 @@ function initBulkExamImport() {
     var closeBtn = document.getElementById('closeBulkExamImport');
     var cancelBtn = document.getElementById('cancelBulkExamImport');
     var resultsDiv = document.getElementById('bulkExamImportResults');
+    var templateSelect = document.getElementById('bulkExamTemplate');
+    var bulkExamImportBtn = document.getElementById('bulkExamImportBtn');
 
     if (closeBtn) closeBtn.addEventListener('click', function () { modal.classList.add('hidden'); });
     if (cancelBtn) cancelBtn.addEventListener('click', function () { modal.classList.add('hidden'); });
+
+    // CSV template download
+    var downloadTemplate = document.getElementById('downloadExamCsvTemplate');
+    if (downloadTemplate) {
+        downloadTemplate.addEventListener('click', function (e) {
+            e.preventDefault();
+            var csv = 'question,optionA,optionB,optionC,optionD,correctAnswer,points\n' +
+                'What is 2+2?,1,2,3,4,3,1\n' +
+                'Which planet is closest to the sun?,Venus,Earth,Mercury,Mars,2,1\n' +
+                'What is the capital of France?,London,Paris,Berlin,Madrid,1,2\n';
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'fetenax_exam_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    // When the modal opens, load templates into the dropdown
+    if (bulkExamImportBtn) {
+        bulkExamImportBtn.addEventListener('click', async function () {
+            form.reset();
+            resultsDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+            // Load templates
+            if (templateSelect) {
+                templateSelect.innerHTML = '<option value="">\u2014 No template, fill manually \u2014</option>';
+                var res = await apiRequest('teacher_list_templates', {}, 'GET');
+                if (res.status === 'success' && res.templates) {
+                    res.templates.forEach(function (t) {
+                        var o = document.createElement('option');
+                        o.value = t.id;
+                        o.textContent = t.name + ' (' + t.subject + ', ' + t.duration + 'min, ' + t.difficulty + ')';
+                        o.dataset.template = JSON.stringify(t);
+                        templateSelect.appendChild(o);
+                    });
+                }
+            }
+            modal.classList.remove('hidden');
+        });
+    }
+
+    // When a template is selected, pre-fill the form fields
+    if (templateSelect) {
+        templateSelect.addEventListener('change', function () {
+            var selected = templateSelect.options[templateSelect.selectedIndex];
+            if (!selected || !selected.dataset.template) return;
+            var t = JSON.parse(selected.dataset.template);
+            document.getElementById('bulkExamTitle').value = t.name || '';
+            document.getElementById('bulkExamSubject').value = t.subject || '';
+            document.getElementById('bulkExamDifficulty').value = t.difficulty || 'Medium';
+            document.getElementById('bulkExamDuration').value = t.duration || 30;
+        });
+    }
 
     if (form) {
         form.addEventListener('submit', async function (e) {
@@ -482,7 +586,7 @@ function initBulkExamImport() {
             fd.append('subject', subject);
             fd.append('difficulty', difficulty);
             fd.append('duration', duration);
-            fd.append('csvFile', fileInput.files[0]);
+            fd.append('csv', fileInput.files[0]); // API expects 'csv' not 'csvFile'
 
             try {
                 var res = await fetch('api.php', { method: 'POST', body: fd });
@@ -490,7 +594,7 @@ function initBulkExamImport() {
                 if (data.status === 'success') {
                     resultsDiv.style.display = 'block';
                     resultsDiv.innerHTML = '<div style="padding:0.85rem;border-radius:0.5rem;background:rgba(46,204,113,0.1);color:#2ecc71;font-weight:600;">' +
-                        'Exam created with ' + data.questionsImported + ' question(s)!' +
+                        (data.message || 'Exam created with ' + (data.imported || 0) + ' question(s)!') +
                         '</div>';
                     setTimeout(function () { modal.classList.add('hidden'); loadTeacherDashboard(); }, 1500);
                 } else {
@@ -500,7 +604,7 @@ function initBulkExamImport() {
                 }
             } catch (err) {
                 resultsDiv.style.display = 'block';
-                resultsDiv.innerHTML = '<div style="color:var(--color-danger);">Network error.</div>';
+                resultsDiv.innerHTML = '<div style="color:var(--color-danger);">Network error: ' + err.message + '</div>';
             }
 
             if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg> Import & Create Exam'; }

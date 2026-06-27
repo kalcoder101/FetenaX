@@ -1,6 +1,10 @@
 <?php
 // index.php - Main Entrypoint for FetenaX
 session_start();
+// Strong cache-busting headers — prevent browser from caching old CSS/JS
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -9,15 +13,15 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FetenaX – Your Exam, Your Vibe</title>
-    <link rel="stylesheet" href="css/theme.css?v=18">
-    <link rel="stylesheet" href="css/components.css?v=18">
-    <link rel="stylesheet" href="css/layout.css?v=18">
-    <link rel="stylesheet" href="css/auth.css?v=18">
-    <link rel="stylesheet" href="css/student.css?v=18">
-    <link rel="stylesheet" href="css/teacher.css?v=18">
-    <link rel="stylesheet" href="css/exam-interface.css?v=18">
-    <link rel="stylesheet" href="css/results.css?v=18">
-    <link rel="stylesheet" href="css/exam-creation.css?v=18">
+    <link rel="stylesheet" href="css/theme.css?v=26">
+    <link rel="stylesheet" href="css/components.css?v=26">
+    <link rel="stylesheet" href="css/layout.css?v=26">
+    <link rel="stylesheet" href="css/auth.css?v=26">
+    <link rel="stylesheet" href="css/student.css?v=26">
+    <link rel="stylesheet" href="css/teacher.css?v=26">
+    <link rel="stylesheet" href="css/exam-interface.css?v=26">
+    <link rel="stylesheet" href="css/results.css?v=26">
+    <link rel="stylesheet" href="css/exam-creation.css?v=26">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
@@ -219,6 +223,10 @@ session_start();
                 <button class="menu-item" data-tab="teacher-groups">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
                     <span>Class Groups</span>
+                </button>
+                <button class="menu-item" data-tab="teacher-codes">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>Access Codes</span>
                 </button>
                 <button class="menu-item" data-tab="teacher-settings">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -481,6 +489,11 @@ session_start();
                         <div id="teacherGroupsContent"></div>
                     </div>
 
+                    <!-- Tab: Access Codes -->
+                    <div id="teacher-codes" class="tab-content hidden">
+                        <div id="teacherCodesContent"></div>
+                    </div>
+
                     <!-- Tab: Teacher Settings -->
                     <div id="teacher-settings" class="tab-content hidden">
                         <div id="teacherSettingsContent"></div>
@@ -686,10 +699,6 @@ session_start();
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:7px;vertical-align:middle;"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
                         Back to Dashboard
                     </button>
-                    <button id="practiceAgainBtn" class="btn btn-secondary results-action-btn">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;vertical-align:middle;"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                        Practice Again
-                    </button>
                     <button id="downloadPdfBtn" class="btn btn-secondary results-action-btn" onclick="window.print()">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;vertical-align:middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         Download PDF
@@ -854,8 +863,14 @@ session_start();
                                     <input type="datetime-local" id="examAvailableUntil" class="form-input">
                                 </div>
                                 <div class="form-group cefp-span-2">
-                                    <label for="examAccessPassword">Access Password (optional)</label>
-                                    <input type="text" id="examAccessPassword" class="form-input" placeholder="Leave blank for no password. Students must enter this to start.">
+                                    <label for="examAccessPassword">Access Password <span class="req">*</span></label>
+                                    <div style="display:flex;gap:0.5rem;">
+                                        <input type="text" id="examAccessPassword" class="form-input" placeholder="Students must enter this to start the exam" required>
+                                        <button type="button" id="autoGeneratePasswordBtn" class="btn btn-secondary btn-small" style="white-space:nowrap;" title="Generate a random password">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                            Auto-Generate
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1164,7 +1179,7 @@ session_start();
 
     <!-- Bulk Exam Import Modal (Teacher) -->
     <div id="bulkExamImportModal" class="modal hidden" style="z-index:13000;">
-        <div class="modal-content" style="max-width:640px;width:96vw;max-height:90vh;overflow-y:auto;">
+        <div class="modal-content" style="max-width:720px;width:96vw;max-height:92vh;overflow-y:auto;">
             <div class="modal-header">
                 <h3>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:7px;vertical-align:middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -1172,12 +1187,23 @@ session_start();
                 </h3>
                 <button id="closeBulkExamImport" class="close-btn">&times;</button>
             </div>
-            <div style="margin-bottom:1rem;">
-                <div style="font-size:0.85rem;color:var(--color-text-secondary);margin-bottom:0.5rem;">
+            <div style="margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+                <div style="font-size:0.85rem;color:var(--color-text-secondary);">
                     CSV format: <code>question, optionA, optionB, optionC, optionD, correctAnswer (0-3), points (optional)</code>
                 </div>
+                <a href="#" id="downloadExamCsvTemplate" class="btn btn-secondary btn-small" style="text-decoration:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download CSV Template
+                </a>
             </div>
             <form id="bulkExamImportForm">
+                <!-- Template selector — loads saved templates to pre-fill fields -->
+                <div class="form-group" style="margin-bottom:0.85rem;">
+                    <label for="bulkExamTemplate">Load from Template (optional)</label>
+                    <select id="bulkExamTemplate" class="form-input form-select">
+                        <option value="">— No template, fill manually —</option>
+                    </select>
+                </div>
                 <div class="cefp-form-grid">
                     <div class="form-group cefp-span-2">
                         <label for="bulkExamTitle">Exam Title <span class="req">*</span></label>
@@ -1263,13 +1289,13 @@ session_start();
         </div>
     </div>
 
-    <script src="js/core.js?v=18"></script>
-    <script src="js/auth.js?v=18"></script>
-    <script src="js/dashboard.js?v=18"></script>
-    <script src="js/student.js?v=18"></script>
-    <script src="js/teacher.js?v=18"></script>
-    <script src="js/exam.js?v=18"></script>
-    <script src="js/exam-creation.js?v=18"></script>
-    <script src="js/app.js?v=18"></script>
+    <script src="js/core.js?v=26"></script>
+    <script src="js/auth.js?v=26"></script>
+    <script src="js/dashboard.js?v=26"></script>
+    <script src="js/student.js?v=26"></script>
+    <script src="js/teacher.js?v=26"></script>
+    <script src="js/exam.js?v=26"></script>
+    <script src="js/exam-creation.js?v=26"></script>
+    <script src="js/app.js?v=26"></script>
 </body>
 </html>

@@ -613,6 +613,7 @@ async function previewExam(examId) {
     }
 
     currentExam = res.exam;
+    currentExam.questions = res.questions || [];
     currentExam._isPreview = true;
     var total = currentExam.questions.length;
     currentExamAnswers = Array(total).fill(null);
@@ -640,198 +641,251 @@ async function previewExam(examId) {
         tc.innerHTML = '<span class="practice-label" style="color:var(--color-warning);font-weight:700;font-size:0.95rem;">\ud83d\udc40 Preview Mode (no timer)</span>';
     }
 
+    // Add a "Back to Dashboard" button (preview only) — fixed in top-right corner
+    var existingBackBtn = document.getElementById('previewBackBtn');
+    if (existingBackBtn) existingBackBtn.remove();
+    var backBtn = document.createElement('button');
+    backBtn.id = 'previewBackBtn';
+    backBtn.className = 'preview-back-btn';
+    backBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Exit Preview';
+    backBtn.addEventListener('click', function () {
+        if (confirm('Exit preview mode? No answers will be saved.')) {
+            currentExam = null;
+            document.getElementById('examInterface').classList.add('hidden');
+            document.getElementById('examTimerContainer')?.classList.remove('practice-hidden');
+            document.body.style.overflow = '';
+            backBtn.remove();
+            dashboard.classList.remove('hidden');
+            loadTeacherDashboard();
+        }
+    });
+    document.body.appendChild(backBtn);
+
     renderQuestion();
     renderQuestionsGrid();
 }
 
 // =========================================================================
-// QUESTION BANK (Teacher)
+// QUESTION BANK (Teacher) — Ported from v15 with full option display
 // =========================================================================
 
 async function loadTeacherBank() {
     var container = document.getElementById('teacherBankContent');
+    if (!container) return;
+    container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);">Loading question bank…</div>';
+
+    var res = await apiRequest('teacher_get_bank', {}, 'GET');
+    if (res.status !== 'success') {
+        container.innerHTML = '<div style="padding:1.5rem;color:var(--color-danger);">' + (res.message || 'Failed to load question bank.') + '</div>';
+        return;
+    }
+
+    var questions = res.questions || [];
+    var subjects  = res.subjects  || [];
+    var total     = res.totalCount || questions.length;
+
+    // Toolbar
     container.innerHTML =
-        '<div class="bank-header-bar">' +
-            '<div class="bank-search-row">' +
-                '<div class="bank-search-field">' +
-                    '<svg class="bank-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-                    '<input type="text" id="bankSearchInput" class="form-input" placeholder="Search questions...">' +
-                '</div>' +
-                '<select id="bankSubjectFilter" class="form-input form-select bank-subject-select">' +
-                    '<option value="">All Subjects</option>' +
-                '</select>' +
-                '<div class="bank-count-badge" id="bankCountDisplay">0 questions</div>' +
-                '<button id="bankAddBtn" class="btn btn-primary">' +
-                    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
-                    ' Add Question' +
-                '</button>' +
+        '<div class="bank-toolbar">' +
+            '<div class="bank-search-wrap">' +
+                '<svg class="bank-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+                '<input type="text" id="bankSearchInput" class="form-input bank-search-input" placeholder="Search questions…" autocomplete="off">' +
             '</div>' +
+            '<select id="bankSubjectFilter" class="form-input form-select bank-subject-filter">' +
+                '<option value="">All Subjects</option>' +
+                subjects.map(function(s) { return '<option value="' + s + '">' + s + '</option>'; }).join('') +
+            '</select>' +
+            '<div class="bank-stats-pill">' + total + ' question' + (total === 1 ? '' : 's') + ' in bank</div>' +
+            '<button id="bankAddNewBtn" class="btn btn-primary bank-add-btn">' +
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+                'Add Question' +
+            '</button>' +
         '</div>' +
-        '<div id="bankListContainer" class="bank-list-container"></div>' +
+        '<div class="bank-list-wrap" id="bankListWrap"></div>' +
         '<div id="bankAddFormContainer"></div>';
 
-    await refetchBank();
+    renderBankList(questions);
 
-    document.getElementById('bankSearchInput').addEventListener('input', debounce(refetchBank, 300));
+    // Live search + subject filter
+    var searchDebounce = null;
+    document.getElementById('bankSearchInput').addEventListener('input', function () {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(refetchBank, 250);
+    });
     document.getElementById('bankSubjectFilter').addEventListener('change', refetchBank);
-    document.getElementById('bankAddBtn').addEventListener('click', function () { openBankAddForm(); });
+    document.getElementById('bankAddNewBtn').addEventListener('click', function () { openBankAddFormV2(); });
 }
 
-var bankQuestions = [];
-var bankSubjects = [];
+function renderBankList(qs) {
+    var listWrap = document.getElementById('bankListWrap');
+    if (!listWrap) return;
+    listWrap.innerHTML = '';
+    if (!qs || qs.length === 0) {
+        listWrap.innerHTML =
+            '<div class="bank-empty-state">' +
+                '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>' +
+                '<div class="bank-empty-title">No questions match your filters</div>' +
+                '<div class="bank-empty-desc">Try a different search term or subject, or add a new question to the bank.</div>' +
+            '</div>';
+        return;
+    }
+    var letters = ['A','B','C','D'];
+    qs.forEach(function (q) {
+        var row = document.createElement('div');
+        row.className = 'bank-question-row';
+        var diffColor = { Easy: 'var(--color-success)', Medium: '#f59e0b', Hard: 'var(--color-danger)' }[q.difficulty] || 'var(--color-primary)';
+        row.innerHTML =
+            '<div class="bqr-main">' +
+                '<div class="bqr-question">' + escapeHtmlNotif(q.question) + '</div>' +
+                '<div class="bqr-meta">' +
+                    '<span class="bqr-chip bqr-chip-subject">' + escapeHtmlNotif(q.subject || '—') + '</span>' +
+                    '<span class="bqr-chip" style="color:' + diffColor + ';background:' + diffColor + '18;">' + escapeHtmlNotif(q.difficulty || 'Medium') + '</span>' +
+                    '<span class="bqr-chip bqr-chip-correct">Correct: ' + (letters[q.correctAnswer] || '—') + '</span>' +
+                    '<span class="bqr-chip bqr-chip-usage">Used ' + (q.usageCount || 0) + '\u00d7</span>' +
+                '</div>' +
+                '<div class="bqr-options">' +
+                    [0,1,2,3].map(function (i) {
+                        return '<div class="bqr-option ' + (i === q.correctAnswer ? 'is-correct' : '') + '">' +
+                            '<span class="bqr-opt-letter">' + letters[i] + '</span>' +
+                            '<span class="bqr-opt-text">' + escapeHtmlNotif(q['option' + (i+1)]) + '</span>' +
+                            (i === q.correctAnswer ? '<span class="bqr-opt-check">\u2713</span>' : '') +
+                        '</div>';
+                    }).join('') +
+                '</div>' +
+            '</div>' +
+            '<div class="bqr-actions">' +
+                '<button class="btn btn-secondary btn-small bqr-use-btn" data-id="' + q.id + '">Use in Exam</button>' +
+                '<button class="btn btn-danger btn-small bqr-delete-btn" data-id="' + q.id + '" data-q="' + escapeHtmlNotif(q.question.substring(0, 60)) + '">Delete</button>' +
+            '</div>';
+
+        // Wire delete
+        row.querySelector('.bqr-delete-btn').addEventListener('click', function () {
+            var qid = parseInt(this.getAttribute('data-id'));
+            var preview = this.getAttribute('data-q');
+            showCustomConfirm('Delete Question', 'Delete this question from the bank?\n\n"' + preview + '…"', async function () {
+                var r = await apiRequest('teacher_delete_from_bank', { questionId: qid });
+                if (r.status === 'success') { showToast('Question deleted.', 'success'); refetchBank(); }
+                else { alert(r.message || 'Failed to delete.'); }
+            });
+        });
+
+        // Wire "Use in Exam"
+        row.querySelector('.bqr-use-btn').addEventListener('click', async function () {
+            var qid = parseInt(this.getAttribute('data-id'));
+            var r = await apiRequest('teacher_import_from_bank', { questionIds: [qid] });
+            if (r.status !== 'success') { alert(r.message || 'Import failed.'); return; }
+            var ceb = document.getElementById('createExamBtn');
+            if (ceb) ceb.click();
+            setTimeout(function () {
+                var qc = document.getElementById('questionsContainer');
+                if (qc) qc.innerHTML = '';
+                if (typeof updateQuestionCount === 'function') updateQuestionCount();
+                r.questions.forEach(function (q) {
+                    if (typeof addQuestionBlock === 'function') {
+                        addQuestionBlock();
+                        var block = qc.lastElementChild;
+                        block.querySelector('.question-input').value = q.question;
+                        var opts = block.querySelectorAll('.option-input');
+                        q.options.forEach(function (o, i) { if (opts[i]) opts[i].value = o; });
+                        var radio = block.querySelector('input[type="radio"][value="' + q.correctAnswer + '"]');
+                        if (radio) radio.checked = true;
+                    }
+                });
+                if (typeof updateQuestionCount === 'function') updateQuestionCount();
+                showToast('Question loaded into new exam.', 'success');
+            }, 150);
+        });
+
+        listWrap.appendChild(row);
+    });
+}
 
 async function refetchBank() {
     var search  = document.getElementById('bankSearchInput') ? document.getElementById('bankSearchInput').value.trim() : '';
     var subject = document.getElementById('bankSubjectFilter') ? document.getElementById('bankSubjectFilter').value : '';
+    var listWrap = document.getElementById('bankListWrap');
+    if (listWrap) listWrap.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--color-text-secondary);">Filtering…</div>';
     var res = await apiRequest('teacher_get_bank', { search: search, subject: subject }, 'GET');
-    if (res.status !== 'success') return;
-
-    bankQuestions = res.questions || [];
-    bankSubjects  = res.subjects || [];
-
-    // Populate subject filter
-    var sel = document.getElementById('bankSubjectFilter');
-    if (sel) {
-        var cur = sel.value;
-        sel.innerHTML = '<option value="">All Subjects</option>';
-        bankSubjects.forEach(function (s) {
-            var o = document.createElement('option');
-            o.value = s; o.textContent = s;
-            sel.appendChild(o);
-        });
-        sel.value = cur;
+    if (res.status === 'success') {
+        // Update subject filter
+        var sel = document.getElementById('bankSubjectFilter');
+        if (sel && res.subjects) {
+            var cur = sel.value;
+            sel.innerHTML = '<option value="">All Subjects</option>';
+            res.subjects.forEach(function (s) { var o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
+            sel.value = cur;
+        }
+        renderBankList(res.questions || []);
+    } else {
+        if (listWrap) listWrap.innerHTML = '<div style="padding:1.5rem;color:var(--color-danger);">Filter failed.</div>';
     }
-
-    // Count badge
-    var countEl = document.getElementById('bankCountDisplay');
-    if (countEl) countEl.textContent = (res.totalCount || bankQuestions.length) + ' question' + ((res.totalCount || bankQuestions.length) !== 1 ? 's' : '');
-
-    // Render list
-    var list = document.getElementById('bankListContainer');
-    list.innerHTML = '';
-    if (bankQuestions.length === 0) {
-        list.innerHTML =
-            '<div class="bank-empty-state">' +
-                '<div class="bank-empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>' +
-                '<div class="bank-empty-title">No questions found</div>' +
-                '<div class="bank-empty-desc">' + (search || subject ? 'Try adjusting your search or filter.' : 'Add your first question to the bank by clicking the button above.') + '</div>' +
-            '</div>';
-        return;
-    }
-    bankQuestions.forEach(function (q) {
-        var diffColor = { Easy: 'var(--color-success)', Medium: '#f59e0b', Hard: 'var(--color-danger)' }[q.difficulty] || 'var(--color-text-secondary)';
-        var card = document.createElement('div');
-        card.className = 'bank-card';
-        card.innerHTML =
-            '<div class="bank-card-body">' +
-                '<div class="bank-card-question">' + escapeHtmlNotif(q.question) + '</div>' +
-                '<div class="bank-card-meta">' +
-                    (q.subject ? '<span class="bank-chip bank-chip-subject">' + escapeHtmlNotif(q.subject) + '</span>' : '') +
-                    (q.difficulty ? '<span class="bank-chip bank-chip-difficulty" style="color:' + diffColor + ';background:' + diffColor + '18;">' + q.difficulty + '</span>' : '') +
-                    (q.usageCount > 0 ? '<span class="bank-chip bank-chip-usage">Used ' + q.usageCount + ' time' + (q.usageCount !== 1 ? 's' : '') + '</span>' : '<span class="bank-chip bank-chip-usage bank-chip-muted">Not used yet</span>') +
-                '</div>' +
-            '</div>' +
-            '<div class="bank-card-actions">' +
-                '<button class="bank-delete-btn" data-id="' + q.id + '" title="Remove question">' +
-                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>' +
-                '</button>' +
-            '</div>';
-
-        card.querySelector('.bank-delete-btn').addEventListener('click', async function () {
-            var qid = parseInt(this.getAttribute('data-id'));
-            var r = await apiRequest('teacher_delete_from_bank', { questionId: qid });
-            if (r.status === 'success') { showToast('Question removed.', 'success'); refetchBank(); }
-            else { alert(r.message || 'Failed to delete question.'); }
-        });
-
-        list.appendChild(card);
-    });
 }
 
-function openBankAddForm(callback) {
+function openBankAddFormV2() {
     var container = document.getElementById('bankAddFormContainer');
     if (!container) return;
     container.innerHTML =
-        '<div class="bank-add-form">' +
-            '<div class="bank-add-header">' +
-                '<span class="bank-add-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Question</span>' +
-                '<button id="bankAddFormClose" class="btn btn-secondary btn-small">Cancel</button>' +
-            '</div>' +
-            '<div class="bank-add-grid">' +
-                '<div class="bank-add-field bank-add-span-2">' +
-                    '<label>Question Text</label>' +
-                    '<input type="text" id="bankNewQuestion" class="form-input" placeholder="Enter your question here\u2026">' +
+        '<div class="bank-add-form-overlay">' +
+            '<div class="bank-add-form-card">' +
+                '<div class="bank-add-header">' +
+                    '<h3>Add Question to Bank</h3>' +
+                    '<button type="button" class="bank-add-close-btn">\u00d7</button>' +
                 '</div>' +
-                '<div class="bank-add-field">' +
-                    '<label>Option A</label>' +
-                    '<div class="bank-opt-wrap"><span class="bank-opt-letter">A</span><input type="text" id="bankNewOptA" class="form-input" placeholder="Option A"></div>' +
-                '</div>' +
-                '<div class="bank-add-field">' +
-                    '<label>Option B</label>' +
-                    '<div class="bank-opt-wrap"><span class="bank-opt-letter">B</span><input type="text" id="bankNewOptB" class="form-input" placeholder="Option B"></div>' +
-                '</div>' +
-                '<div class="bank-add-field">' +
-                    '<label>Option C</label>' +
-                    '<div class="bank-opt-wrap"><span class="bank-opt-letter">C</span><input type="text" id="bankNewOptC" class="form-input" placeholder="Option C"></div>' +
-                '</div>' +
-                '<div class="bank-add-field">' +
-                    '<label>Option D</label>' +
-                    '<div class="bank-opt-wrap"><span class="bank-opt-letter">D</span><input type="text" id="bankNewOptD" class="form-input" placeholder="Option D"></div>' +
-                '</div>' +
-                '<div class="bank-add-field bank-add-span-2">' +
-                    '<label>Correct Answer</label>' +
-                    '<div class="bank-correct-row">' +
-                        '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="0" checked> A</label>' +
-                        '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="1"> B</label>' +
-                        '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="2"> C</label>' +
-                        '<label class="correct-opt"><input type="radio" name="bankNewCorrect" value="3"> D</label>' +
+                '<form id="bankAddFormV2" style="padding:1.2rem;">' +
+                    '<div class="form-group">' +
+                        '<label>Question Text <span class="req">*</span></label>' +
+                        '<textarea id="bankNewQuestion" class="form-input" rows="2" required placeholder="Enter the question…"></textarea>' +
                     '</div>' +
-                '</div>' +
-                '<div class="bank-add-field">' +
-                    '<label>Subject</label>' +
-                    '<input type="text" id="bankNewSubject" class="form-input" placeholder="e.g. Java OOP">' +
-                '</div>' +
-                '<div class="bank-add-field">' +
-                    '<label>Difficulty</label>' +
-                    '<select id="bankNewDifficulty" class="form-input form-select"><option value="Easy">Easy</option><option value="Medium" selected>Medium</option><option value="Hard">Hard</option></select>' +
-                '</div>' +
-            '</div>' +
-            '<div class="bank-add-footer">' +
-                '<button id="bankNewSaveBtn" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg> Save to Bank</button>' +
-                '<span id="bankNewMsg" class="bank-new-msg"></span>' +
+                    '<div class="bank-add-grid">' +
+                        '<div class="form-group"><label>A <span class="req">*</span></label><input type="text" id="bankNewOptA" class="form-input" required></div>' +
+                        '<div class="form-group"><label>B <span class="req">*</span></label><input type="text" id="bankNewOptB" class="form-input" required></div>' +
+                        '<div class="form-group"><label>C <span class="req">*</span></label><input type="text" id="bankNewOptC" class="form-input" required></div>' +
+                        '<div class="form-group"><label>D <span class="req">*</span></label><input type="text" id="bankNewOptD" class="form-input" required></div>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:0.6rem;margin-bottom:1rem;flex-wrap:wrap;">' +
+                        '<div class="form-group" style="flex:1;"><label>Correct Answer</label><select id="bankNewCorrect" class="form-input form-select"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></div>' +
+                        '<div class="form-group" style="flex:1;"><label>Subject</label><input type="text" id="bankNewSubject" class="form-input" placeholder="e.g. Java OOP"></div>' +
+                        '<div class="form-group" style="flex:1;"><label>Difficulty</label><select id="bankNewDifficulty" class="form-input form-select"><option value="Easy">Easy</option><option value="Medium" selected>Medium</option><option value="Hard">Hard</option></select></div>' +
+                    '</div>' +
+                    '<div style="display:flex;justify-content:flex-end;gap:0.5rem;padding-top:0.5rem;border-top:1px solid var(--color-border);">' +
+                        '<button type="button" class="btn btn-secondary bank-add-cancel-btn">Cancel</button>' +
+                        '<button type="submit" class="btn btn-success"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>Save to Bank</button>' +
+                    '</div>' +
+                '</form>' +
             '</div>' +
         '</div>';
+    document.body.appendChild(container.firstChild); // Move overlay to body
 
-    document.getElementById('bankAddFormClose').addEventListener('click', function () { container.innerHTML = ''; });
-    document.getElementById('bankNewSaveBtn').addEventListener('click', async function () {
-        var question = document.getElementById('bankNewQuestion').value.trim();
+    var overlay = document.querySelector('.bank-add-form-overlay');
+    if (!overlay) return;
+    var close = function () { overlay.remove(); };
+    overlay.querySelector('.bank-add-close-btn').addEventListener('click', close);
+    overlay.querySelector('.bank-add-cancel-btn').addEventListener('click', close);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+
+    overlay.querySelector('#bankAddFormV2').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var question = overlay.querySelector('#bankNewQuestion').value.trim();
         var options = [
-            document.getElementById('bankNewOptA').value.trim(),
-            document.getElementById('bankNewOptB').value.trim(),
-            document.getElementById('bankNewOptC').value.trim(),
-            document.getElementById('bankNewOptD').value.trim()
+            overlay.querySelector('#bankNewOptA').value.trim(),
+            overlay.querySelector('#bankNewOptB').value.trim(),
+            overlay.querySelector('#bankNewOptC').value.trim(),
+            overlay.querySelector('#bankNewOptD').value.trim()
         ];
-        var correct = parseInt(document.querySelector('input[name="bankNewCorrect"]:checked').value);
-        var subject = document.getElementById('bankNewSubject').value.trim();
-        var difficulty = document.getElementById('bankNewDifficulty').value;
-
+        var correctAnswer = parseInt(overlay.querySelector('#bankNewCorrect').value);
+        var subject = overlay.querySelector('#bankNewSubject').value.trim();
+        var difficulty = overlay.querySelector('#bankNewDifficulty').value;
         if (!question || options.some(function (o) { return !o; })) {
-            document.getElementById('bankNewMsg').textContent = 'All fields required.';
-            document.getElementById('bankNewMsg').style.color = 'var(--color-danger)';
+            alert('Question text and all 4 options are required.');
             return;
         }
-        var r = await apiRequest('teacher_add_to_bank', {
-            question: question, options: options, correctAnswer: correct,
-            subject: subject, difficulty: difficulty
-        });
+        var r = await apiRequest('teacher_add_to_bank', { question: question, options: options, correctAnswer: correctAnswer, subject: subject, difficulty: difficulty });
         if (r.status === 'success') {
-            document.getElementById('bankNewMsg').textContent = '\u2713 Saved!';
-            document.getElementById('bankNewMsg').style.color = 'var(--color-success)';
-            container.innerHTML = '';
+            showToast('Question added to bank!', 'success');
+            close();
             refetchBank();
         } else {
-            document.getElementById('bankNewMsg').textContent = r.message || 'Failed.';
-            document.getElementById('bankNewMsg').style.color = 'var(--color-danger)';
+            alert(r.message || 'Failed to add question.');
         }
     });
 }
@@ -842,13 +896,20 @@ function openBankAddForm(callback) {
 
 async function loadTeacherGroups() {
     var container = document.getElementById('teacherGroupsContent');
+    if (!container) return;
     container.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--color-text-secondary);">Loading groups...</div>';
 
     var groupsRes = await apiRequest('teacher_list_groups', {}, 'GET');
+    // Also fetch all students + all exams for the dropdowns
+    var studentsRes = await apiRequest('teacher_students', {}, 'GET');
+    var examsRes = await apiRequest('teacher_analytics', {}, 'GET');
+
+    var allStudents = (studentsRes.status === 'success' && studentsRes.students) ? studentsRes.students : [];
+    var allExams = (examsRes.status === 'success' && examsRes.analytics) ? examsRes.analytics : [];
 
     container.innerHTML =
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">' +
-            '<h3 style="font-size:1.1rem;font-weight:700;">Class Groups</h3>' +
+            '<h3 style="font-size:1.1rem;font-weight:700;margin:0;">Class Groups</h3>' +
             '<button id="createGroupBtn" class="btn btn-primary btn-small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Create Group</button>' +
         '</div>' +
         '<div id="groupListContainer"></div>';
@@ -877,59 +938,89 @@ async function loadTeacherGroups() {
             var name = input.value.trim();
             if (!name) { alert('Group name is required.'); return; }
             var r = await apiRequest('teacher_create_group', { name: name });
-            if (r.status === 'success') { close(); loadTeacherGroups(); }
+            if (r.status === 'success') { close(); showToast('Group created!', 'success'); loadTeacherGroups(); }
             else { alert(r.message || 'Failed to create group.'); }
         });
     });
 
     var listContainer = document.getElementById('groupListContainer');
     if (groupsRes.status !== 'success' || !groupsRes.groups || groupsRes.groups.length === 0) {
-        listContainer.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--color-text-secondary);">No groups created yet.</div>';
+        listContainer.innerHTML =
+            '<div class="analytics-empty-state" style="padding:2.5rem 1.5rem;text-align:center;">' +
+                '<div style="font-size:1rem;font-weight:700;color:var(--color-text);margin-bottom:0.3rem;">No groups created yet</div>' +
+                '<div style="font-size:0.85rem;color:var(--color-text-secondary);">Create a group to organise students and restrict exam access.</div>' +
+            '</div>';
         return;
     }
 
     listContainer.innerHTML = '';
+    var groupsGrid = document.createElement('div');
+    groupsGrid.className = 'groups-grid';
+
     groupsRes.groups.forEach(function (group) {
         var card = document.createElement('div');
         card.className = 'group-card';
-        card.style.cssText = 'margin-bottom:0.85rem;padding:1rem;border-radius:0.65rem;background:var(--glass-bg);border:1px solid var(--color-border);';
 
+        // Build member chips with remove buttons
         var membersHtml = '';
         if (group.members && group.members.length > 0) {
             group.members.forEach(function (m) {
-                membersHtml += '<span class="group-member-chip" style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.55rem;border-radius:0.35rem;background:rgba(87,120,90,0.1);font-size:0.8rem;margin-right:0.3rem;margin-bottom:0.3rem;">' +
+                membersHtml += '<span class="group-member-chip">' +
                     escapeHtmlNotif(m.name) +
-                    '<button class="group-remove-member" data-group-id="' + group.id + '" data-student-id="' + m.id + '" style="background:none;border:none;cursor:pointer;color:var(--color-danger);font-size:0.85rem;padding:0;line-height:1;">\u00d7</button>' +
+                    '<button class="group-remove-member" data-group-id="' + group.id + '" data-student-id="' + m.id + '" title="Remove">\u00d7</button>' +
                 '</span>';
             });
         } else {
-            membersHtml = '<span style="color:var(--color-text-secondary);font-size:0.82rem;">No members yet</span>';
+            membersHtml = '<span style="color:var(--color-text-secondary);font-size:0.8rem;">No members yet</span>';
         }
 
-        // Group-exam assignments
+        // Build assigned exam chips
         var examsHtml = '';
-        if (group.assignedExams && group.assignedExams.length > 0) {
-            group.assignedExams.forEach(function (e) {
-                examsHtml += '<span class="exam-chip" style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.55rem;border-radius:0.35rem;background:rgba(52,152,219,0.1);font-size:0.8rem;margin-right:0.3rem;margin-bottom:0.3rem;">' +
-                    escapeHtmlNotif(e.title) +
-                '</span>';
+        if (group.exams && group.exams.length > 0) {
+            group.exams.forEach(function (e) {
+                examsHtml += '<span class="exam-chip">' + escapeHtmlNotif(e.title) + '</span>';
             });
         } else {
-            examsHtml = '<span style="color:var(--color-text-secondary);font-size:0.82rem;">No exams assigned</span>';
+            examsHtml = '<span style="color:var(--color-text-secondary);font-size:0.8rem;">No exams assigned</span>';
         }
+
+        // Build "Add member" dropdown from allStudents
+        var addMemberOpts = allStudents.filter(function (s) {
+            return !group.members || !group.members.find(function (m) { return m.id === s.id; });
+        }).map(function (s) {
+            return '<option value="' + s.id + '">' + escapeHtmlNotif(s.name) + ' (' + escapeHtmlNotif(s.email) + ')</option>';
+        }).join('');
+
+        // Build "Assign exam" dropdown from allExams
+        var assignExamOpts = allExams.filter(function (e) {
+            return !group.exams || !group.exams.find(function (ae) { return ae.id === e.id; });
+        }).map(function (e) {
+            return '<option value="' + e.id + '">' + escapeHtmlNotif(e.title) + '</option>';
+        }).join('');
 
         card.innerHTML =
-            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">' +
-                '<div style="flex:1;">' +
-                    '<div style="font-weight:700;font-size:0.95rem;margin-bottom:0.3rem;">' + escapeHtmlNotif(group.name) + '</div>' +
-                    '<div style="font-size:0.8rem;color:var(--color-text-secondary);margin-bottom:0.5rem;">\ud83d\udc65 Members: ' + membersHtml + '</div>' +
-                    '<div style="font-size:0.8rem;color:var(--color-text-secondary);">\ud83d\udccb Assigned Exams: ' + examsHtml + '</div>' +
-                '</div>' +
-                '<button class="btn btn-danger btn-small group-delete-btn" data-id="' + group.id + '" style="flex-shrink:0;">Delete</button>' +
+            '<div class="group-card-header">' +
+                '<span class="group-card-name">' + escapeHtmlNotif(group.name) + '</span>' +
+                '<span class="group-member-count">' + (group.members ? group.members.length : 0) + ' members</span>' +
             '</div>' +
-            '<div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap;">' +
-                '<button class="btn btn-secondary btn-small group-add-member" data-id="' + group.id + '" style="font-size:0.78rem;">+ Add Member</button>' +
-                '<button class="btn btn-secondary btn-small group-assign-exam" data-id="' + group.id + '" style="font-size:0.78rem;">+ Assign Exam</button>' +
+            '<div class="group-card-section">' +
+                '<div class="group-section-label">Members</div>' +
+                '<div class="group-member-chips">' + membersHtml + '</div>' +
+            '</div>' +
+            '<div class="group-card-section">' +
+                '<div class="group-section-label">Assigned Exams</div>' +
+                '<div class="group-exam-chips">' + examsHtml + '</div>' +
+            '</div>' +
+            '<div class="group-card-actions">' +
+                '<select class="form-input form-select group-add-select" data-group-id="' + group.id + '" style="flex:1;font-size:0.82rem;padding:0.35rem 0.5rem;">' +
+                    '<option value="">+ Add student...</option>' +
+                    addMemberOpts +
+                '</select>' +
+                '<select class="form-input form-select group-assign-select" data-group-id="' + group.id + '" style="flex:1;font-size:0.82rem;padding:0.35rem 0.5rem;">' +
+                    '<option value="">+ Assign exam...</option>' +
+                    assignExamOpts +
+                '</select>' +
+                '<button class="btn btn-danger btn-small group-delete-btn" data-id="' + group.id + '" title="Delete group">Delete</button>' +
             '</div>';
 
         // Delete group
@@ -942,40 +1033,46 @@ async function loadTeacherGroups() {
             });
         });
 
-        // Add member
-        card.querySelector('.group-add-member').addEventListener('click', function () {
-            var gid = parseInt(this.getAttribute('data-id'));
-            var studentId = prompt('Enter student ID to add:');
-            if (!studentId || isNaN(parseInt(studentId))) return;
-            apiRequest('teacher_group_member', { groupId: gid, studentId: parseInt(studentId), action2: 'add' }).then(function (r) {
+        // Add member via dropdown
+        var addSelect = card.querySelector('.group-add-select');
+        if (addSelect) {
+            addSelect.addEventListener('change', async function () {
+                var gid = parseInt(this.getAttribute('data-group-id'));
+                var sid = parseInt(this.value);
+                if (!sid) return;
+                var r = await apiRequest('teacher_group_member', { groupId: gid, studentId: sid, action2: 'add' });
                 if (r.status === 'success') { showToast('Member added.', 'success'); loadTeacherGroups(); }
                 else { alert(r.message || 'Failed to add member.'); }
             });
-        });
+        }
 
-        // Assign exam
-        card.querySelector('.group-assign-exam').addEventListener('click', function () {
-            var gid = parseInt(this.getAttribute('data-id'));
-            var examId = prompt('Enter exam ID to assign:');
-            if (!examId || isNaN(parseInt(examId))) return;
-            apiRequest('teacher_assign_exam_group', { groupId: gid, examId: parseInt(examId) }).then(function (r) {
+        // Assign exam via dropdown
+        var assignSelect = card.querySelector('.group-assign-select');
+        if (assignSelect) {
+            assignSelect.addEventListener('change', async function () {
+                var gid = parseInt(this.getAttribute('data-group-id'));
+                var eid = parseInt(this.value);
+                if (!eid) return;
+                var r = await apiRequest('teacher_assign_exam_group', { groupId: gid, examId: eid, assign: true });
                 if (r.status === 'success') { showToast('Exam assigned.', 'success'); loadTeacherGroups(); }
                 else { alert(r.message || 'Failed to assign exam.'); }
             });
-        });
+        }
 
-        // Remove member (via chip ×)
+        // Remove member via chip ×
         card.querySelectorAll('.group-remove-member').forEach(function (btn) {
             btn.addEventListener('click', async function () {
                 var gid = parseInt(this.getAttribute('data-group-id'));
                 var sid = parseInt(this.getAttribute('data-student-id'));
                 var r = await apiRequest('teacher_group_member', { groupId: gid, studentId: sid, action2: 'remove' });
-                if (r.status === 'success') { loadTeacherGroups(); }
+                if (r.status === 'success') { showToast('Member removed.', 'success'); loadTeacherGroups(); }
+                else { alert(r.message || 'Failed to remove member.'); }
             });
         });
 
-        listContainer.appendChild(card);
+        groupsGrid.appendChild(card);
     });
+    listContainer.appendChild(groupsGrid);
 }
 
 // =========================================================================
@@ -1066,4 +1163,115 @@ function debounce(fn, delay) {
         clearTimeout(timer);
         timer = setTimeout(function () { fn.apply(context, args); }, delay);
     };
+}
+
+// =========================================================================
+// ACCESS CODES — Display exam access codes for teacher reference
+// =========================================================================
+
+async function loadAccessCodes() {
+    var container = document.getElementById('teacherCodesContent');
+    if (!container) return;
+    container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);">Loading access codes…</div>';
+
+    var res = await apiRequest('teacher_analytics', {}, 'GET');
+    if (res.status !== 'success' || !res.analytics) {
+        container.innerHTML = '<div style="padding:1.5rem;color:var(--color-danger);">Failed to load exams.</div>';
+        return;
+    }
+
+    var exams = res.analytics;
+    if (exams.length === 0) {
+        container.innerHTML =
+            '<div class="analytics-empty-state">' +
+                '<div class="aems-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>' +
+                '<div class="aems-title">No exams created yet</div>' +
+                '<div class="aems-desc">Create an exam with an access code to see it listed here.</div>' +
+            '</div>';
+        return;
+    }
+
+    // Build the access codes list — use hasAccessCode from analytics response
+    container.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">' +
+            '<h3 style="font-size:1.1rem;font-weight:700;margin:0;">Exam Access Codes</h3>' +
+            '<span style="font-size:0.82rem;color:var(--color-text-secondary);">' + exams.length + ' exam' + (exams.length === 1 ? '' : 's') + '</span>' +
+        '</div>' +
+        '<div style="font-size:0.82rem;color:var(--color-text-secondary);margin-bottom:1rem;padding:0.6rem 0.85rem;background:rgba(26,80,139,0.06);border:1px solid rgba(26,80,139,0.15);border-radius:0.5rem;">' +
+            '<b>ℹ Note:</b> Access codes are shown in plain text for easy sharing with students. Click "Regenerate" to create a new code, or "Set Code" to add one.' +
+        '</div>' +
+        '<div id="accessCodesList"></div>';
+
+    var list = document.getElementById('accessCodesList');
+    list.innerHTML = '';
+    exams.forEach(function (exam) {
+        var card = document.createElement('div');
+        card.className = 'access-code-card';
+        var diffColor = { Easy: 'var(--color-success)', Medium: '#f59e0b', Hard: 'var(--color-danger)' }[exam.difficulty] || 'var(--color-primary)';
+        var hasCode = exam.hasAccessCode;
+        var accessCode = exam.accessCode || '';
+        var statusBadge = hasCode
+            ? '<span class="ac-status ac-status-set">🔒 Protected</span>'
+            : '<span class="ac-status ac-status-none">🔓 Open Access</span>';
+
+        // Show the actual code if available, otherwise show status text
+        var codeDisplay = '';
+        if (hasCode && accessCode) {
+            codeDisplay = '<div class="ac-code-display" id="ac-code-' + exam.id + '">' + escapeHtmlNotif(accessCode) + '</div>';
+        } else if (hasCode) {
+            codeDisplay = '<div class="ac-code-value has-code">✓ Code set (created before plain-text storage)</div>';
+        } else {
+            codeDisplay = '<div class="ac-code-value no-code">No access code — any student can start</div>';
+        }
+
+        // Copy button only if we have the actual code
+        var copyBtn = (hasCode && accessCode)
+            ? '<button class="btn btn-secondary btn-small ac-copy-btn" data-code="' + escapeHtmlNotif(accessCode) + '" title="Copy code"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'
+            : '';
+
+        card.innerHTML =
+            '<div class="ac-card-header">' +
+                '<div class="ac-card-title">' + escapeHtmlNotif(exam.title) + '</div>' +
+                '<div style="display:flex;gap:0.35rem;align-items:center;">' +
+                    statusBadge +
+                    '<span class="ac-card-chip" style="color:' + diffColor + ';background:' + diffColor + '18;">' + exam.difficulty + '</span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="ac-card-meta">' +
+                '<span class="ac-meta-item">' + escapeHtmlNotif(exam.subject || '—') + '</span>' +
+                '<span class="ac-meta-item">' + exam.totalQuestions + 'Q · ' + exam.duration + 'min</span>' +
+                '<span class="ac-meta-item">Max attempts: ' + (exam.maxAttempts || 1) + '</span>' +
+            '</div>' +
+            '<div class="ac-code-row">' +
+                '<div class="ac-code-label">Access Code:</div>' +
+                codeDisplay +
+                copyBtn +
+                '<button class="btn btn-primary btn-small ac-edit-btn" data-exam-id="' + exam.id + '" title="Edit exam to set/regenerate code">' +
+                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+                    (hasCode ? 'Regenerate' : 'Set Code') +
+                '</button>' +
+            '</div>';
+
+        list.appendChild(card);
+    });
+
+    // Wire copy buttons
+    list.querySelectorAll('.ac-copy-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var code = this.getAttribute('data-code');
+            navigator.clipboard.writeText(code).then(function () {
+                showToast('Code "' + code + '" copied to clipboard!', 'success');
+            }).catch(function () {
+                showToast('Copy failed. Code: ' + code, 'error');
+            });
+        });
+    });
+
+    // Wire edit/regenerate buttons — open the edit exam modal
+    list.querySelectorAll('.ac-edit-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var examId = parseInt(this.getAttribute('data-exam-id'));
+            openEditExam(examId);
+        });
+    });
 }

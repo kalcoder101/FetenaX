@@ -307,7 +307,6 @@ async function loadCalendar() {
     var month = now.getMonth() + 1;
 
     var res = await apiRequest('get_calendar_data', { year: year, month: month }, 'GET');
-
     if (res.status !== 'success') {
         container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);">Failed to load calendar.</div>';
         return;
@@ -325,97 +324,86 @@ async function loadCalendar() {
         eventsByDate[ev.date].push(ev);
     });
 
-    // Build the calendar widget using proper CSS classes
+    // Build modern calendar with card-like day cells
     var html = '<div class="calendar-widget">';
     // Navigation header
     html += '<div class="calendar-nav">';
-    html += '<button id="calPrev" class="btn btn-secondary btn-small" title="Previous month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>';
-    html += '<h3>' + monthNames[month - 1] + ' ' + year + '</h3>';
-    html += '<button id="calNext" class="btn btn-secondary btn-small" title="Next month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>';
+    html += '<button id="calPrev" class="cal-nav-btn" title="Previous month"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>';
+    html += '<h3 class="cal-month-title">' + monthNames[month - 1] + ' ' + year + '</h3>';
+    html += '<button id="calNext" class="cal-nav-btn" title="Next month"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>';
     html += '</div>';
 
-    // Calendar grid (table-based for alignment)
-    html += '<table class="calendar-grid"><thead><tr>';
+    // Weekday headers
+    html += '<div class="cal-weekdays">';
     ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function (d) {
-        html += '<th>' + d + '</th>';
+        html += '<div class="cal-weekday">' + d + '</div>';
     });
-    html += '</tr></thead><tbody><tr>';
+    html += '</div>';
 
-    // Empty cells before the first day
+    // Day cells grid
+    html += '<div class="cal-grid">';
     for (var i = 0; i < firstDay; i++) {
-        html += '<td></td>';
+        html += '<div class="cal-day-cell empty"></div>';
     }
-
-    // Day cells
     for (var day = 1; day <= daysInMonth; day++) {
         var dateStr = year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
         var evts = eventsByDate[dateStr] || [];
-        var hasEvent = evts.length > 0;
         var isToday = dateStr === todayStr;
-        var dayClass = 'calendar-day';
-        if (isToday) dayClass += ' is-today';
-        if (hasEvent) dayClass += ' has-event';
+        var hasEvent = evts.length > 0;
 
-        html += '<td><div class="' + dayClass + '">';
-        html += '<span class="calendar-day-num">' + day + '</span>';
+        html += '<div class="cal-day-card' + (isToday ? ' is-today' : '') + (hasEvent ? ' has-event' : '') + '">';
+        html += '<div class="cal-day-num">' + day + '</div>';
         if (hasEvent) {
-            // Show colored dots for each event type
-            html += '<div class="calendar-dots">';
+            html += '<div class="cal-event-dots">';
             evts.forEach(function (ev) {
                 var dotClass = ev.type === 'exam_open' ? 'dot-open' : ev.type === 'exam_close' ? 'dot-close' : 'dot-attempt';
-                html += '<span class="calendar-dot ' + dotClass + '" title="' + escapeHtmlNotif(ev.title) + '"></span>';
+                html += '<span class="cal-dot ' + dotClass + '"></span>';
             });
             html += '</div>';
+            // Show first event title
+            if (evts.length > 0) {
+                html += '<div class="cal-event-preview">' + escapeHtmlNotif(evts[0].title.substring(0, 20)) + (evts[0].title.length > 20 ? '…' : '') + '</div>';
+            }
         }
-        html += '</div></td>';
-
-        if ((firstDay + day) % 7 === 0 && day < daysInMonth) {
-            html += '</tr><tr>';
-        }
+        html += '</div>';
     }
-    html += '</tr></tbody></table>';
+    html += '</div>'; // close cal-grid
 
     // Legend
-    html += '<div class="calendar-legend">';
-    html += '<span class="legend-item"><span class="calendar-dot dot-open"></span> Exam opens</span>';
-    html += '<span class="legend-item"><span class="calendar-dot dot-close"></span> Exam closes</span>';
-    html += '<span class="legend-item"><span class="calendar-dot dot-attempt"></span> Your attempt</span>';
+    html += '<div class="cal-legend">';
+    html += '<span class="cal-legend-item"><span class="cal-dot dot-open"></span> Exam opens</span>';
+    html += '<span class="cal-legend-item"><span class="cal-dot dot-close"></span> Exam closes</span>';
+    html += '<span class="cal-legend-item"><span class="cal-dot dot-attempt"></span> Your attempt</span>';
     html += '</div>';
 
-    // Event list below calendar
+    // Upcoming events list (card-style)
     if (res.events && res.events.length > 0) {
-        html += '<div class="calendar-events">';
-        html += '<div class="calendar-events-title">Events this month</div>';
+        html += '<div class="cal-events-list">';
+        html += '<div class="cal-events-title">Events this month</div>';
         res.events.forEach(function (ev) {
-            var colorClass = ev.type === 'exam_open' ? 'ev-open' : ev.type === 'exam_close' ? 'ev-close' : 'ev-attempt';
+            var typeClass = ev.type === 'exam_open' ? 'ev-open' : ev.type === 'exam_close' ? 'ev-close' : 'ev-attempt';
             var icon = ev.type === 'exam_open' ? '📅' : ev.type === 'exam_close' ? '🔒' : '📝';
-            html += '<div class="calendar-event-item ' + colorClass + '">';
-            html += '<span class="ev-icon">' + icon + '</span>';
-            html += '<span class="ev-date">' + (ev.date || '').split('-').slice(1).join('/') + '</span>';
-            html += '<span class="ev-title">' + escapeHtmlNotif(ev.title) + '</span>';
+            html += '<div class="cal-event-row ' + typeClass + '">';
+            html += '<span class="cal-ev-icon">' + icon + '</span>';
+            html += '<span class="cal-ev-date">' + (ev.date || '').split('-').slice(1).join('/') + '</span>';
+            html += '<span class="cal-ev-title">' + escapeHtmlNotif(ev.title) + '</span>';
             html += '</div>';
         });
         html += '</div>';
     }
 
-    html += '</div>'; // close .calendar-widget
+    html += '</div>'; // close calendar-widget
     container.innerHTML = html;
 
-    // Wire navigation buttons
-    var prevBtn = document.getElementById('calPrev');
-    var nextBtn = document.getElementById('calNext');
-    if (prevBtn) {
-        prevBtn.addEventListener('click', function () {
-            calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
-            loadCalendar();
-        });
-    }
-    if (nextBtn) {
-        nextBtn.addEventListener('click', function () {
-            calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
-            loadCalendar();
-        });
-    }
+    // Wire navigation
+    document.getElementById('calPrev')?.addEventListener('click', function () {
+        calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+        loadCalendar();
+    });
+    document.getElementById('calNext')?.addEventListener('click', function () {
+        calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+        loadCalendar();
+    });
 }
 
 /**

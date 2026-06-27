@@ -55,10 +55,44 @@ async function startExam(examId, accessPassword) {
             promptExamPassword(examId);
             return;
         }
-        alert(res.message || 'Failed to load exam.');
+        // Check for "attempts exceeded" or scheduling errors — show a nice card
+        var msg = res.message || 'Failed to load exam.';
+        if (msg.indexOf('used all') !== -1 || msg.indexOf('not available') !== -1 || msg.indexOf('no longer') !== -1) {
+            showExamErrorCard(msg);
+        } else {
+            alert(msg);
+        }
         return;
     }
     await loadExamIntoInterface(res);
+}
+
+// Show a friendly error card for scheduling/attempts errors
+function showExamErrorCard(message) {
+    // Remove any existing error card
+    var existing = document.getElementById('examErrorCard');
+    if (existing) existing.remove();
+
+    var isAttempts = message.indexOf('used all') !== -1;
+    var icon = isAttempts ? '\uD83D\uDD12' : '\uD83D\uDCC5';
+    var title = isAttempts ? 'Attempts Limit Reached' : 'Exam Not Available';
+
+    var card = document.createElement('div');
+    card.id = 'examErrorCard';
+    card.className = 'attempts-exceeded-card';
+    card.innerHTML =
+        '<div class="attempts-exceeded-icon">' + icon + '</div>' +
+        '<div class="attempts-exceeded-title">' + title + '</div>' +
+        '<div class="attempts-exceeded-desc">' + message + '</div>' +
+        '<button class="btn btn-primary" onclick="this.parentElement.remove()">Back to Exams</button>';
+
+    // Insert it into the student-exams tab content
+    var examsList = document.getElementById('examsList');
+    if (examsList) {
+        examsList.insertBefore(card, examsList.firstChild);
+    } else {
+        document.body.appendChild(card);
+    }
 }
 
 function promptExamPassword(examId) {
@@ -641,12 +675,13 @@ function showPracticeSummary() {
 
 async function openPastAttempt(resultId) {
     var res = await apiRequest('get_attempt_review', { resultId: resultId }, 'GET');
-    if (res.status === 'error' || !res.attempt) {
+    // API returns { result: {...}, answerReview: [...], hasAnswerData: bool }
+    if (res.status === 'error' || !res.result) {
         alert(res.message || 'Failed to load attempt review.');
         return;
     }
 
-    var data = res.attempt;
+    var data = res.result;
     var pct = data.score;
     var circumference = 2 * Math.PI * 82;
     var fillOffset = circumference - (pct / 100) * circumference;
@@ -709,11 +744,11 @@ async function openPastAttempt(resultId) {
     if (subtitleEl) subtitleEl.textContent = 'Review of your previous attempt.';
     if (arCountEl) arCountEl.textContent = data.totalQuestions + ' questions';
 
-    // Answer review list
+    // Answer review list — use res.answerReview (not data.details.answerReview)
     var reviewList = document.getElementById('answerReviewList');
     reviewList.innerHTML = '';
-    if (data.details && data.details.answerReview) {
-        data.details.answerReview.forEach(function (item, idx) {
+    if (res.answerReview && res.answerReview.length > 0) {
+        res.answerReview.forEach(function (item, idx) {
             var isCorrect = item.isCorrect;
             var isUnanswered = item.selectedAnswer === null || item.selectedAnswer === undefined;
             var statusClass = isUnanswered ? 'ar-unanswered' : (isCorrect ? 'ar-correct' : 'ar-wrong');
@@ -727,7 +762,7 @@ async function openPastAttempt(resultId) {
                     '<div class="ar-header">' +
                         '<span class="ar-num">Q' + (idx + 1) + '</span>' +
                         '<span class="ar-status-icon">' + statusIcon + '</span>' +
-                        '<span class="ar-points">' + (item.isCorrect ? '+' : '') + item.points + ' pts</span>' +
+                        '<span class="ar-points">' + (item.isCorrect ? '+' : '') + (item.points || 1) + ' pts</span>' +
                     '</div>' +
                     '<div class="ar-question">' + escapeHtmlNotif(item.question) + '</div>' +
                     '<div class="ar-answers">' +
@@ -736,6 +771,8 @@ async function openPastAttempt(resultId) {
                     '</div>' +
                 '</div>';
         });
+    } else {
+        reviewList.innerHTML = '<div style="color:var(--color-text-secondary);text-align:center;padding:1.5rem;">No detailed answer data available for this attempt.</div>';
     }
 
     // Hide badges row

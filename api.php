@@ -3,6 +3,11 @@
 // Delegates to domain-specific handlers in the api/ directory.
 
 session_start();
+// Make sessions persist for 30 days so users don't get logged out constantly
+ini_set('session.cookie_lifetime', 30 * 86400); // 30 days
+ini_set('session.gc_maxlifetime', 30 * 86400); // 30 days
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Lax');
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');

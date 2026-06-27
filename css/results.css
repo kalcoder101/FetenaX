@@ -311,7 +311,7 @@
 /* Action buttons */
 .results-actions {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr;
     gap: 0.55rem;
     margin-top: 0.3rem;
 }
@@ -335,24 +335,64 @@
 
 /* === @media print — PDF Score Report === */
 @media print {
+    /* Hide everything in the body */
     body * { visibility: hidden; }
+    /* Show only the results page and its children */
     #resultsPage, #resultsPage * { visibility: visible; }
+    /* Position results page at top of page, full width */
     #resultsPage {
-        position: fixed !important;
-        inset: 0 !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: auto !important;
         background: white !important;
         backdrop-filter: none !important;
-        display: flex !important;
-        align-items: flex-start !important;
-        padding: 2rem !important;
+        display: block !important;
+        padding: 1rem !important;
+        z-index: 1 !important;
     }
-    .results-outer-scroll { max-height: none !important; overflow: visible !important; }
-    .results-container { box-shadow: none !important; border: none !important; width: 100% !important; padding: 0 !important; }
-    .answer-review-list { max-height: none !important; overflow: visible !important; }
-    #backToDashboard, #downloadPdfBtn, #practiceAgainBtn, .results-actions { display: none !important; }
+    /* Hide the sticky header (back button) */
+    #resultsPage .results-page-header { display: none !important; }
+    /* Make the scroll container visible and full height */
+    .results-outer-scroll {
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 0 !important;
+    }
+    /* Clean up the container for print */
+    .results-container {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+    }
+    /* Make answer review list full height for printing */
+    .answer-review-list {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    /* Hide all action buttons */
+    #backToDashboard, #downloadPdfBtn, #practiceAgainBtn, .results-actions {
+        display: none !important;
+    }
+    /* Print-friendly colors */
     .score-ring-fill { stroke: #333 !important; }
-    .pass-badge.badge-pass { border-color: #2d6a2d !important; color: #2d6a2d !important; background: #e8f5e9 !important; }
-    .pass-badge.badge-fail { border-color: #c0392b !important; color: #c0392b !important; background: #fdecea !important; }
+    .pass-badge.badge-pass {
+        border-color: #2d6a2d !important;
+        color: #2d6a2d !important;
+        background: #e8f5e9 !important;
+    }
+    .pass-badge.badge-fail {
+        border-color: #c0392b !important;
+        color: #c0392b !important;
+        background: #fdecea !important;
+    }
+    /* Page break settings */
+    .ar-card, .ar-item { page-break-inside: avoid; }
+    @page { margin: 1.5cm; }
 }
 
 /* --- Legacy fonts override (results page elements) --- */

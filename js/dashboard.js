@@ -37,6 +37,7 @@ function switchTab(role, tabId) {
         'teacher-attempts':     { title: 'Review Attempts',      subtitle: 'Inspect student exam papers and results' },
         'teacher-bank':         { title: 'Question Bank',        subtitle: 'Manage reusable questions for any exam' },
         'teacher-groups':       { title: 'Class Groups',         subtitle: 'Organise students into groups and assign exams' },
+        'teacher-codes':        { title: 'Access Codes',         subtitle: 'View and manage exam access codes' },
         'teacher-settings':     { title: 'Profile Settings',     subtitle: 'Update your name, avatar and password' }
     };
 
@@ -51,6 +52,7 @@ function switchTab(role, tabId) {
     if (tabId === 'student-settings')     loadSettingsPanel('student');
     if (tabId === 'teacher-bank')         loadTeacherBank();
     if (tabId === 'teacher-groups')       loadTeacherGroups();
+    if (tabId === 'teacher-codes')        loadAccessCodes();
     if (tabId === 'teacher-settings')     loadSettingsPanel('teacher');
 }
 

@@ -202,6 +202,9 @@ try {
         // Results table — store full answer data for past-attempt review
         "ALTER TABLE `results` ADD COLUMN `answerData` LONGTEXT NULL",
         "ALTER TABLE `results` ADD COLUMN `examTitleSnapshot` VARCHAR(255) NULL",
+
+        // Exams — store plain-text access code for teacher reference (alongside the hash)
+        "ALTER TABLE `exams` ADD COLUMN `accessCodePlain` VARCHAR(100) NULL",
     ];
     foreach ($alterStatements as $sql) {
         try { $pdo->exec($sql); } catch (PDOException $e) { /* column already exists — ignore */ }

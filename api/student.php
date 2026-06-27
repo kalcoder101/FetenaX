@@ -48,14 +48,15 @@ if ($action === 'get_exam') {
         respond('error', ['message' => 'This exam is no longer available. It closed on ' . date('M j, Y \a\t g:i A', strtotime($exam['availableUntil'])) . '.']);
     }
 
-    // Access password check
-    if (!empty($exam['accessPassword'])) {
+    // Access password check — skip for teachers (they can preview/edit without password)
+    if ($currentUser['role'] !== 'teacher' && !empty($exam['accessPassword'])) {
         if ($accessPassword === '' || !password_verify($accessPassword, $exam['accessPassword'])) {
             respond('error', ['message' => 'ACCESS_PASSWORD_REQUIRED']);
         }
     }
 
-    // Max attempts check
+    // Max attempts check — skip for teachers
+    if ($currentUser['role'] !== 'student') goto skipAttempts;
     $maxAtt = (int)($exam['maxAttempts'] ?? 1);
     if ($maxAtt > 0) {
         $attStmt = $pdo->prepare("SELECT COUNT(*) FROM `results` WHERE `examId` = ? AND `studentId` = ?");
@@ -65,6 +66,7 @@ if ($action === 'get_exam') {
             respond('error', ['message' => "You have used all {$maxAtt} allowed attempt(s) for this exam."]);
         }
     }
+    skipAttempts:
 
     // Fetch questions
     $stmt = $pdo->prepare("SELECT `id`, `question`, `option1`, `option2`, `option3`, `option4`, `points`, `questionType` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");

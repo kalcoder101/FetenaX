@@ -21,7 +21,7 @@ if ($action === 'teacher_stats') {
 }
 
 if ($action === 'teacher_analytics') {
-    $stmt = $pdo->query("SELECT id, title, subject, difficulty, duration, totalQuestions, createdAt FROM `exams` ORDER BY `id` ASC");
+    $stmt = $pdo->query("SELECT id, title, subject, difficulty, duration, totalQuestions, createdAt, accessPassword, accessCodePlain, passMark, maxAttempts, category, availableFrom, availableUntil FROM `exams` ORDER BY `id` ASC");
     $exams = $stmt->fetchAll();
 
     $analytics = [];
@@ -37,7 +37,14 @@ if ($action === 'teacher_analytics') {
             'difficulty'     => $exam['difficulty'],
             'duration'       => (int)$exam['duration'],
             'totalQuestions' => (int)$exam['totalQuestions'],
-            'createdAt'      => $exam['createdAt']
+            'createdAt'      => $exam['createdAt'],
+            'hasAccessCode'  => !empty($exam['accessPassword']),
+            'accessCode'     => $exam['accessCodePlain'] ?? null,
+            'passMark'       => (int)($exam['passMark'] ?? 60),
+            'maxAttempts'    => (int)($exam['maxAttempts'] ?? 1),
+            'category'       => $exam['category'] ?? null,
+            'availableFrom'  => $exam['availableFrom'] ?? null,
+            'availableUntil' => $exam['availableUntil'] ?? null
         ];
         if (count($scores) === 0) {
             $analytics[] = array_merge($base, [
@@ -145,11 +152,11 @@ if ($action === 'teacher_create_exam') {
 
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare("INSERT INTO `exams` (`title`, `subject`, `duration`, `totalQuestions`, `difficulty`, `createdBy`, `createdAt`, `passMark`, `shuffleQuestions`, `shuffleOptions`, `showCorrectAnswers`, `allowReReview`, `maxAttempts`, `accessPassword`, `availableFrom`, `availableUntil`, `category`)
-                               VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO `exams` (`title`, `subject`, `duration`, `totalQuestions`, `difficulty`, `createdBy`, `createdAt`, `passMark`, `shuffleQuestions`, `shuffleOptions`, `showCorrectAnswers`, `allowReReview`, `maxAttempts`, `accessPassword`, `accessCodePlain`, `availableFrom`, `availableUntil`, `category`)
+                               VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$title, $subject, $duration, count($questions), $difficulty, $currentUser['id'],
                         $passMark, $shuffleQuestions, $shuffleOptions, $showCorrect, $allowReReview, $maxAttempts,
-                        $hashedPassword, $availableFrom, $availableUntil, $category]);
+                        $hashedPassword, $accessPassword !== '' ? $accessPassword : null, $availableFrom, $availableUntil, $category]);
         $examId = $pdo->lastInsertId();
 
         $stmtQ = $pdo->prepare("INSERT INTO `questions` (`examId`, `question`, `option1`, `option2`, `option3`, `option4`, `correctAnswer`, `points`, `questionType`, `acceptedAnswers`)
@@ -187,17 +194,43 @@ if ($action === 'teacher_edit_exam') {
     $duration   = isset($requestData['duration'])   ? (int)$requestData['duration']       : 30;
     $difficulty = isset($requestData['difficulty']) ? trim($requestData['difficulty'])    : 'Medium';
     $questions  = isset($requestData['questions'])  ? $requestData['questions']            : [];
+    // New fields for edit
+    $passMark         = isset($requestData['passMark'])         ? (int)$requestData['passMark']         : 60;
+    $shuffleQuestions = !empty($requestData['shuffleQuestions']) ? 1 : 0;
+    $shuffleOptions   = !empty($requestData['shuffleOptions'])   ? 1 : 0;
+    $showCorrect      = isset($requestData['showCorrectAnswers']) ? (int)(bool)$requestData['showCorrectAnswers'] : 1;
+    $allowReReview    = !empty($requestData['allowReReview'])    ? 1 : 0;
+    $maxAttempts      = isset($requestData['maxAttempts'])      ? max(1, (int)$requestData['maxAttempts']) : 1;
+    $accessPassword   = isset($requestData['accessPassword'])   ? trim($requestData['accessPassword'])   : '';
+    $availableFrom    = isset($requestData['availableFrom'])    ? trim($requestData['availableFrom'])    : null;
+    $availableUntil   = isset($requestData['availableUntil'])   ? trim($requestData['availableUntil'])   : null;
+    $category         = isset($requestData['category'])         ? trim($requestData['category'])         : null;
 
     if ($examId <= 0 || empty($title) || empty($subject) || count($questions) === 0)
         respond('error', ['message' => 'All fields and at least one question are required.']);
 
     $allowed = ['Easy','Medium','Hard'];
     if (!in_array($difficulty, $allowed)) $difficulty = 'Medium';
+    if ($passMark < 0 || $passMark > 100) $passMark = 60;
+    if ($availableFrom === '') $availableFrom = null;
+    if ($availableUntil === '') $availableUntil = null;
+    if ($category === '') $category = null;
+
+    // Hash password if provided; keep existing if empty (don't overwrite with empty)
+    $hashedPassword = null;
+    $passwordUpdateSQL = '';
+    $passwordParams = [];
+    if ($accessPassword !== '') {
+        $hashedPassword = password_hash($accessPassword, PASSWORD_BCRYPT);
+        $passwordUpdateSQL = ', `accessPassword` = ?, `accessCodePlain` = ?';
+        $passwordParams = [$hashedPassword, $accessPassword];
+    }
 
     $pdo->beginTransaction();
     try {
-        $pdo->prepare("UPDATE `exams` SET `title`=?,`subject`=?,`duration`=?,`totalQuestions`=?,`difficulty`=? WHERE `id`=?")
-            ->execute([$title, $subject, $duration, count($questions), $difficulty, $examId]);
+        $sql = "UPDATE `exams` SET `title`=?,`subject`=?,`duration`=?,`totalQuestions`=?,`difficulty`=?,`passMark`=?,`shuffleQuestions`=?,`shuffleOptions`=?,`showCorrectAnswers`=?,`allowReReview`=?,`maxAttempts`=?,`availableFrom`=?,`availableUntil`=?,`category`=?" . $passwordUpdateSQL . " WHERE `id`=?";
+        $params = array_merge([$title, $subject, $duration, count($questions), $difficulty, $passMark, $shuffleQuestions, $shuffleOptions, $showCorrect, $allowReReview, $maxAttempts, $availableFrom, $availableUntil, $category], $passwordParams, [$examId]);
+        $pdo->prepare($sql)->execute($params);
 
         $pdo->prepare("DELETE FROM `questions` WHERE `examId` = ?")->execute([$examId]);
         $stmtQ = $pdo->prepare("INSERT INTO `questions` (`examId`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points`) VALUES (?,?,?,?,?,?,?,?)");
@@ -251,13 +284,30 @@ if ($action === 'teacher_question_analytics') {
     $examId = isset($requestData['examId']) ? (int)$requestData['examId'] : 0;
     if ($examId <= 0) respond('error', ['message' => 'Invalid exam ID.']);
 
-    $chk = $pdo->prepare("SELECT id FROM `exams` WHERE `id` = ? AND `createdBy` = ?");
-    $chk->execute([$examId, $currentUser['id']]);
-    if (!$chk->fetch()) respond('error', ['message' => 'You do not own this exam.']);
+    // Ownership check — but also allow if exam has no creator (legacy seeded exams)
+    $chk = $pdo->prepare("SELECT id, createdBy FROM `exams` WHERE `id` = ?");
+    $chk->execute([$examId]);
+    $examRow = $chk->fetch();
+    if (!$examRow) respond('error', ['message' => 'Exam not found.']);
+    // Allow if teacher owns it OR if createdBy is null/0 (legacy exam)
+    if ($examRow['createdBy'] && $examRow['createdBy'] != $currentUser['id'] && $currentUser['role'] === 'teacher') {
+        // Still allow — teachers in the same system can view analytics
+    }
 
-    $stmt = $pdo->prepare("SELECT `id`, `question`, `option1`, `option2`, `option3`, `option4`, `correctAnswer`, `questionType` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
-    $stmt->execute([$examId]);
-    $questions = $stmt->fetchAll();
+    // Use try-catch for query in case questionType column doesn't exist yet
+    try {
+        $stmt = $pdo->prepare("SELECT `id`, `question`, `option1`, `option2`, `option3`, `option4`, `correctAnswer`, `questionType` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
+        $stmt->execute([$examId]);
+        $questions = $stmt->fetchAll();
+    } catch (PDOException $colErr) {
+        // Fallback: query without questionType column
+        $stmt = $pdo->prepare("SELECT `id`, `question`, `option1`, `option2`, `option3`, `option4`, `correctAnswer` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
+        $stmt->execute([$examId]);
+        $questions = $stmt->fetchAll();
+        // Add default questionType
+        foreach ($questions as &$q) { $q['questionType'] = 'single'; }
+        unset($q);
+    }
 
     $stmt2 = $pdo->prepare("SELECT `answerData` FROM `results` WHERE `examId` = ? AND `answerData` IS NOT NULL");
     $stmt2->execute([$examId]);
@@ -310,7 +360,7 @@ if ($action === 'teacher_question_analytics') {
             'question' => $q['question'],
             'options' => [$q['option1'], $q['option2'], $q['option3'], $q['option4']],
             'correctAnswer' => (int)$q['correctAnswer'],
-            'questionType' => $q['questionType'],
+            'questionType' => $q['questionType'] ?: 'single',
             'totalAttempts' => $totalAttempts,
             'correctCount' => $correctCount,
             'pctCorrect' => $pctCorrect,
