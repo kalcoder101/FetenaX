@@ -532,9 +532,7 @@ function renderPracticeQuestion() {
         });
     });
 
-    var prevBtn = document.getElementById('prevBtn');
-    prevBtn.disabled = currentExamIndex === 0;
-
+    document.getElementById('prevBtn').disabled = currentExamIndex === 0;
     var nextBtn = document.getElementById('nextBtn');
     if (currentExamIndex === currentExam.questions.length - 1) {
         nextBtn.textContent = 'Finish Practice';
@@ -543,23 +541,7 @@ function renderPracticeQuestion() {
         nextBtn.textContent = 'Next';
         nextBtn.className   = 'btn btn-primary';
     }
-
-    // Override click handlers for practice
-    var newPrev = prevBtn.cloneNode(true);
-    prevBtn.parentNode.replaceChild(newPrev, prevBtn);
-    newPrev.addEventListener('click', function () {
-        if (currentExamIndex > 0) {
-            currentExamIndex--;
-            renderPracticeQuestion();
-            highlightActiveGridItem();
-        }
-    });
-
-    var newNext = document.getElementById('nextBtn');
-    // nextBtn already replaced by cloneNode above... wait, no.
-    // Actually let's handle this differently. In practice mode, the next/prev/flag buttons
-    // should use practice-specific handlers.
-    // We'll wire them in the calling function to avoid conflicts.
+    // Navigation handled by wireExamButtons() which checks currentExam._isPractice
 }
 
 function showPracticeFeedback(idx) {
