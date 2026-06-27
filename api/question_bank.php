@@ -141,3 +141,6 @@ if ($action === 'teacher_save_exam_to_bank') {
         'message' => "$added question(s) saved to bank" . ($skipped ? " ($skipped duplicate(s) skipped)." : ".")
     ]);
 }
+
+// Fallback: no action matched in this file
+respond('error', ['message' => 'Action not found: ' . $action]);

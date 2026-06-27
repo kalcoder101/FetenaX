@@ -80,3 +80,6 @@ if ($action === 'teacher_assign_exam_group') {
         respond('success', ['message' => 'Exam unassigned from group.']);
     }
 }
+
+// Fallback: no action matched in this file
+respond('error', ['message' => 'Action not found: ' . $action]);

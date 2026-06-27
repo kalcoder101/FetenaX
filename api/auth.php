@@ -88,3 +88,6 @@ if ($action === 'status') {
         respond('success', ['user' => null]);
     }
 }
+
+// Fallback: no action matched in this file
+respond('error', ['message' => 'Action not found: ' . $action]);

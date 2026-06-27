@@ -441,3 +441,6 @@ if ($action === 'get_attempt_review') {
         'hasAnswerData' => $answerData !== null
     ]);
 }
+
+// Fallback: no action matched in this file
+respond('error', ['message' => 'Action not found: ' . $action]);

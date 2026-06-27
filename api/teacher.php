@@ -608,3 +608,6 @@ if ($action === 'teacher_student_profile') {
         'badges' => $badges
     ]);
 }
+
+// Fallback: no action matched in this file
+respond('error', ['message' => 'Action not found: ' . $action]);

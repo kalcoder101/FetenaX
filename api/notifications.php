@@ -27,3 +27,6 @@ if ($action === 'mark_all_notifications_read') {
         ->execute([$currentUser['id']]);
     respond('success');
 }
+
+// Fallback: no action matched in this file
+respond('error', ['message' => 'Action not found: ' . $action]);

@@ -29,3 +29,6 @@ if ($action === 'update_profile') {
     $_SESSION['user']['avatar'] = $avatar;
     respond('success', ['user' => $_SESSION['user'], 'message' => 'Profile updated.']);
 }
+
+// Fallback: no action matched in this file
+respond('error', ['message' => 'Action not found: ' . $action]);
