@@ -130,7 +130,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 var res = await apiRequest('login', { username: username, password: password });
                 if (res.status === 'success') {
                     currentUser = res.user;
-                    if (res.csrf_token) csrfToken = res.csrf_token;
                     hideAuthModal();
                     showDashboardForRole(currentUser.role);
                 } else {
@@ -146,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 var res = await apiRequest('signup', { name: fullName, username: username, password: password, userId: userId });
                 if (res.status === 'success') {
                     currentUser = res.user;
-                    if (res.csrf_token) csrfToken = res.csrf_token;
                     hideAuthModal();
                     showDashboardForRole(currentUser.role);
                 } else {

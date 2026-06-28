@@ -1,49 +1,25 @@
 <?php
 // index.php - Main Entrypoint for FetenaX
-
-// ── Error Display Settings (#10) ─────────────────────────────
-ini_set('display_errors', '0');
-ini_set('log_errors', '1');
-error_reporting(E_ALL);
-
-// ──────────────────────────────────────────────────
-// HTTPS Enforcement
-// ──────────────────────────────────────────────────
-// Only enforce if not on localhost
-$serverName = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
-$isLocal = in_array(explode(':', $serverName)[0], ['127.0.0.1', '::1', 'localhost']);
-
-if (!$isLocal) {
-    // Secure session settings (set BEFORE session_start())
-    ini_set('session.cookie_secure', 1);
-    ini_set('session.cookie_httponly', 1);
-    ini_set('session.cookie_samesite', 'Lax');
-
-    // HSTS
-    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
-
-    // Redirect HTTP → HTTPS
-    if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') {
-        $httpsUrl = 'https://' . $serverName . $_SERVER['REQUEST_URI'];
-        header('Location: ' . $httpsUrl, true, 301);
-        exit;
-    }
+// Maintenance mode check
+$maintFlag = __DIR__ . '/.maintenance';
+if (file_exists($maintFlag)) {
+    $maintData = json_decode(file_get_contents($maintFlag), true);
+    http_response_code(503);
+    header('Retry-After: 300');
+    die('<!DOCTYPE html><html><head><title>Maintenance</title><style>body{font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f7f8f5;color:#23272f;}div{text-align:center;max-width:400px;padding:2rem;}h1{color:#57785a;}p{color:#6b7280;}</style></head><body><div><h1>🔧 Under Maintenance</h1><p>' . htmlspecialchars($maintData['message'] ?? 'FetenaX is under maintenance. Please check back soon.') . '</p></div></body></html>');
 }
-
-session_start();
-
-// ──────────────────────────────────────────────────
-// Security Headers
-// ──────────────────────────────────────────────────
+// Start session only if not already started (api.php may have started it)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // Strong cache-busting headers — prevent browser from caching old CSS/JS
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: 0');
+// Security headers
 header('X-Content-Type-Options: nosniff');
-header('X-Frame-Options: DENY');
-header('X-XSS-Protection: 1; mode=block');
+header('X-Frame-Options: SAMEORIGIN');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline';");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,15 +28,17 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FetenaX – Your Exam, Your Vibe</title>
-    <link rel="stylesheet" href="css/theme.css?v=26">
-    <link rel="stylesheet" href="css/components.css?v=26">
-    <link rel="stylesheet" href="css/layout.css?v=26">
-    <link rel="stylesheet" href="css/auth.css?v=26">
-    <link rel="stylesheet" href="css/student.css?v=26">
-    <link rel="stylesheet" href="css/teacher.css?v=26">
-    <link rel="stylesheet" href="css/exam-interface.css?v=26">
-    <link rel="stylesheet" href="css/results.css?v=26">
-    <link rel="stylesheet" href="css/exam-creation.css?v=26">
+    <link rel="icon" type="image/png" href="Img/fetenAX.png">
+    <link rel="apple-touch-icon" href="Img/fetenAX.png">
+    <link rel="stylesheet" href="css/theme.css?v=31">
+    <link rel="stylesheet" href="css/components.css?v=31">
+    <link rel="stylesheet" href="css/layout.css?v=31">
+    <link rel="stylesheet" href="css/auth.css?v=31">
+    <link rel="stylesheet" href="css/student.css?v=31">
+    <link rel="stylesheet" href="css/teacher.css?v=31">
+    <link rel="stylesheet" href="css/exam-interface.css?v=31">
+    <link rel="stylesheet" href="css/results.css?v=31">
+    <link rel="stylesheet" href="css/exam-creation.css?v=31">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
@@ -996,86 +974,92 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
     </div>
 
     <!-- ============================================================
-         LOGIN / SIGNUP — Full-page split-screen layout
-         Brand panel on left, form on right. Centered, premium look.
+         LOGIN / SIGNUP — Full page, cream/light theme
          ============================================================ -->
     <div id="authModal" class="auth-fullpage">
-        <!-- LEFT: Brand / hero panel -->
-        <aside class="auth-brand-panel">
-            <div class="auth-brand-inner">
+        <!-- LEFT: Brand panel -->
+        <aside class="auth-brand-side">
+            <div class="auth-brand-content">
                 <img src="Img/fetenAX.png" alt="FetenaX" class="auth-brand-logo">
-                <h1 class="auth-brand-title">FetenaX</h1>
-                <p class="auth-brand-tagline">Your Exam, Your Vibe</p>
-                <p class="auth-brand-desc">
-                    Next-gen exam platform for students and teachers.
-                    Take timed exams, get instant scores, track your progress,
-                    and earn badges.
-                </p>
-                <ul class="auth-brand-features">
-                    <li><span class="abf-check">✓</span> Instant scoring &amp; answer review</li>
-                    <li><span class="abf-check">✓</span> Question bank &amp; practice mode</li>
-                    <li><span class="abf-check">✓</span> Real-time analytics &amp; leaderboards</li>
-                    <li><span class="abf-check">✓</span> Badges &amp; achievements</li>
-                </ul>
+                <h1 class="auth-brand-name">FetenaX</h1>
+                <div class="auth-brand-features">
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        </div>
+                        <div>
+                            <div class="auth-feature-title">Smart Exam System</div>
+                            <div class="auth-feature-desc">Timed exams, instant scoring, and full answer review</div>
+                        </div>
+                    </div>
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        </div>
+                        <div>
+                            <div class="auth-feature-title">Real-time Analytics</div>
+                            <div class="auth-feature-desc">Track performance with detailed stats and leaderboards</div>
+                        </div>
+                    </div>
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                        </div>
+                        <div>
+                            <div class="auth-feature-title">Badges &amp; Achievements</div>
+                            <div class="auth-feature-desc">Earn rewards for milestones, streaks, and perfect scores</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="auth-brand-footer">
                 Developed by <a href="https://github.com/kalcoder101" target="_blank" rel="noopener">kalcoder101</a>
             </div>
         </aside>
 
-        <!-- RIGHT: Form panel -->
-        <main class="auth-form-panel">
-            <div class="auth-form-container">
-                <!-- Mode tabs (Login / Sign Up) -->
+        <!-- RIGHT: Form panel — full page, no floating card -->
+        <main class="auth-form-side">
+            <div class="auth-form-inner">
                 <div class="auth-mode-tabs">
                     <button type="button" class="auth-mode-tab active" data-mode="login" id="authTabLogin">Login</button>
                     <button type="button" class="auth-mode-tab" data-mode="signup" id="authTabSignup">Sign Up</button>
                 </div>
 
-                <h2 id="authTitle" class="auth-form-title">Welcome back</h2>
-                <p id="authSubtitle" class="auth-form-subtitle">Sign in to your account to continue</p>
-
-                <!-- Demo credentials hint -->
-                <div class="auth-demo-hint" id="authDemoHint">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    <span>Demo: <b>teacher@demo.com</b> / <b>password123</b></span>
-                </div>
+                <h2 id="authTitle" class="auth-form-title">Get started</h2>
+                <p id="authSubtitle" class="auth-form-subtitle">Welcome to FetenaX — Sign in to your account</p>
 
                 <form id="authForm" class="auth-form" autocomplete="on">
-                    <!-- Signup-only fields (hidden in login mode) -->
                     <div id="signupFields" class="auth-signup-fields hidden">
-                        <div class="form-group">
+                        <div class="auth-field-group">
                             <label for="signupFullName">Full Name</label>
-                            <input type="text" id="signupFullName" class="form-input" autocomplete="name" placeholder="e.g. John Doe">
+                            <input type="text" id="signupFullName" class="auth-input" autocomplete="name" placeholder="ex. John Doe">
                         </div>
-                        <div class="form-group">
+                        <div class="auth-field-group">
                             <label for="signupUserId">Student ID</label>
-                            <input type="text" id="signupUserId" class="form-input" autocomplete="off" placeholder="e.g. 1234">
+                            <input type="text" id="signupUserId" class="auth-input" autocomplete="off" placeholder="ex. 1234">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="authUsername">Username or ID</label>
-                        <input type="text" id="authUsername" class="form-input" required autocomplete="username" placeholder="Enter username, email, or ID">
+                    <div class="auth-field-group">
+                        <label for="authUsername">Username</label>
+                        <input type="text" id="authUsername" class="auth-input" required autocomplete="username" placeholder="ex. john@school.com">
                     </div>
 
-                    <div class="form-group auth-password-group">
+                    <div class="auth-field-group auth-password-field">
                         <label for="authPassword">Password</label>
-                        <input type="password" id="authPassword" class="form-input" required autocomplete="current-password" placeholder="Enter your password">
-                        <button type="button" id="toggleAuthPassword" class="auth-password-toggle" title="Show/hide password">
+                        <input type="password" id="authPassword" class="auth-input" required autocomplete="current-password" placeholder="••••••••">
+                        <button type="button" id="toggleAuthPassword" class="auth-pw-toggle" title="Show/hide password">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" id="eyeIcon">
                                 <path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"></path>
                             </svg>
                         </button>
                     </div>
 
-                    <button type="submit" class="btn btn-primary auth-submit-btn" id="authSubmitBtn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="margin-right:6px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                        <span id="authSubmitText">Sign In</span>
+                    <button type="submit" class="auth-submit-btn" id="authSubmitBtn">
+                        <span id="authSubmitText">Login</span>
                     </button>
                 </form>
 
-                <!-- Hidden switch button kept for JS compat; tabs above do the real switching -->
                 <button type="button" class="hidden" id="switchAuthMode"></button>
             </div>
         </main>
@@ -1328,13 +1312,13 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
         </div>
     </div>
 
-    <script src="js/core.js?v=26"></script>
-    <script src="js/auth.js?v=26"></script>
-    <script src="js/dashboard.js?v=26"></script>
-    <script src="js/student.js?v=26"></script>
-    <script src="js/teacher.js?v=26"></script>
-    <script src="js/exam.js?v=26"></script>
-    <script src="js/exam-creation.js?v=26"></script>
-    <script src="js/app.js?v=26"></script>
+    <script src="js/core.js?v=31"></script>
+    <script src="js/auth.js?v=31"></script>
+    <script src="js/dashboard.js?v=31"></script>
+    <script src="js/student.js?v=31"></script>
+    <script src="js/teacher.js?v=31"></script>
+    <script src="js/exam.js?v=31"></script>
+    <script src="js/exam-creation.js?v=31"></script>
+    <script src="js/app.js?v=31"></script>
 </body>
 </html>

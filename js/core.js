@@ -8,9 +8,6 @@
 /** @var {object|null} Current logged-in user */
 var currentUser = null;
 
-/** @var {string|null} CSRF token for state-changing requests */
-var csrfToken = null;
-
 /** @var {boolean} Whether auth form is in login (true) or signup (false) mode */
 var isLoginMode = true;
 
@@ -82,24 +79,31 @@ async function apiRequest(action, data, method) {
     var options = { method: method, headers: {} };
 
     if (method === 'POST') {
-        // Auto-include CSRF token for all POST requests
-        var payload = Object.assign({ action: action }, data);
-        if (csrfToken) {
-            payload.csrf_token = csrfToken;
-        }
         options.headers['Content-Type'] = 'application/json';
-        options.body = JSON.stringify(payload);
+        options.body = JSON.stringify(Object.assign({ action: action }, data));
     } else {
         var params = new URLSearchParams(Object.assign({ action: action }, data)).toString();
-        return fetch(url + '?' + params).then(function (res) { return res.json(); });
+        url = url + '?' + params;
     }
 
     try {
         var response = await fetch(url, options);
-        return await response.json();
+        // Check if response is OK (200-299)
+        if (!response.ok) {
+            console.error('API returned HTTP', response.status);
+            return { status: 'error', message: 'Server error (HTTP ' + response.status + '). Please try again.' };
+        }
+        // Try to parse as JSON
+        var text = await response.text();
+        try {
+            return JSON.parse(text);
+        } catch (parseErr) {
+            console.error('API returned non-JSON:', text.substring(0, 200));
+            return { status: 'error', message: 'Server returned an invalid response. Please try again.' };
+        }
     } catch (error) {
         console.error('API request failed:', error);
-        return { status: 'error', message: 'Network error. Please try again.' };
+        return { status: 'error', message: 'Network error. Please check your connection and try again.' };
     }
 }
 

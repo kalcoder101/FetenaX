@@ -2,58 +2,33 @@
 // api.php - Lightweight router for FetenaX API
 // Delegates to domain-specific handlers in the api/ directory.
 
-// ──────────────────────────────────────────────────
-// HTTPS Enforcement
-// ──────────────────────────────────────────────────
-// Only enforce if not on localhost
-$serverName = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
-$isLocal = in_array(explode(':', $serverName)[0], ['127.0.0.1', '::1', 'localhost']);
-
-if (!$isLocal) {
-    // Secure cookie: only sent over HTTPS (set BEFORE session_start())
-    ini_set('session.cookie_secure', 1);
-    ini_set('session.cookie_httponly', 1);
-    ini_set('session.cookie_samesite', 'Lax');
-    ini_set('session.cookie_lifetime', 30 * 86400);
-    ini_set('session.gc_maxlifetime', 30 * 86400);
-
-    // HSTS — tell browsers to always use HTTPS
-    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
-
-    // For GET requests only, redirect HTTP → HTTPS
-    // POST/API requests over HTTP will fail naturally (secure cookie won't be sent)
-    if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $httpsUrl = 'https://' . $serverName . $_SERVER['REQUEST_URI'];
-            header('Location: ' . $httpsUrl, true, 301);
-            exit;
-        }
-        // For POST requests: return an error instead of silently dropping data
-        header('Content-Type: application/json');
-        echo json_encode(['status' => 'error', 'message' => 'HTTPS is required. Please use https://' . $serverName . '.']);
-        exit;
-    }
-} else {
-    // Local dev: standard session settings
-    ini_set('session.cookie_lifetime', 30 * 86400);
-    ini_set('session.gc_maxlifetime', 30 * 86400);
-    ini_set('session.cookie_httponly', 1);
-    ini_set('session.cookie_samesite', 'Lax');
+// Maintenance mode check
+$maintFlag = __DIR__ . '/.maintenance';
+if (file_exists($maintFlag)) {
+    header('HTTP/1.1 503 Service Unavailable');
+    header('Retry-After: 300');
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'error', 'message' => 'System under maintenance. Please try again later.']);
+    exit;
 }
 
-session_start();
-
-// ──────────────────────────────────────────────────
-// Security Headers
-// ──────────────────────────────────────────────────
+// Start session only if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    // Make sessions persist for 30 days so users don't get logged out constantly
+    @ini_set('session.cookie_lifetime', 30 * 86400); // 30 days
+    @ini_set('session.gc_maxlifetime', 30 * 86400); // 30 days
+    @ini_set('session.cookie_httponly', 1);
+    @ini_set('session.cookie_samesite', 'Lax');
+    session_start();
+}
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: 0');
 header('X-Content-Type-Options: nosniff');
-header('X-Frame-Options: DENY');
-header('Referrer-Policy: strict-origin-when-cross-origin');
+header('X-Frame-Options: SAMEORIGIN');
 
+// Load DB connection
 require_once 'db.php';
 
 // Parse request data (JSON body or standard POST/GET)
@@ -82,8 +57,16 @@ function respond($status, $data = []) {
 
 // ──────────────────────────────────────────────────
 // Auth actions — no session required
+// Block signup in production if ALLOW_SIGNUP is false
 // ──────────────────────────────────────────────────
+if ($action === 'signup' && getenv('ALLOW_SIGNUP') === 'false') {
+    respond('error', ['message' => 'Public signup is disabled. Please contact your teacher for an account.']);
+}
 if (in_array($action, ['login', 'signup', 'logout', 'status'])) {
+    // Pass signup availability to the status endpoint
+    if ($action === 'status') {
+        $GLOBALS['allowSignup'] = getenv('ALLOW_SIGNUP') !== 'false';
+    }
     require __DIR__ . '/api/auth.php';
     exit;
 }
@@ -95,50 +78,6 @@ if (!isset($_SESSION['user'])) {
     respond('error', ['message' => 'Unauthorized. Please log in.']);
 }
 $currentUser = $_SESSION['user'];
-
-// ──────────────────────────────────────────────────
-// CSRF Protection — validate token for state-changing POST actions
-// Skipped for GET requests and the auth actions already handled above.
-// ──────────────────────────────────────────────────
-$csrfRequiredActions = [
-    // Student
-    'save_answer', 'toggle_flag', 'submit_exam',
-    // Profile
-    'update_profile',
-    // Notifications
-    'mark_notification_read', 'mark_all_notifications_read',
-    // Question Bank
-    'teacher_add_to_bank', 'teacher_delete_from_bank',
-    'teacher_import_from_bank', 'teacher_save_exam_to_bank',
-    // Groups
-    'teacher_create_group', 'teacher_delete_group',
-    'teacher_group_member', 'teacher_assign_exam_group',
-    // Teacher (these are caught by the catch-all below, but listed explicitly for clarity)
-    'teacher_create_exam', 'teacher_edit_exam', 'teacher_delete_exam',
-    'teacher_reset_password', 'teacher_remove_student',
-    'teacher_bulk_import', 'teacher_bulk_import_exam',
-    'teacher_save_template', 'teacher_delete_template',
-];
-
-// Also require CSRF for any teacher_* action via POST that isn't explicitly read-only
-$readOnlyTeacherActions = [
-    'teacher_stats', 'teacher_analytics', 'teacher_attempts',
-    'teacher_students', 'teacher_preview_exam', 'teacher_question_analytics',
-    'teacher_export_csv', 'teacher_list_templates', 'teacher_student_profile',
-    'teacher_get_bank', 'teacher_list_groups'
-];
-
-$isPostMethod = ($_SERVER['REQUEST_METHOD'] === 'POST');
-$needsCsrf = in_array($action, $csrfRequiredActions, true)
-          || ($isPostMethod && strpos($action, 'teacher_') === 0 && !in_array($action, $readOnlyTeacherActions, true));
-
-if ($needsCsrf) {
-    $submittedToken = isset($requestData['csrf_token']) ? $requestData['csrf_token'] : '';
-    $sessionToken   = isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '';
-    if ($submittedToken === '' || $sessionToken === '' || !hash_equals($sessionToken, $submittedToken)) {
-        respond('error', ['message' => 'Invalid or missing CSRF token. Please refresh and try again.']);
-    }
-}
 
 // Load shared helpers (badge constants, check_badges, Math_round_or_ceil, etc.)
 require __DIR__ . '/api/init.php';

@@ -1,31 +1,75 @@
-# =============================================================================
-# FetenaX – Apache .htaccess
-# Drop this file in the project root. Requires mod_rewrite and mod_headers.
-# =============================================================================
+# FetenaX .htaccess — InfinityFree / Apache configuration
 
+# Disable directory listing (security)
+Options -Indexes
+
+# Default charset
+AddDefaultCharset UTF-8
+
+# Enable URL rewriting
 <IfModule mod_rewrite.c>
     RewriteEngine On
-
-    # ── HTTP → HTTPS redirect ──────────────────────────────────────────
-    RewriteCond %{HTTPS} off
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
-
-    # ── Block access to hidden files/directories ───────────────────────
-    RewriteRule "(^|/)\.(?!well-known)" - [F]
 </IfModule>
 
-<IfModule mod_headers.c>
-    # ── Security headers ───────────────────────────────────────────────
-    Header always set X-Content-Type-Options    nosniff
-    Header always set X-Frame-Options           DENY
-    Header always set Referrer-Policy           "strict-origin-when-cross-origin"
-    Header always set X-XSS-Protection          "1; mode=block"
-</IfModule>
-
-# ── Block direct access to .env ────────────────────────────────────────
-<Files ".env">
+# CRITICAL: Allow access to index.php and api.php — these are the ONLY entry points
+# Do NOT block api.php — it's the API endpoint the frontend calls
+<FilesMatch "\.(sql|csv|md|env|log|ini)$">
     Require all denied
+</FilesMatch>
+
+# Block hidden files except .htaccess
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+<Files ".htaccess">
+    Require all granted
 </Files>
 
-# ── Deny directory listing ─────────────────────────────────────────────
-Options -Indexes
+# Gzip compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 day"
+    ExpiresByType application/javascript "access plus 1 day"
+    ExpiresByType image/png "access plus 7 days"
+    ExpiresByType image/jpeg "access plus 7 days"
+    ExpiresByType image/gif "access plus 7 days"
+    ExpiresByType image/svg+xml "access plus 7 days"
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# PHP settings
+<IfModule mod_php7.c>
+    php_value display_errors Off
+    php_value log_errors On
+    php_value max_execution_time 120
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value session.cookie_httponly 1
+    php_value session.cookie_samesite Lax
+    php_value session.gc_maxlifetime 2592000
+</IfModule>
+<IfModule mod_php.c>
+    php_value display_errors Off
+    php_value log_errors On
+    php_value max_execution_time 120
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value session.cookie_httponly 1
+    php_value session.cookie_samesite Lax
+    php_value session.gc_maxlifetime 2592000
+</IfModule>
+
+# Error pages
+ErrorDocument 403 /index.php
+ErrorDocument 404 /index.php

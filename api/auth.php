@@ -25,9 +25,7 @@ if ($action === 'login') {
             'avatar' => $user['avatar'],
             'userId' => $user['userId']
         ];
-        // Generate CSRF token
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-        respond('success', ['user' => $_SESSION['user'], 'csrf_token' => $_SESSION['csrf_token']]);
+        respond('success', ['user' => $_SESSION['user']]);
     } else {
         respond('error', ['message' => 'Invalid credentials. Please check your username/ID and password.']);
     }
@@ -74,10 +72,8 @@ if ($action === 'signup') {
         'avatar' => $avatar,
         'userId' => $userId
     ];
-    // Generate CSRF token
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
-    respond('success', ['user' => $_SESSION['user'], 'csrf_token' => $_SESSION['csrf_token']]);
+    respond('success', ['user' => $_SESSION['user']]);
 }
 
 if ($action === 'logout') {
@@ -86,14 +82,11 @@ if ($action === 'logout') {
 }
 
 if ($action === 'status') {
+    $allowSignup = isset($GLOBALS['allowSignup']) ? $GLOBALS['allowSignup'] : true;
     if (isset($_SESSION['user'])) {
-        // Ensure a CSRF token exists
-        if (empty($_SESSION['csrf_token'])) {
-            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-        }
-        respond('success', ['user' => $_SESSION['user'], 'csrf_token' => $_SESSION['csrf_token']]);
+        respond('success', ['user' => $_SESSION['user'], 'allowSignup' => $allowSignup]);
     } else {
-        respond('success', ['user' => null]);
+        respond('success', ['user' => null, 'allowSignup' => $allowSignup]);
     }
 }
 
