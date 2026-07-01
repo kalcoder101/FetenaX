@@ -150,6 +150,7 @@ $routeMap = [
     'study_schedule_add'              => 'study.php',
     'study_schedule_toggle'           => 'study.php',
     'study_schedule_delete'           => 'study.php',
+    'study_schedule_update'           => 'study.php',
 
     // v32 teacher analytics
     'study_class_analytics'           => 'study.php',

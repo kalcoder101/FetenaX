@@ -258,70 +258,11 @@ if ($action === 'study_save_session') {
             $examMap[(int)$qr['id']]    = (int)$qr['examId'];
         }
 
-        // SRS intervals per box (Leitner): 1d, 3d, 7d, 14d, 30d
-        $intervals = [1, 3, 7, 14, 30];
-
-        foreach ($questionIds as $qid) {
-            $qid = (int)$qid;
-            if (!isset($correctMap[$qid])) continue;
-            $chosen = isset($answers[$qid]) ? (int)$answers[$qid] : -1;
-            $correct = ($chosen === $correctMap[$qid]);
-
-            // Upsert SRS row
-            $existing = $pdo->prepare("SELECT `id`,`box`,`correctStreak`,`wrongCount` FROM `srs_queue` WHERE `studentId` = ? AND `questionId` = ?");
-            $existing->execute([$currentUser['id'], $qid]);
-            $row = $existing->fetch(PDO::FETCH_ASSOC);
-
-            if ($row) {
-                $box = (int)$row['box'];
-                $streak = (int)$row['correctStreak'];
-                $wrong  = (int)$row['wrongCount'];
-                if ($correct) {
-                    $box = min(5, $box + 1);
-                    $streak += 1;
-                } else {
-                    $box = max(1, $box - 1);
-                    $streak = 0;
-                    $wrong += 1;
-                }
-                $intervalDays = $intervals[$box - 1];
-                $next = date('Y-m-d H:i:s', strtotime("+$intervalDays day"));
-                $pdo->prepare("UPDATE `srs_queue` SET `box`=?, `correctStreak`=?, `wrongCount`=?, `lastAnsweredAt`=NOW(), `nextReviewAt`=? WHERE `id`=?")
-                    ->execute([$box, $streak, $wrong, $next, $row['id']]);
-            } else {
-                $box = $correct ? 2 : 1;
-                $intervalDays = $intervals[$box - 1];
-                $next = date('Y-m-d H:i:s', strtotime("+$intervalDays day"));
-                $pdo->prepare(
-                    "INSERT INTO `srs_queue` (`studentId`,`questionId`,`examId`,`subject`,`box`,`lastAnsweredAt`,`nextReviewAt`,`correctStreak`,`wrongCount`)
-                     VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?)"
-                )->execute([
-                    $currentUser['id'], $qid, $examMap[$qid] ?? 0, $subject,
-                    $box, $next,
-                    $correct ? 1 : 0, $correct ? 0 : 1
-                ]);
-            }
-        }
+        updateSrsQueue($pdo, $currentUser['id'], $questionIds, $answers, $correctMap, $examMap, $subject);
     }
 
-    // Update subject_mastery denormalized snapshot
-    if ($subject !== '') {
-        $sm = $pdo->prepare("SELECT `id`,`attempts`,`totalCorrect`,`totalQs` FROM `subject_mastery` WHERE `studentId`=? AND `subject`=?");
-        $sm->execute([$currentUser['id'], $subject]);
-        $row = $sm->fetch(PDO::FETCH_ASSOC);
-        if ($row) {
-            $newAtt = (int)$row['attempts'] + 1;
-            $newC   = (int)$row['totalCorrect'] + $correctQs;
-            $newT   = (int)$row['totalQs'] + $totalQs;
-            $avg = $newT > 0 ? (int)round($newC * 100 / $newT) : 0;
-            $pdo->prepare("UPDATE `subject_mastery` SET `attempts`=?, `totalCorrect`=?, `totalQs`=?, `avgScore`=?, `lastPracticedAt`=NOW() WHERE `id`=?")
-                ->execute([$newAtt, $newC, $newT, $avg, $row['id']]);
-        } else {
-            $avg = $totalQs > 0 ? (int)round($correctQs * 100 / $totalQs) : 0;
-            $pdo->prepare("INSERT INTO `subject_mastery` (`studentId`,`subject`,`attempts`,`totalCorrect`,`totalQs`,`avgScore`,`lastPracticedAt`) VALUES (?,?,?,?,?,?,NOW())")
-                ->execute([$currentUser['id'], $subject, 1, $correctQs, $totalQs, $avg]);
-        }
-    }
+    // Sync subject mastery snapshot
+    syncSubjectMastery($pdo, $currentUser['id']);
 
     respond('success', [
         'sessionId' => $sessionId,
@@ -420,6 +361,9 @@ if ($action === 'study_srs_stats') {
 // ============================================================
 if ($action === 'study_subject_mastery') {
     if ($currentUser['role'] !== 'student') respond('error', ['message' => 'Students only.']);
+    
+    syncSubjectMastery($pdo, $currentUser['id']);
+
     $stmt = $pdo->prepare(
         "SELECT `subject`, `attempts`, `totalCorrect`, `totalQs`, `avgScore`, `lastPracticedAt`
          FROM `subject_mastery` WHERE `studentId`=? ORDER BY `subject`"
@@ -514,6 +458,8 @@ if ($action === 'study_performance_history') {
 // ============================================================
 if ($action === 'study_weakness_report') {
     if ($currentUser['role'] !== 'student') respond('error', ['message' => 'Students only.']);
+
+    syncSubjectMastery($pdo, $currentUser['id']);
 
     $stmt = $pdo->prepare(
         "SELECT `subject`, `attempts`, `totalCorrect`, `totalQs`, `avgScore`, `lastPracticedAt`
@@ -889,6 +835,27 @@ if ($action === 'study_schedule_delete') {
     $pdo->prepare("DELETE FROM `study_schedule` WHERE `id` = ? AND `studentId` = ?")
         ->execute([$id, $currentUser['id']]);
     respond('success', ['message' => 'Slot deleted.']);
+}
+
+if ($action === 'study_schedule_update') {
+    if ($currentUser['role'] !== 'student') respond('error', ['message' => 'Students only.']);
+    $id         = isset($requestData['id']) ? (int)$requestData['id'] : 0;
+    $date       = isset($requestData['date']) ? trim($requestData['date']) : '';
+    $subject    = isset($requestData['subject']) ? trim($requestData['subject']) : '';
+    $topic      = isset($requestData['topic']) ? trim($requestData['topic']) : null;
+    $durationMin= isset($requestData['durationMin']) ? max(5, (int)$requestData['durationMin']) : 60;
+    $notes      = isset($requestData['notes']) ? trim($requestData['notes']) : null;
+
+    if ($id <= 0 || $date === '' || $subject === '') respond('error', ['message' => 'ID, Date and subject are required.']);
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) respond('error', ['message' => 'Invalid date format.']);
+
+    $stmt = $pdo->prepare(
+        "UPDATE `study_schedule`
+         SET `date` = ?, `subject` = ?, `topic` = ?, `durationMin` = ?, `notes` = ?
+         WHERE `id` = ? AND `studentId` = ?"
+    );
+    $stmt->execute([$date, $subject, $topic, $durationMin, $notes, $id, $currentUser['id']]);
+    respond('success', ['message' => 'Study slot updated.']);
 }
 
 // ============================================================

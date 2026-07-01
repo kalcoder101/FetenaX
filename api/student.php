@@ -217,10 +217,11 @@ if ($action === 'submit_exam') {
 
     $score = $totalPoints > 0 ? Math_round_or_ceil(($earnedPoints / $totalPoints) * 100) : 0;
 
-    $stmtE = $pdo->prepare("SELECT `title` FROM `exams` WHERE `id` = ?");
+    $stmtE = $pdo->prepare("SELECT `title`, `subject` FROM `exams` WHERE `id` = ?");
     $stmtE->execute([$examId]);
     $examRow = $stmtE->fetch();
     $examTitle = $examRow ? $examRow['title'] : '';
+    $examSubject = $examRow ? $examRow['subject'] : '';
 
     $answerDataJson = json_encode([
         'answerReview' => $answerReview,
@@ -232,6 +233,22 @@ if ($action === 'submit_exam') {
     ]);
     $stmt = $pdo->prepare("INSERT INTO `results` (`examId`, `studentId`, `score`, `correctAnswers`, `totalQuestions`, `timeTaken`, `completedAt`, `answerData`, `examTitleSnapshot`) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?)");
     $stmt->execute([$examId, $currentUser['id'], $score, $correctCount, count($questions), $timeTaken, $answerDataJson, $examTitle]);
+
+    // Populate arguments for SRS queue updates
+    $questionIds = [];
+    $answers = [];
+    $correctMap = [];
+    $examMap = [];
+    foreach ($questions as $q) {
+        $qid = (int)$q['id'];
+        $questionIds[] = $qid;
+        $correctMap[$qid] = (int)$q['correctAnswer'];
+        $examMap[$qid] = (int)$examId;
+        $answers[$qid] = isset($progressAnswers[$qid]) ? (int)$progressAnswers[$qid] : -1;
+    }
+
+    updateSrsQueue($pdo, $currentUser['id'], $questionIds, $answers, $correctMap, $examMap, $examSubject);
+    syncSubjectMastery($pdo, $currentUser['id']);
 
     $stmt = $pdo->prepare("DELETE FROM `exam_progress` WHERE `studentId` = ? AND `examId` = ?");
     $stmt->execute([$currentUser['id'], $examId]);

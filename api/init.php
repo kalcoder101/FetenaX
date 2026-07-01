@@ -98,3 +98,132 @@ function notifyStudentsOfNewExam($pdo, $teacherId, $examId, $examTitle) {
         }
     } catch (Exception $e) { /* silent */ }
 }
+
+/**
+ * Update the SRS queue for a student based on a set of answered questions.
+ */
+function updateSrsQueue($pdo, $studentId, $questionIds, $answers, $correctMap, $examMap, $subject) {
+    if (empty($questionIds)) return;
+    $intervals = [1, 3, 7, 14, 30];
+
+    foreach ($questionIds as $qid) {
+        $qid = (int)$qid;
+        if (!isset($correctMap[$qid])) continue;
+        $chosen = isset($answers[$qid]) ? (int)$answers[$qid] : -1;
+        $correct = ($chosen === $correctMap[$qid]);
+
+        // Upsert SRS row
+        $existing = $pdo->prepare("SELECT `id`,`box`,`correctStreak`,`wrongCount` FROM `srs_queue` WHERE `studentId` = ? AND `questionId` = ?");
+        $existing->execute([$studentId, $qid]);
+        $row = $existing->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            $box = (int)$row['box'];
+            $streak = (int)$row['correctStreak'];
+            $wrong  = (int)$row['wrongCount'];
+            if ($correct) {
+                $box = min(5, $box + 1);
+                $streak += 1;
+            } else {
+                $box = max(1, $box - 1);
+                $streak = 0;
+                $wrong += 1;
+            }
+            $intervalDays = $intervals[$box - 1];
+            $next = date('Y-m-d H:i:s', strtotime("+$intervalDays day"));
+            $pdo->prepare("UPDATE `srs_queue` SET `box`=?, `correctStreak`=?, `wrongCount`=?, `lastAnsweredAt`=NOW(), `nextReviewAt`=? WHERE `id`=?")
+                ->execute([$box, $streak, $wrong, $next, $row['id']]);
+        } else {
+            $box = $correct ? 2 : 1;
+            $intervalDays = $intervals[$box - 1];
+            $next = date('Y-m-d H:i:s', strtotime("+$intervalDays day"));
+            $pdo->prepare(
+                "INSERT INTO `srs_queue` (`studentId`,`questionId`,`examId`,`subject`,`box`,`lastAnsweredAt`,`nextReviewAt`,`correctStreak`,`wrongCount`)
+                 VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?)"
+            )->execute([
+                $studentId, $qid, $examMap[$qid] ?? 0, $subject ?: 'Mixed',
+                $box, $next,
+                $correct ? 1 : 0, $correct ? 0 : 1
+            ]);
+        }
+    }
+}
+
+/**
+ * Synchronize the subject_mastery denormalized table for a student
+ * using both exam results and practice sessions.
+ */
+function syncSubjectMastery($pdo, $studentId) {
+    // 1. Get results from exams/results table
+    $stmt1 = $pdo->prepare("
+        SELECT e.`subject`, COUNT(r.`id`) AS attempts, SUM(r.`correctAnswers`) AS totalCorrect, SUM(r.`totalQuestions`) AS totalQs, MAX(r.`completedAt`) AS lastAt
+        FROM `results` r
+        JOIN `exams` e ON r.`examId` = e.`id`
+        WHERE r.`studentId` = ? AND e.`subject` IS NOT NULL AND e.`subject` <> ''
+        GROUP BY e.`subject`
+    ");
+    $stmt1->execute([$studentId]);
+    $resultsData = $stmt1->fetchAll(PDO::FETCH_ASSOC);
+
+    // 2. Get results from practice_sessions table
+    $stmt2 = $pdo->prepare("
+        SELECT `subject`, COUNT(`id`) AS attempts, SUM(`correctQs`) AS totalCorrect, SUM(`totalQs`) AS totalQs, MAX(`createdAt`) AS lastAt
+        FROM `practice_sessions`
+        WHERE `studentId` = ? AND `subject` IS NOT NULL AND `subject` <> ''
+        GROUP BY `subject`
+    ");
+    $stmt2->execute([$studentId]);
+    $practiceData = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+    // 3. Merge stats per subject
+    $merged = [];
+    foreach ($resultsData as $r) {
+        $subj = $r['subject'];
+        $merged[$subj] = [
+            'attempts' => (int)$r['attempts'],
+            'totalCorrect' => (int)$r['totalCorrect'],
+            'totalQs' => (int)$r['totalQs'],
+            'lastAt' => $r['lastAt']
+        ];
+    }
+    foreach ($practiceData as $p) {
+        $subj = $p['subject'];
+        if (!isset($merged[$subj])) {
+            $merged[$subj] = [
+                'attempts' => 0,
+                'totalCorrect' => 0,
+                'totalQs' => 0,
+                'lastAt' => null
+            ];
+        }
+        $merged[$subj]['attempts'] += (int)$p['attempts'];
+        $merged[$subj]['totalCorrect'] += (int)$p['totalCorrect'];
+        $merged[$subj]['totalQs'] += (int)$p['totalQs'];
+        if ($p['lastAt'] && (!$merged[$subj]['lastAt'] || $p['lastAt'] > $merged[$subj]['lastAt'])) {
+            $merged[$subj]['lastAt'] = $p['lastAt'];
+        }
+    }
+
+    // 4. Update the DB table subject_mastery
+    $pdo->prepare("DELETE FROM `subject_mastery` WHERE `studentId` = ?")->execute([$studentId]);
+    
+    $insert = $pdo->prepare("
+        INSERT INTO `subject_mastery` (`studentId`, `subject`, `attempts`, `totalCorrect`, `totalQs`, `avgScore`, `lastPracticedAt`)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+    foreach ($merged as $subj => $data) {
+        if ($data['totalQs'] > 0) {
+            $avgScore = (int)round($data['totalCorrect'] * 100 / $data['totalQs']);
+            $insert->execute([
+                $studentId,
+                $subj,
+                $data['attempts'],
+                $data['totalCorrect'],
+                $data['totalQs'],
+                $avgScore,
+                $data['lastAt']
+            ]);
+        }
+    }
+}
+

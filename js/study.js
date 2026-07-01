@@ -855,6 +855,7 @@ async function loadStudySchedule() {
 }
 
 function renderScheduleCalendar(container, subjects) {
+    window.scheduleCalendarContainer = container;
     var year = scheduleCurrentMonth.getFullYear();
     var month = scheduleCurrentMonth.getMonth(); // 0-11
     var monthStr = year + '-' + String(month + 1).padStart(2, '0');
@@ -921,10 +922,10 @@ function renderScheduleCalendar(container, subjects) {
     });
 
     // Now fetch the month's slots
-    fetchAndRenderMonth(monthStr);
+    fetchAndRenderMonth(monthStr, subjects);
 }
 
-async function fetchAndRenderMonth(monthStr) {
+async function fetchAndRenderMonth(monthStr, subjects) {
     var cal = document.getElementById('scheduleCalendar');
     if (!cal) return;
     cal.innerHTML = 'Loading…';
@@ -934,6 +935,7 @@ async function fetchAndRenderMonth(monthStr) {
         return;
     }
     var slots = res.schedule || [];
+    window.currentMonthScheduleSlots = slots;
     // Group by date
     var byDate = {};
     slots.forEach(function (s) { (byDate[s.date] = byDate[s.date] || []).push(s); });
@@ -971,29 +973,197 @@ async function fetchAndRenderMonth(monthStr) {
     cal.querySelectorAll('[data-slot-id]').forEach(function (el) {
         el.addEventListener('click', function () {
             var id = parseInt(this.getAttribute('data-slot-id'), 10);
-            showSlotActions(id, subjects);
+            openScheduleSlotModal(id, subjects);
         });
     });
 }
 
-function showSlotActions(slotId, subjects) {
-    var action = prompt('For this study slot:\n  1 = Mark complete/incomplete\n  2 = Delete\n\nEnter 1 or 2:', '1');
-    if (action === '1') {
-        apiRequest('study_schedule_toggle', { id: slotId }).then(function (r) {
+function openScheduleSlotModal(slotId, subjects) {
+    var modal = document.getElementById('studySlotModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'studySlotModal';
+        modal.className = 'modal';
+        modal.style.cssText = 'z-index:14000;';
+        modal.innerHTML =
+            '<div class="modal-content" style="max-width:550px;width:96vw;max-height:90vh;display:flex;flex-direction:column;">' +
+                '<div class="modal-header"><h3 id="ssmTitle">Study Slot Details</h3><button id="ssmClose" class="close-btn">&times;</button></div>' +
+                '<div id="ssmBody" style="flex:1;overflow:auto;padding:1.25rem;"></div>' +
+            '</div>';
+        document.body.appendChild(modal);
+        modal.addEventListener('click', function (e) { if (e.target === modal) modal.classList.add('hidden'); });
+        document.getElementById('ssmClose').addEventListener('click', function () { modal.classList.add('hidden'); });
+    }
+    
+    var body = document.getElementById('ssmBody');
+    modal.classList.remove('hidden');
+
+    function renderViewMode() {
+        var slot = (window.currentMonthScheduleSlots || []).find(function (s) { return s.id == slotId; });
+        if (!slot) {
+            body.innerHTML = '<div style="color:var(--color-danger);">Slot not found.</div>';
+            return;
+        }
+
+        var isCompleted = slot.isCompleted == 1;
+        var statusBadge = isCompleted 
+            ? '<span style="background:rgba(46,204,113,0.15);color:#2ecc71;padding:0.2rem 0.5rem;border-radius:0.25rem;font-weight:700;font-size:0.8rem;">Completed ✅</span>'
+            : '<span style="background:rgba(127,140,141,0.15);color:var(--color-text-secondary);padding:0.2rem 0.5rem;border-radius:0.25rem;font-weight:700;font-size:0.8rem;">Pending ⬜</span>';
+
+        body.innerHTML =
+            '<div style="display:flex;flex-direction:column;gap:0.9rem;">' +
+                '<div>' +
+                    '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.1rem;">Subject</label>' +
+                    '<div style="font-size:1.15rem;font-weight:800;color:var(--color-text);">' + escapeHtmlNotif(slot.subject) + '</div>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">' +
+                    '<div>' +
+                        '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.1rem;">Date</label>' +
+                        '<div style="font-weight:600;color:var(--color-text);">' + escapeHtmlNotif(slot.date) + '</div>' +
+                    '</div>' +
+                    '<div>' +
+                        '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.1rem;">Duration</label>' +
+                        '<div style="font-weight:600;color:var(--color-text);">' + slot.durationMin + ' minutes</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div>' +
+                    '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.1rem;">Topic</label>' +
+                    '<div style="font-weight:600;color:var(--color-text);">' + (slot.topic ? escapeHtmlNotif(slot.topic) : '<span style="color:var(--color-text-secondary);font-style:italic;">None</span>') + '</div>' +
+                '</div>' +
+                '<div>' +
+                    '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.1rem;">Status</label>' +
+                    '<div style="margin-top:0.2rem;">' + statusBadge + '</div>' +
+                '</div>' +
+                '<div>' +
+                    '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.2rem;">Notes</label>' +
+                    '<div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:0.4rem;padding:0.75rem;font-size:0.88rem;color:var(--color-text);white-space:pre-wrap;max-height:150px;overflow-y:auto;line-height:1.45;">' +
+                        (slot.notes ? escapeHtmlNotif(slot.notes) : '<span style="color:var(--color-text-secondary);font-style:italic;">No notes added.</span>') +
+                    '</div>' +
+                '</div>' +
+                '<hr style="border:0;border-top:1px solid var(--color-border);margin:0.5rem 0;">' +
+                '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">' +
+                    '<button id="ssmToggleBtn" class="btn btn-secondary btn-small">' + (isCompleted ? 'Mark Pending' : 'Mark Completed') + '</button>' +
+                    '<button id="ssmEditBtn" class="btn btn-primary btn-small">Edit</button>' +
+                    '<button id="ssmDeleteBtn" class="btn btn-danger btn-small">Delete</button>' +
+                '</div>' +
+            '</div>';
+
+        document.getElementById('ssmToggleBtn').addEventListener('click', async function () {
+            this.disabled = true;
+            var r = await apiRequest('study_schedule_toggle', { id: slotId });
             if (r.status === 'success') {
-                var monthStr = scheduleCurrentMonth.getFullYear() + '-' + String(scheduleCurrentMonth.getMonth() + 1).padStart(2, '0');
-                fetchAndRenderMonth(monthStr);
+                slot.isCompleted = 1 - slot.isCompleted;
+                if (window.scheduleCalendarContainer) {
+                    renderScheduleCalendar(window.scheduleCalendarContainer, subjects);
+                }
+                renderViewMode();
+            } else {
+                alert(r.message || 'Failed to toggle status.');
+                this.disabled = false;
             }
         });
-    } else if (action === '2') {
-        if (!confirm('Delete this study slot?')) return;
-        apiRequest('study_schedule_delete', { id: slotId }).then(function (r) {
+
+        document.getElementById('ssmEditBtn').addEventListener('click', renderEditMode);
+
+        document.getElementById('ssmDeleteBtn').addEventListener('click', async function () {
+            if (!confirm('Delete this study slot?')) return;
+            this.disabled = true;
+            var r = await apiRequest('study_schedule_delete', { id: slotId });
             if (r.status === 'success') {
-                var monthStr = scheduleCurrentMonth.getFullYear() + '-' + String(scheduleCurrentMonth.getMonth() + 1).padStart(2, '0');
-                fetchAndRenderMonth(monthStr);
+                modal.classList.add('hidden');
+                if (window.scheduleCalendarContainer) {
+                    renderScheduleCalendar(window.scheduleCalendarContainer, subjects);
+                }
+            } else {
+                alert(r.message || 'Failed to delete slot.');
+                this.disabled = false;
             }
         });
     }
+
+    function renderEditMode() {
+        var slot = (window.currentMonthScheduleSlots || []).find(function (s) { return s.id == slotId; });
+        if (!slot) return;
+
+        body.innerHTML =
+            '<div style="display:flex;flex-direction:column;gap:0.75rem;">' +
+                '<div>' +
+                    '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.25rem;">Date *</label>' +
+                    '<input type="date" id="essmDate" class="form-input" value="' + slot.date + '" required>' +
+                '</div>' +
+                '<div>' +
+                    '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.25rem;">Subject *</label>' +
+                    '<input type="text" id="essmSubject" class="form-input" value="' + escapeHtmlNotif(slot.subject) + '" list="essmSubjectList" required>' +
+                    '<datalist id="essmSubjectList">' + subjects.map(function (s) { return '<option value="' + escapeHtmlNotif(s) + '">'; }).join('') + '</datalist>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">' +
+                    '<div>' +
+                        '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.25rem;">Topic</label>' +
+                        '<input type="text" id="essmTopic" class="form-input" value="' + escapeHtmlNotif(slot.topic || '') + '" placeholder="Topic (optional)">' +
+                    '</div>' +
+                    '<div>' +
+                        '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.25rem;">Duration (Min)</label>' +
+                        '<input type="number" id="essmDuration" class="form-input" value="' + slot.durationMin + '" min="5" max="480">' +
+                    '</div>' +
+                '</div>' +
+                '<div>' +
+                    '<label style="font-size:0.78rem;color:var(--color-text-secondary);display:block;margin-bottom:0.25rem;">Notes</label>' +
+                    '<textarea id="essmNotes" class="form-input" rows="3" style="resize:vertical;">' + escapeHtmlNotif(slot.notes || '') + '</textarea>' +
+                '</div>' +
+                '<hr style="border:0;border-top:1px solid var(--color-border);margin:0.5rem 0;">' +
+                '<div style="display:flex;gap:0.5rem;justify-content:flex-end;">' +
+                    '<button id="essmCancelBtn" class="btn btn-secondary btn-small">Cancel</button>' +
+                    '<button id="essmSaveBtn" class="btn btn-primary btn-small">Save Changes</button>' +
+                '</div>' +
+            '</div>';
+
+        document.getElementById('essmCancelBtn').addEventListener('click', renderViewMode);
+
+        document.getElementById('essmSaveBtn').addEventListener('click', async function () {
+            var date = document.getElementById('essmDate').value;
+            var subject = document.getElementById('essmSubject').value.trim();
+            var topic = document.getElementById('essmTopic').value.trim();
+            var durationMin = parseInt(document.getElementById('essmDuration').value || '60', 10);
+            var notes = document.getElementById('essmNotes').value.trim();
+
+            if (!date || !subject) {
+                alert('Date and subject are required.');
+                return;
+            }
+
+            this.disabled = true;
+            this.textContent = 'Saving…';
+
+            var r = await apiRequest('study_schedule_update', {
+                id: slotId,
+                date: date,
+                subject: subject,
+                topic: topic,
+                durationMin: durationMin,
+                notes: notes
+            });
+
+            if (r.status === 'success') {
+                slot.date = date;
+                slot.subject = subject;
+                slot.topic = topic;
+                slot.durationMin = durationMin;
+                slot.notes = notes;
+
+                showToast('Study slot updated.', 'success');
+                if (window.scheduleCalendarContainer) {
+                    renderScheduleCalendar(window.scheduleCalendarContainer, subjects);
+                }
+                renderViewMode();
+            } else {
+                alert(r.message || 'Failed to update slot.');
+                this.disabled = false;
+                this.textContent = 'Save Changes';
+            }
+        });
+    }
+
+    renderViewMode();
 }
 
 function stringToColor(s) {

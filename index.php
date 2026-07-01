@@ -1667,18 +1667,18 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
         </div>
     </div>
 
-    <script src="js/core.js?v=40"></script>
-    <script src="js/auth.js?v=40"></script>
-    <script src="js/dashboard.js?v=40"></script>
-    <script src="js/student.js?v=40"></script>
-    <script src="js/teacher.js?v=40"></script>
-    <script src="js/exam.js?v=40"></script>
-    <script src="js/exam-creation.js?v=40"></script>
-    <script src="js/study.js?v=40"></script>
-    <script src="js/question-renderer.js?v=40"></script>
+    <script src="js/core.js?v=41"></script>
+    <script src="js/auth.js?v=41"></script>
+    <script src="js/dashboard.js?v=41"></script>
+    <script src="js/student.js?v=41"></script>
+    <script src="js/teacher.js?v=41"></script>
+    <script src="js/exam.js?v=41"></script>
+    <script src="js/exam-creation.js?v=41"></script>
+    <script src="js/study.js?v=41"></script>
+    <script src="js/question-renderer.js?v=41"></script>
     <!-- Prism.js for syntax highlighting -->
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="js/app.js?v=40"></script>
+    <script src="js/app.js?v=41"></script>
 </body>
 </html>
