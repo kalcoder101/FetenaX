@@ -417,6 +417,8 @@ function loadSettingsPanel(role) {
     var name = currentUser.name || '';
     var initials = name.substring(0, 2).toUpperCase() || 'US';
     var avatarColor = currentUser.avatar && currentUser.avatar.indexOf('#') === 0 ? currentUser.avatar : '#57785a';
+    var email = currentUser.email || '';
+    var userId = currentUser.userId || '';
 
     var colors = ['#57785a','#e07a5f','#3d5a80','#f4a261','#2a9d8f','#e63946','#457b9d','#a3cc3b','#6d597a','#b56576'];
 
@@ -424,61 +426,174 @@ function loadSettingsPanel(role) {
         '<div class="settings-panel">',
             '<div class="settings-section">',
                 '<div class="settings-section-title">Profile Settings</div>',
-                '<div class="avatar-preview" id="settingsAvatarPreview" style="background:' + avatarColor + ';">' + initials + '</div>',
-                '<div class="avatar-picker" id="avatarColorPicker">',
-                    colors.map(function (c) { return '<div class="avatar-swatch' + (c === avatarColor ? ' selected' : '') + '" style="background:' + c + ';" data-color="' + c + '"></div>'; }).join(''),
+                '<div style="display:flex;gap:1.5rem;align-items:flex-start;margin-bottom:1.5rem;">',
+                    '<div>',
+                        '<div class="avatar-preview" id="settingsAvatarPreview" style="background:' + avatarColor + ';margin-bottom:0.75rem;">' + initials + '</div>',
+                        '<div class="avatar-picker" id="avatarColorPicker" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;">',
+                            colors.map(function (c) { return '<div class="avatar-swatch' + (c === avatarColor ? ' selected' : '') + '" style="background:' + c + ';cursor:pointer;width:44px;height:44px;border-radius:50%;border:2px solid transparent;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" data-color="' + c + '">' + (c === avatarColor ? '✓' : '') + '</div>'; }).join(''),
+                        '</div>',
+                    '</div>',
+                    '<div style="flex:1;">',
+                        '<div class="form-group" style="margin-bottom:0.75rem;">',
+                            '<label for="settingsNameInput"><strong>Display Name</strong></label>',
+                            '<input type="text" id="settingsNameInput" class="form-input" value="' + escapeHtmlNotif(name) + '" placeholder="Your display name">',
+                        '</div>',
+                        '<div class="form-group" style="margin-bottom:0.75rem;">',
+                            '<label><strong>Account Information</strong></label>',
+                            '<div style="background:var(--color-bg-secondary);padding:0.75rem;border-radius:0.5rem;font-size:0.9rem;">',
+                                '<div style="margin-bottom:0.5rem;"><span style="color:var(--color-text-secondary);">Email:</span> ' + escapeHtmlNotif(email) + '</div>',
+                                '<div><span style="color:var(--color-text-secondary);">ID:</span> ' + escapeHtmlNotif(userId) + '</div>',
+                            '</div>',
+                        '</div>',
+                    '</div>',
                 '</div>',
-                '<div class="form-group" style="margin-bottom:0.75rem;">',
-                    '<label for="settingsNameInput">Display Name</label>',
-                    '<input type="text" id="settingsNameInput" class="form-input" value="' + escapeHtmlNotif(name) + '">',
+                '<hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--color-border);">',
+                '<div style="margin-bottom:1.5rem;">',
+                    '<div class="settings-section-title" style="margin-bottom:1rem;">Security</div>',
+                    '<div class="form-group" style="margin-bottom:0.75rem;">',
+                        '<label for="settingsNewPassword"><strong>New Password</strong></label>',
+                        '<input type="password" id="settingsNewPassword" class="form-input" placeholder="Leave empty to keep current password">',
+                        '<div style="font-size:0.8rem;color:var(--color-text-secondary);margin-top:0.3rem;">Minimum 6 characters</div>',
+                    '</div>',
+                    '<div class="form-group" style="margin-bottom:0.75rem;" id="currPassGroup" style="display:none;">',
+                        '<label for="settingsCurrentPassword"><strong>Current Password</strong> <span style="color:var(--color-danger);">*</span></label>',
+                        '<input type="password" id="settingsCurrentPassword" class="form-input" placeholder="Required to make changes">',
+                    '</div>',
                 '</div>',
-                '<div class="form-group" style="margin-bottom:0.75rem;">',
-                    '<label for="settingsNewPassword">New Password (leave blank to keep current)</label>',
-                    '<input type="password" id="settingsNewPassword" class="form-input" placeholder="New password">',
+                '<div style="display:flex;gap:0.75rem;align-items:center;">',
+                    '<button id="settingsSaveBtn" class="btn btn-primary" style="position:relative;">',
+                        '<span id="settingsSaveBtnText">Save Changes</span>',
+                        '<span id="settingsSaveSpinner" style="display:none;margin-left:0.5rem;">⟳</span>',
+                    '</button>',
+                    '<span id="settingsSaveMsg" style="font-size:0.9rem;"></span>',
                 '</div>',
-                '<div class="form-group" style="margin-bottom:0.75rem;">',
-                    '<label for="settingsCurrentPassword">Current Password <span style="color:var(--color-danger);">*</span></label>',
-                    '<input type="password" id="settingsCurrentPassword" class="form-input" placeholder="Current password (required to save)" required>',
-                '</div>',
-                '<button id="settingsSaveBtn" class="btn btn-primary">Save Changes</button>',
-                '<span id="settingsSaveMsg" style="margin-left:0.75rem;font-size:0.85rem;"></span>',
             '</div>',
         '</div>'
     ].join('');
 
+    // ─────────────────────────────────────────────────────────────
     // Wire avatar color picker
-    container.querySelectorAll('.avatar-swatch').forEach(function (swatch) {
+    // ─────────────────────────────────────────────────────────────
+    var avatarSwatches = container.querySelectorAll('.avatar-swatch');
+    avatarSwatches.forEach(function (swatch) {
         swatch.addEventListener('click', function () {
-            container.querySelectorAll('.avatar-swatch').forEach(function (s) { s.classList.remove('selected'); });
+            avatarSwatches.forEach(function (s) { 
+                s.classList.remove('selected');
+                s.style.borderColor = 'transparent';
+                s.textContent = '';
+            });
             this.classList.add('selected');
+            this.style.borderColor = 'var(--color-text)';
+            this.textContent = '✓';
             document.getElementById('settingsAvatarPreview').style.background = this.dataset.color;
         });
     });
 
+    // ─────────────────────────────────────────────────────────────
+    // Show/hide current password field based on new password input
+    // ─────────────────────────────────────────────────────────────
+    var newPassInput = document.getElementById('settingsNewPassword');
+    var currPassGroup = document.getElementById('currPassGroup');
+    var currPassInput = document.getElementById('settingsCurrentPassword');
+    
+    newPassInput.addEventListener('input', function () {
+        if (this.value.trim().length > 0) {
+            currPassGroup.style.display = 'block';
+            currPassInput.required = true;
+        } else {
+            currPassGroup.style.display = 'none';
+            currPassInput.required = false;
+            currPassInput.value = '';
+        }
+    });
+
+    // ─────────────────────────────────────────────────────────────
     // Wire save button
-    document.getElementById('settingsSaveBtn').addEventListener('click', async function () {
+    // ─────────────────────────────────────────────────────────────
+    var saveBtn = document.getElementById('settingsSaveBtn');
+    var saveBtnText = document.getElementById('settingsSaveBtnText');
+    var saveSpinner = document.getElementById('settingsSaveSpinner');
+    var saveMsg = document.getElementById('settingsSaveMsg');
+
+    saveBtn.addEventListener('click', async function (e) {
+        e.preventDefault();
+
         var newName    = document.getElementById('settingsNameInput').value.trim();
-        var newPass    = document.getElementById('settingsNewPassword').value;
+        var newPass    = document.getElementById('settingsNewPassword').value.trim();
         var currPass   = document.getElementById('settingsCurrentPassword').value;
         var selColor   = container.querySelector('.avatar-swatch.selected');
         var avatarVal  = selColor ? selColor.dataset.color : avatarColor;
 
-        if (!newName) { showToast('Name cannot be empty.', 'error'); return; }
-        if (!currPass && newPass) { showToast('Enter current password to change it.', 'error'); return; }
+        // ─ Validation ─
+        if (!newName) { 
+            showToast('Please enter a display name.', 'error'); 
+            return; 
+        }
 
-        var res = await apiRequest('update_profile', {
-            name: newName, avatar: avatarVal,
-            newPassword: newPass, currentPassword: currPass
-        });
+        if (newName.length < 2) {
+            showToast('Display name must be at least 2 characters.', 'error');
+            return;
+        }
 
-        if (res.status === 'success') {
-            currentUser = res.user;
-            var initials2 = (currentUser.name || 'US').substring(0, 2).toUpperCase();
-            document.getElementById('sidebarAvatar').textContent = initials2;
-            document.getElementById('sidebarUserName').textContent = currentUser.name;
-            showToast('Profile updated successfully.', 'success');
-        } else {
-            showToast(res.message || 'Failed to update profile.', 'error');
+        if (newPass && newPass.length < 6) {
+            showToast('New password must be at least 6 characters.', 'error');
+            return;
+        }
+
+        if (newPass && !currPass) {
+            showToast('Enter your current password to change it.', 'error');
+            return;
+        }
+
+        // ─ Send request ─
+        saveBtn.disabled = true;
+        saveBtnText.style.display = 'none';
+        saveSpinner.style.display = 'inline';
+        saveMsg.textContent = '';
+
+        try {
+            var res = await apiRequest('update_profile', {
+                name: newName, 
+                avatar: avatarVal,
+                newPassword: newPass || '', 
+                currentPassword: currPass || ''
+            });
+
+            if (res.status === 'success') {
+                currentUser = res.user;
+                
+                // Update sidebar
+                var sidebarAvatar = document.getElementById('sidebarAvatar');
+                var sidebarUserName = document.getElementById('sidebarUserName');
+                if (sidebarAvatar) sidebarAvatar.textContent = (currentUser.name || 'US').substring(0, 2).toUpperCase();
+                if (sidebarUserName) sidebarUserName.textContent = currentUser.name;
+
+                // Clear form
+                document.getElementById('settingsNewPassword').value = '';
+                document.getElementById('settingsCurrentPassword').value = '';
+                currPassGroup.style.display = 'none';
+
+                saveMsg.textContent = 'Profile updated successfully!';
+                saveMsg.style.color = 'var(--color-success)';
+                showToast('Profile updated successfully.', 'success');
+
+                // Clear message after 3 seconds
+                setTimeout(function () { saveMsg.textContent = ''; }, 3000);
+            } else {
+                var errorMsg = res.message || 'Failed to update profile. Please try again.';
+                saveMsg.textContent = errorMsg;
+                saveMsg.style.color = 'var(--color-danger)';
+                showToast(errorMsg, 'error');
+            }
+        } catch (err) {
+            console.error('Profile update error:', err);
+            saveMsg.textContent = 'Network error. Please try again.';
+            saveMsg.style.color = 'var(--color-danger)';
+            showToast('Network error. Please try again.', 'error');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtnText.style.display = 'inline';
+            saveSpinner.style.display = 'none';
         }
     });
 }
