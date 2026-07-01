@@ -22,6 +22,22 @@ async function loadSystemAdminDashboard() {
     var stats = statsRes.stats || {};
     var users = usersRes.users || [];
     var rows = '';
+    var createForm = '' +
+        '<div class="glass-card" style="padding:1rem 1rem 1.1rem;margin-bottom:1rem;">' +
+            '<div class="card-header-flex"><h3>Create New Account</h3></div>' +
+            '<div style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">' +
+                '<input id="adminCreateName" class="form-input" placeholder="Full name" />' +
+                '<input id="adminCreateEmail" class="form-input" placeholder="Email" />' +
+                '<input id="adminCreateUserId" class="form-input" placeholder="Student/Staff ID" />' +
+                '<input id="adminCreatePassword" class="form-input" type="password" placeholder="Temporary password" />' +
+                '<select id="adminCreateRole" class="form-input form-select">' +
+                    '<option value="student">Student</option>' +
+                    '<option value="teacher">Teacher</option>' +
+                    '<option value="system_admin">System Admin</option>' +
+                '</select>' +
+                '<button id="adminCreateUserBtn" class="btn btn-primary">Create Account</button>' +
+            '</div>' +
+        '</div>';
     users.forEach(function (u) {
         var roleValue = u.role || 'student';
         rows += '<div class="glass-card" style="padding:0.95rem 1rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:0.75rem;margin-bottom:0.8rem;">' +
@@ -44,6 +60,7 @@ async function loadSystemAdminDashboard() {
     });
 
     container.innerHTML = '' +
+        createForm +
         '<div class="stats-cards-grid" style="margin-bottom:1.25rem;">' +
             '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">👤</div><div><div class="stat-card-label">Total Users</div><div class="stat-card-number">' + (stats.users || 0) + '</div></div></div>' +
             '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">🎓</div><div><div class="stat-card-label">Students</div><div class="stat-card-number">' + (stats.students || 0) + '</div></div></div>' +
@@ -72,6 +89,26 @@ async function loadSystemAdminDashboard() {
                 '</div>' +
             '</div>' +
         '</div>';
+
+    var createBtn = document.getElementById('adminCreateUserBtn');
+    if (createBtn) {
+        createBtn.addEventListener('click', async function () {
+            var payload = {
+                name: document.getElementById('adminCreateName').value,
+                email: document.getElementById('adminCreateEmail').value,
+                userId: document.getElementById('adminCreateUserId').value,
+                password: document.getElementById('adminCreatePassword').value,
+                role: document.getElementById('adminCreateRole').value
+            };
+            var res = await apiRequest('admin_create_user', payload);
+            if (res.status === 'success') {
+                showToast('Account created.', 'success');
+                loadSystemAdminDashboard();
+            } else {
+                showToast(res.message || 'Unable to create account.', 'error');
+            }
+        });
+    }
 
     container.querySelectorAll('.admin-role-select').forEach(function (select) {
         select.addEventListener('change', async function () {

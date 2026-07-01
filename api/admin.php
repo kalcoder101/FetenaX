@@ -20,7 +20,7 @@ if ($action === 'admin_dashboard') {
     $attemptCount = (int)$pdo->query("SELECT COUNT(*) FROM `results`")->fetchColumn();
     $avgScore = $pdo->query("SELECT AVG(score) FROM `results`")->fetchColumn();
 
-    $recentUsers = $pdo->query("SELECT id, name, email, role, userId, createdAt FROM `users` ORDER BY id DESC LIMIT 8")->fetchAll();
+    $recentUsers = $pdo->query("SELECT id, name, email, role, userId FROM `users` ORDER BY id DESC LIMIT 8")->fetchAll();
     $recentExams = $pdo->query("SELECT id, title, subject, createdBy, createdAt FROM `exams` ORDER BY id DESC LIMIT 8")->fetchAll();
 
     respond('success', [
@@ -39,8 +39,48 @@ if ($action === 'admin_dashboard') {
 }
 
 if ($action === 'admin_users') {
-    $stmt = $pdo->query("SELECT id, name, email, userId, role, avatar, createdAt FROM `users` ORDER BY role ASC, name ASC");
+    $stmt = $pdo->query("SELECT id, name, email, userId, role, avatar FROM `users` ORDER BY role ASC, name ASC");
     respond('success', ['users' => $stmt->fetchAll()]);
+}
+
+if ($action === 'admin_create_user') {
+    $name = isset($requestData['name']) ? trim($requestData['name']) : '';
+    $email = isset($requestData['email']) ? trim($requestData['email']) : '';
+    $userId = isset($requestData['userId']) ? trim($requestData['userId']) : '';
+    $password = isset($requestData['password']) ? $requestData['password'] : '';
+    $role = isset($requestData['role']) ? trim($requestData['role']) : 'student';
+
+    if ($name === '' || $email === '' || $userId === '' || $password === '') {
+        respond('error', ['message' => 'Name, email, student ID, and password are required.']);
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        respond('error', ['message' => 'Please enter a valid email address.']);
+    }
+    if (strlen($password) < 6) {
+        respond('error', ['message' => 'Password must be at least 6 characters.']);
+    }
+    if (!adminAllowedRole($role)) {
+        respond('error', ['message' => 'That role is not allowed.']);
+    }
+
+    $dup = $pdo->prepare("SELECT COUNT(*) FROM `users` WHERE `email` = ? OR `userId` = ?");
+    $dup->execute([$email, $userId]);
+    if ((int)$dup->fetchColumn() > 0) {
+        respond('error', ['message' => 'A user with that email or student ID already exists.']);
+    }
+
+    $words = preg_split('/\s+/', $name) ?: [];
+    $avatar = '';
+    foreach ($words as $w) {
+        if ($w !== '') $avatar .= strtoupper(substr($w, 0, 1));
+    }
+    $avatar = substr($avatar, 0, 2) ?: strtoupper(substr($role, 0, 2));
+
+    $hashed = password_hash($password, PASSWORD_BCRYPT);
+    $stmt = $pdo->prepare("INSERT INTO `users` (`email`, `password`, `role`, `name`, `avatar`, `userId`) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$email, $hashed, $role, $name, $avatar, $userId]);
+
+    respond('success', ['message' => 'User created successfully.']);
 }
 
 if ($action === 'admin_update_user_role') {
