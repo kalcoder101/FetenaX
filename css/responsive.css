@@ -1,0 +1,483 @@
+/* css/responsive.css — FetenaX v34
+   Comprehensive mobile + PWA styling.
+   Works on top of layout.css — only overrides what's needed for small screens. */
+
+/* =========================================================================
+   HAMBURGER BUTTON — shown only on mobile (< 900px)
+   ========================================================================= */
+.mobile-hamburger {
+    display: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    width: 40px;
+    height: 40px;
+    border-radius: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+.mobile-hamburger:hover { background: rgba(87,120,90,0.1); }
+.mobile-hamburger svg { width: 22px; height: 22px; }
+
+/* Overlay that appears behind the slide-out sidebar */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9998;
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* =========================================================================
+   MOBILE HEADER — sticky top bar with hamburger + page title
+   ========================================================================= */
+.mobile-top-bar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.55rem 0.85rem;
+    align-items: center;
+    gap: 0.7rem;
+}
+.mobile-top-bar .mtb-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mobile-top-bar .mtb-subtitle {
+    font-size: 0.72rem;
+    color: var(--color-text-secondary);
+    font-weight: 400;
+}
+.mobile-top-bar .mtb-logo {
+    height: 28px;
+    width: auto;
+}
+
+/* =========================================================================
+   MEDIA QUERIES — switch to mobile layout under 900px
+   ========================================================================= */
+@media (max-width: 900px) {
+    /* Show hamburger + mobile top bar */
+    .mobile-hamburger { display: flex; }
+    .mobile-top-bar { display: flex; }
+
+    /* Hide the inline sidebar header strip on mobile (we use the top bar instead) */
+    .dashboard-header-strip { display: none !important; }
+
+    /* Sidebar becomes a slide-out drawer */
+    .dashboard-layout {
+        flex-direction: column;
+        padding-top: 0;
+    }
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        max-width: 85vw;
+        height: 100vh;
+        z-index: 9999;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 0;
+        padding: 0.85rem;
+        overflow-y: auto;
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border-right: 1px solid var(--color-border);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .sidebar-brand {
+        margin-bottom: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .sidebar-logo { max-height: 36px; }
+    .sidebar-menu {
+        flex-direction: column;
+        gap: 0.2rem;
+        overflow: visible;
+        flex: 0 0 auto;
+    }
+    .menu-item, .menu-group-header {
+        padding: 0.65rem 0.85rem;
+        font-size: 0.92rem;
+        gap: 0.7rem;
+        min-height: 44px;       /* touch target */
+        width: 100%;
+        justify-content: flex-start;
+        border-radius: 0.5rem;
+    }
+    .menu-item svg, .menu-group-header svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .menu-item span, .menu-group-header span { display: inline !important; }
+    .menu-group-header .chevron-icon {
+        transform: rotate(0deg);
+    }
+    .menu-group.open .menu-group-header .chevron-icon {
+        transform: rotate(180deg);
+    }
+    .submenu {
+        display: none;
+        flex-direction: column;
+        gap: 0.15rem;
+        position: static;
+        width: 100%;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0.2rem 0 0.2rem 1.8rem;
+        box-shadow: none;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        pointer-events: auto;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+    .menu-group.open .submenu {
+        display: flex;
+    }
+    .submenu .menu-item {
+        padding: 0.55rem 0.85rem;
+        min-height: 38px;
+        font-size: 0.88rem;
+        color: var(--color-text-secondary);
+        background: transparent;
+        box-shadow: none;
+    }
+    .submenu .menu-item.active {
+        background: var(--color-primary);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(87, 120, 90, 0.2);
+    }
+    .bank-sidebar-badge { display: inline-flex !important; }
+    .sidebar-spacer { display: block; flex-grow: 1; }
+    .sidebar-user-section {
+        margin-top: 0.85rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid var(--color-border);
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.4rem;
+    }
+    .user-badge-details { display: block; }
+    .user-badge-avatar { width: 36px; height: 36px; font-size: 0.85rem; }
+    .btn-logout-icon span { display: inline; }
+    .btn-logout-icon {
+        padding: 0.55rem 0.85rem;
+        min-width: auto;
+        min-height: 44px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Dashboard content area takes full width */
+    .dashboard-main {
+        padding: 0.85rem;
+        height: auto;
+        overflow-y: visible;
+        flex: 1;
+        min-height: calc(100vh - 60px);
+    }
+
+    /* Make stats grids stack */
+    .stats-cards-grid,
+    .dashboard-split-grid,
+    .student-stats-wrapper {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Forms: stack labels + inputs */
+    .form-group,
+    .search-filter-row {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    .search-filter-row input,
+    .search-filter-row select,
+    .search-filter-row button {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+}
+
+/* =========================================================================
+   PHONES — under 600px
+   ========================================================================= */
+@media (max-width: 600px) {
+    html { font-size: 14px; }
+
+    /* Smaller mobile top bar */
+    .mobile-top-bar { padding: 0.45rem 0.65rem; }
+    .mobile-top-bar .mtb-title { font-size: 0.95rem; }
+    .mobile-top-bar .mtb-subtitle { display: none; }
+
+    /* Tighter dashboard padding */
+    .dashboard-main { padding: 0.65rem; }
+
+    /* Glass cards: reduce padding */
+    .glass-card,
+    .stat-card-flex,
+    .student-stats-card {
+        padding: 0.85rem !important;
+    }
+
+    /* Buttons: bigger touch targets */
+    .btn {
+        padding: 0.55rem 0.95rem;
+        font-size: 0.92rem;
+        min-height: 40px;
+    }
+    .btn-small {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.82rem;
+        min-height: 34px;
+    }
+
+    /* Tables: wrap in horizontal scroll */
+    table {
+        font-size: 0.85rem;
+    }
+    .dashboard-content-area {
+        overflow-x: hidden;
+    }
+
+    /* Hide top navbar (it's already hidden on dashboard but make sure) */
+    .navbar { display: none !important; }
+}
+
+/* =========================================================================
+   EXAM INTERFACE — mobile tweaks
+   ========================================================================= */
+@media (max-width: 900px) {
+    .exam-interface .container {
+        padding: 0 0.5rem;
+        max-width: 100%;
+    }
+    .exam-header-strip {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding: 0.6rem 0.65rem;
+    }
+    .exam-header-left {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .exam-header-left h2 {
+        font-size: 1rem;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .exam-timer-box {
+        width: 100%;
+        justify-content: center;
+        padding: 0.45rem 0.65rem;
+        background: rgba(231,76,60,0.08);
+        border-radius: 0.4rem;
+    }
+    .timer-value { font-size: 1.2rem; }
+
+    /* Progress bar */
+    .exam-progress-strip {
+        padding: 0.4rem 0.65rem;
+    }
+    .exam-progress-label { font-size: 0.7rem; }
+
+    /* Exam workspace: stack vertically */
+    .exam-workspace {
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+    .exam-main-panel { flex: 1; min-width: 0; }
+    .exam-navigation-panel {
+        flex: 0 0 auto;
+        max-height: 220px;
+        overflow-y: auto;
+        order: -1; /* show grid at top on mobile */
+    }
+    .exam-info-card {
+        padding: 0.6rem;
+    }
+    .candidate-photo { display: none; }
+    .exam-content-area { padding: 0; }
+
+    /* Question map: smaller cells, horizontal scroll */
+    .questions-grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+        gap: 0.3rem;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+
+    /* Question text */
+    .question-text { font-size: 0.95rem; }
+
+    /* Options: full width, bigger touch targets */
+    .option-item {
+        padding: 0.7rem 0.85rem;
+        min-height: 48px;
+    }
+    .option-letter {
+        width: 28px;
+        height: 28px;
+        font-size: 0.85rem;
+    }
+
+    /* Nav buttons: full width row */
+    .exam-nav-controls {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+    .exam-nav-controls .btn {
+        flex: 1;
+        min-width: 80px;
+    }
+}
+
+@media (max-width: 600px) {
+    .exam-header-left h2 { font-size: 0.92rem; }
+    .timer-value { font-size: 1.1rem; }
+    .timer-label { font-size: 0.7rem; }
+    .question-text { font-size: 0.9rem; line-height: 1.55; }
+    .code-block-wrapper pre { font-size: 0.75rem; padding: 0.6rem 0.75rem; }
+    .question-image-attached img,
+    .question-image-inline img { max-height: 220px; }
+
+    /* Modal: full-screen on mobile */
+    .modal-content {
+        max-width: 100vw !important;
+        width: 100vw !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+    .modal {
+        padding: 0 !important;
+    }
+
+    /* Hide candidate details card entirely on small phones (info already in header) */
+    .exam-info-card { display: none; }
+}
+
+/* =========================================================================
+   AUTH PAGE (login) — mobile tweaks
+   ========================================================================= */
+@media (max-width: 700px) {
+    .auth-split-screen {
+        flex-direction: column;
+    }
+    .auth-brand-panel,
+    .auth-form-panel {
+        width: 100% !important;
+        min-height: auto !important;
+    }
+    .auth-brand-panel {
+        padding: 1.5rem 1rem;
+        text-align: center;
+    }
+    .auth-form-panel {
+        padding: 1.25rem 1rem;
+        flex: 1;
+    }
+}
+
+/* =========================================================================
+   PRINT (for exam paper printouts)
+   ========================================================================= */
+@media print {
+    .mobile-hamburger,
+    .mobile-top-bar,
+    .sidebar,
+    .sidebar-overlay,
+    .exam-navigation-panel,
+    .exam-progress-strip,
+    .exam-timer-box { display: none !important; }
+    .exam-interface .container { max-width: 100%; }
+}
+
+/* =========================================================================
+   REDUCE MOTION (accessibility)
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    .sidebar { transition: none !important; }
+}
+
+/* =========================================================================
+   PWA — hide browser URL bar on scroll (mobile)
+   ========================================================================= */
+html {
+    scroll-behavior: smooth;
+}
+body {
+    /* Allow overscroll for pull-to-refresh feel */
+    overscroll-behavior-y: contain;
+}
+
+/* When running as installed PWA (display-mode: standalone) */
+@media all and (display-mode: standalone) {
+    /* Add safe-area padding for notched devices */
+    body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .mobile-top-bar {
+        padding-top: calc(0.55rem + env(safe-area-inset-top));
+    }
+    /* Hide any "Add to home screen" prompts */
+    .pwa-install-prompt { display: none; }
+}
+
+/* iOS specific: make input font-size >= 16px to prevent zoom-on-focus */
+@media (max-width: 900px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="url"],
+    input[type="number"],
+    input[type="date"],
+    input[type="search"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}

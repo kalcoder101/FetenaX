@@ -238,7 +238,11 @@ function addQuestionBlock() {
         '</div>' +
         '<div class="form-group" style="margin-bottom:0.6rem;">' +
             '<label style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">Question Text</label>' +
-            '<input type="text" class="form-input question-input" required placeholder="Enter your question here\u2026">' +
+            '<textarea class="form-input question-input" required placeholder="Enter your question here…&#10;&#10;💡 Tip: You can use markdown-style formatting:&#10;   • Inline code: \`code\`&#10;   • Code block: \`\`\`java ... \`\`\`&#10;   • Bold: **text**&#10;   • Italic: *text*&#10;   • Inline image: ![alt](https://example.com/img.png)" rows="3" style="width:100%;resize:vertical;font-family:inherit;"></textarea>' +
+        '</div>' +
+        '<div class="form-group" style="margin-bottom:0.6rem;">' +
+            '<label style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">Image URL (optional — for diagrams, screenshots, etc.)</label>' +
+            '<input type="url" class="form-input image-url-input" placeholder="https://example.com/diagram.png" style="width:100%;">' +
         '</div>' +
         '<div class="options-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.7rem;">' +
             '<div style="position:relative;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:0.78rem;color:var(--color-primary);">A</span><input type="text" class="form-input option-input" placeholder="Option A" required style="padding-left:26px;"></div>' +
@@ -253,7 +257,15 @@ function addQuestionBlock() {
             '<label class="correct-opt"><input type="radio" name="' + uid + '" value="2"> C</label>' +
             '<label class="correct-opt"><input type="radio" name="' + uid + '" value="3"> D</label>' +
             '<div class="question-points-input" style="margin-left:auto;"><label>Points:</label><input type="number" class="form-input points-input" min="1" max="100" value="1" style="width:58px;padding:0.3rem 0.5rem;font-size:0.85rem;"></div>' +
-        '</div>';
+        '</div>' +
+        '<details style="margin-top:0.5rem;padding:0.5rem 0.7rem;background:rgba(87,120,90,0.05);border:1px solid var(--color-border);border-radius:0.4rem;">' +
+            '<summary style="cursor:pointer;font-size:0.82rem;font-weight:600;color:var(--color-text-secondary);">💡 Explanation & hints (optional, used in Practice mode)</summary>' +
+            '<div style="margin-top:0.5rem;">' +
+                '<textarea class="form-input explanation-input" placeholder="Explanation — why the correct answer is correct (shown after answering in practice)" rows="2" style="width:100%;resize:vertical;font-size:0.85rem;margin-bottom:0.4rem;"></textarea>' +
+                '<input type="text" class="form-input hint1-input" placeholder="Hint 1 — e.g. eliminate options A and D" style="width:100%;font-size:0.85rem;margin-bottom:0.4rem;">' +
+                '<input type="text" class="form-input hint2-input" placeholder="Hint 2 — explain the concept briefly" style="width:100%;font-size:0.85rem;">' +
+            '</div>' +
+        '</details>';
 
     block.querySelector('.remove-question').addEventListener('click', function () {
         block.remove();
@@ -289,10 +301,20 @@ async function submitCreateExamForm() {
         var correct  = radioSel ? parseInt(radioSel.value) : 0;
         var ptsEl    = block.querySelector('.points-input');
         var pts      = ptsEl ? Math.max(1, parseInt(ptsEl.value) || 1) : 1;
+        var explEl   = block.querySelector('.explanation-input');
+        var h1El     = block.querySelector('.hint1-input');
+        var h2El     = block.querySelector('.hint2-input');
+        var imgEl    = block.querySelector('.image-url-input');
 
         if (!qText) { formError = 'Question ' + (bi + 1) + ': question text is empty.'; return; }
         if (opts.some(function (o) { return !o; })) { formError = 'Question ' + (bi + 1) + ': all 4 options are required.'; return; }
-        questions.push({ question: qText, options: opts, correctAnswer: correct, points: pts });
+        questions.push({
+            question: qText, options: opts, correctAnswer: correct, points: pts,
+            explanation: explEl ? explEl.value.trim() : '',
+            hint1:       h1El   ? h1El.value.trim()   : '',
+            hint2:       h2El   ? h2El.value.trim()   : '',
+            imageUrl:    imgEl  ? imgEl.value.trim()  : ''
+        });
     });
 
     if (formError) { alert(formError); return; }
@@ -510,10 +532,10 @@ function initBulkExamImport() {
     if (downloadTemplate) {
         downloadTemplate.addEventListener('click', function (e) {
             e.preventDefault();
-            var csv = 'question,optionA,optionB,optionC,optionD,correctAnswer,points\n' +
-                'What is 2+2?,1,2,3,4,3,1\n' +
-                'Which planet is closest to the sun?,Venus,Earth,Mercury,Mars,2,1\n' +
-                'What is the capital of France?,London,Paris,Berlin,Madrid,1,2\n';
+            var csv = 'question,optionA,optionB,optionC,optionD,correctAnswer,points,explanation,hint1,hint2,imageUrl\n' +
+                'What is 2+2?,1,2,3,4,3,1,"Because 2+2=4, the basic arithmetic sum of two and two is four.","Eliminate A (1) and B (2) — they are too small.","2 added to itself equals 4.",\n' +
+                'What does the following print?\n```java\nSystem.out.println(1 + 2 + "3");\n```,33,123,6,Compilation error,1,2,"Java evaluates left-to-right: 1+2=3, then 3+\"3\"=\"33\".","Remember: + is left-associative.","String concatenation kicks in once a String operand is encountered.",\n' +
+                'Which planet is closest to the sun?,Venus,Earth,Mercury,Mars,2,1,"Mercury is the innermost planet in our solar system.","Mars is far — rule out.","Mercury orbits the Sun at the smallest distance.",https://example.com/solar-system.png\n';
             var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a');

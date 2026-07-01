@@ -1,0 +1,13 @@
+# Allow access to uploaded study resource files (PDFs, images, docs)
+# but disable directory listing for security.
+Options -Indexes
+
+# Allow common document types
+<FilesMatch "\.(pdf|png|jpe?g|gif|webp|svg|mp4|webm|pptx?|docx?|xlsx?|zip|rar|tar\.gz)$">
+    Require all granted
+</FilesMatch>
+
+# Deny PHP execution in uploads dir (security: prevents PHP shell uploads)
+<FilesMatch "\.(php|php3|php4|php5|php7|phtml|pl|py|cgi)$">
+    Require all denied
+</FilesMatch>

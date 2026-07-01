@@ -30,16 +30,50 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
     <title>FetenaX – Your Exam, Your Vibe</title>
     <link rel="icon" type="image/png" href="Img/fetenAX.png">
     <link rel="apple-touch-icon" href="Img/fetenAX.png">
-    <link rel="stylesheet" href="css/theme.css?v=31">
-    <link rel="stylesheet" href="css/components.css?v=31">
-    <link rel="stylesheet" href="css/layout.css?v=31">
-    <link rel="stylesheet" href="css/auth.css?v=31">
-    <link rel="stylesheet" href="css/student.css?v=31">
-    <link rel="stylesheet" href="css/teacher.css?v=31">
-    <link rel="stylesheet" href="css/exam-interface.css?v=31">
-    <link rel="stylesheet" href="css/results.css?v=31">
-    <link rel="stylesheet" href="css/exam-creation.css?v=31">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/theme.css?v=39">
+    <link rel="stylesheet" href="css/components.css?v=39">
+    <link rel="stylesheet" href="css/layout.css?v=39">
+    <link rel="stylesheet" href="css/auth.css?v=39">
+    <link rel="stylesheet" href="css/student.css?v=39">
+    <link rel="stylesheet" href="css/teacher.css?v=39">
+    <link rel="stylesheet" href="css/exam-interface.css?v=39">
+    <link rel="stylesheet" href="css/results.css?v=39">
+    <link rel="stylesheet" href="css/exam-creation.css?v=39">
+    <link rel="stylesheet" href="css/study.css?v=39">
+    <link rel="stylesheet" href="css/question-renderer.css?v=39">
+    <link rel="stylesheet" href="css/responsive.css?v=39">
+    <!-- Prism.js for code syntax highlighting in question text -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <!-- PWA manifest + theme -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#57785a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FetenaX">
+    <link rel="apple-touch-icon" href="Img/fetenAX.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        // Apply saved theme BEFORE first paint to avoid flash of wrong theme.
+        // CSS targets `body.dark-mode`, so we set the class directly here.
+        (function () {
+            try {
+                var t = localStorage.getItem('theme') || 'dark';
+                if (t === 'dark') {
+                    document.documentElement.classList.add('dark-mode');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+                // Once <body> exists, sync the class to it.
+                var sync = function () {
+                    if (t === 'dark') document.body.classList.add('dark-mode');
+                    else document.body.classList.remove('dark-mode');
+                };
+                if (document.body) sync();
+                else document.addEventListener('DOMContentLoaded', sync);
+            } catch (e) {}
+        })();
+    </script>
 </head>
 
 <body>
@@ -184,72 +218,210 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 
     <!-- Unified Dashboard Layout -->
     <div id="dashboard" class="dashboard-layout hidden">
+        <!-- Mobile Top Bar (hamburger + page title) — shown only on < 900px -->
+        <div class="mobile-top-bar">
+            <button class="mobile-hamburger" id="mobileHamburgerBtn" aria-label="Open menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <img src="Img/fetenAX.png" alt="FetenaX" class="mtb-logo">
+            <div style="flex:1;min-width:0;">
+                <div class="mtb-title" id="mtbTitle">FetenaX</div>
+                <div class="mtb-subtitle" id="mtbSubtitle"></div>
+            </div>
+        </div>
+
+        <!-- Overlay behind slide-out sidebar (mobile only) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
         <!-- Sidebar Navigation -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="mainSidebar">
             <div class="sidebar-brand">
                 <img src="Img/fetenAX.png" alt="FetenaX Logo" class="sidebar-logo">
+                <button class="mobile-hamburger" id="sidebarCloseBtn" style="display:none;" aria-label="Close menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
             
             <!-- Student Navigation Menu -->
             <nav id="studentNav" class="sidebar-menu hidden">
-                <button class="menu-item active" data-tab="student-exams">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                    <span>Available Exams</span>
-                </button>
-                <button class="menu-item" data-tab="student-history">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <span>My Performance</span>
-                </button>
-                <button class="menu-item" data-tab="student-leaderboard">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21H5a2 2 0 0 1-2-2v-5"/><path d="M16 21h3a2 2 0 0 0 2-2v-5"/><path d="M9 3H5L3 9l9 3 9-3-2-6h-4"/><path d="M12 12v9"/><path d="M3 9h18"/></svg>
-                    <span>Leaderboard</span>
-                </button>
-                <button class="menu-item" data-tab="student-calendar">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    <span>Calendar</span>
-                </button>
-                <button class="menu-item" data-tab="student-settings">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    <span>Settings</span>
-                </button>
+                <!-- Group 1: Exams -->
+                <div class="menu-group">
+                    <button class="menu-group-header" data-group="exams">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                        <span>Exams &amp; Tests</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="submenu">
+                        <button class="menu-item active" data-tab="student-exams">
+                            <span>Available Exams</span>
+                        </button>
+                        <button class="menu-item" data-tab="student-mock">
+                            <span>Mock Exit Exam</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 2: Practice -->
+                <div class="menu-group">
+                    <button class="menu-group-header" data-group="practice">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        <span>Practice &amp; Study</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="submenu">
+                        <button class="menu-item" data-tab="student-subjects">
+                            <span>Practice by Subject</span>
+                        </button>
+                        <button class="menu-item" data-tab="student-srs">
+                            <span>Review Queue (SRS)</span>
+                        </button>
+                        <button class="menu-item" data-tab="student-weakness">
+                            <span>My Weaknesses</span>
+                        </button>
+                        <button class="menu-item" data-tab="student-resources">
+                            <span>Study Resources</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 3: Analytics -->
+                <div class="menu-group">
+                    <button class="menu-group-header" data-group="performance">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span>Analytics &amp; Rank</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="submenu">
+                        <button class="menu-item" data-tab="student-history">
+                            <span>My Performance</span>
+                        </button>
+                        <button class="menu-item" data-tab="student-mastery">
+                            <span>Subject Mastery</span>
+                        </button>
+                        <button class="menu-item" data-tab="student-leaderboard">
+                            <span>Leaderboard</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 4: Schedule -->
+                <div class="menu-group">
+                    <button class="menu-group-header" data-group="planning">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        <span>Schedule &amp; Plan</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="submenu">
+                        <button class="menu-item" data-tab="student-schedule">
+                            <span>Study Schedule</span>
+                        </button>
+                        <button class="menu-item" data-tab="student-calendar">
+                            <span>Calendar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 5: Profile -->
+                <div class="menu-group">
+                    <button class="menu-group-header" data-group="account">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <span>Profile &amp; Settings</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="submenu">
+                        <button class="menu-item" data-tab="student-settings">
+                            <span>Settings</span>
+                        </button>
+                    </div>
+                </div>
             </nav>
             
             <!-- Teacher Navigation Menu -->
             <nav id="teacherNav" class="sidebar-menu hidden">
-                <button class="menu-item active" data-tab="teacher-overview">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
-                    <span>Overview</span>
-                </button>
-                <button class="menu-item" data-tab="teacher-exams">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    <span>Exam Settings</span>
-                </button>
-                <button class="menu-item" data-tab="teacher-students">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>Students</span>
-                </button>
-                <button class="menu-item" data-tab="teacher-attempts">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    <span>Review Attempts</span>
-                </button>
-                <button class="menu-item" data-tab="teacher-bank">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
-                    <span>Question Bank</span>
-                    <span id="bankCountBadge" class="bank-sidebar-badge" style="display:none;"></span>
-                </button>
-                <button class="menu-item" data-tab="teacher-groups">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
-                    <span>Class Groups</span>
-                </button>
-                <button class="menu-item" data-tab="teacher-codes">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    <span>Access Codes</span>
-                </button>
-                <button class="menu-item" data-tab="teacher-settings">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    <span>Settings</span>
-                </button>
-            </nav>
+                <!-- Group 1: Overview & Analytics -->
+                <div class="menu-group">
+                    <button class="menu-group-header" data-group="teacher-overview">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                        <span>Overview &amp; Stats</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="submenu">
+                        <button class="menu-item active" data-tab="teacher-overview">
+                            <span>Overview</span>
+                        </button>
+                        <button class="menu-item" data-tab="teacher-analytics">
+                            <span>Class Analytics</span>
+                        </button>
+                        <button class="menu-item" data-tab="teacher-progress">
+                            <span>Student Progress</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 2: Exams & Questions -->
+                <div class="menu-group">
+                    <button class="menu-group-header" data-group="teacher-exams">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <span>Exams &amp; Qs</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="submenu">
+                        <button class="menu-item" data-tab="teacher-exams">
+                            <span>Exam Settings</span>
+                        </button>
+                        <button class="menu-item" data-tab="teacher-bank">
+                            <span>Question Bank</span>
+                            <span id="bankCountBadge" class="bank-sidebar-badge" style="display:none;"></span>
+                        </button>
+                        <button class="menu-item" data-tab="teacher-codes">
+                            <span>Access Codes</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 3: Student Management -->
+                <div class="menu-group">
+                    <button class="menu-group-header" data-group="teacher-students">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Students</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="submenu">
+                        <button class="menu-item" data-tab="teacher-students">
+                            <span>Students List</span>
+                        </button>
+                        <button class="menu-item" data-tab="teacher-attempts">
+                            <span>Review Attempts</span>
+                        </button>
+                        <button class="menu-item" data-tab="teacher-groups">
+                            <span>Class Groups</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 4: Resources & Settings -->
+                <div class="menu-group">
+                    <button class="menu-group-header" data-group="teacher-resources">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        <span>Resources &amp; Profile</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="submenu">
+                        <button class="menu-item" data-tab="teacher-resources">
+                            <span>Study Resources</span>
+                        </button>
+                        <button class="menu-item" data-tab="teacher-settings">
+                            <span>Settings</span>
+                        </button>
+                    </div>
+                </div>
             
             <div class="sidebar-spacer"></div>
             
@@ -319,6 +491,41 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                         <div class="exams-grid" id="examsList">
                             <!-- Exams populated here -->
                         </div>
+                    </div>
+
+                    <!-- Tab: Practice by Subject -->
+                    <div id="student-subjects" class="tab-content hidden">
+                        <div id="studentSubjectsContent"></div>
+                    </div>
+
+                    <!-- Tab: Mock Exit Exam -->
+                    <div id="student-mock" class="tab-content hidden">
+                        <div id="studentMockContent"></div>
+                    </div>
+
+                    <!-- Tab: Review Queue (SRS) -->
+                    <div id="student-srs" class="tab-content hidden">
+                        <div id="studentSrsContent"></div>
+                    </div>
+
+                    <!-- Tab: Subject Mastery -->
+                    <div id="student-mastery" class="tab-content hidden">
+                        <div id="studentMasteryContent"></div>
+                    </div>
+
+                    <!-- Tab: Weakness Report -->
+                    <div id="student-weakness" class="tab-content hidden">
+                        <div id="studentWeaknessContent"></div>
+                    </div>
+
+                    <!-- Tab: Study Schedule -->
+                    <div id="student-schedule" class="tab-content hidden">
+                        <div id="studentScheduleContent"></div>
+                    </div>
+
+                    <!-- Tab: Study Resources -->
+                    <div id="student-resources" class="tab-content hidden">
+                        <div id="studentResourcesContent"></div>
                     </div>
                     
                     <!-- Tab: History & Stats -->
@@ -471,10 +678,16 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                     <div id="teacher-students" class="tab-content hidden">
                         <div class="search-filter-row" style="margin-bottom:1.5rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
                             <input type="text" id="teacherStudentSearch" class="form-input" placeholder="Search students by name or ID..." style="max-width:350px; width: 100%;">
-                            <button id="bulkImportBtn" class="btn btn-success" style="margin-left:auto;white-space:nowrap;">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                Import Students
-                            </button>
+                            <div style="margin-left:auto;display:flex;gap:0.6rem;flex-wrap:wrap;">
+                                <button id="registerStudentBtn" class="btn btn-primary" style="white-space:nowrap;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                                    Register Student
+                                </button>
+                                <button id="bulkImportBtn" class="btn btn-success" style="white-space:nowrap;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    Import Students
+                                </button>
+                            </div>
                         </div>
                         <div id="teacherUserMgmt"></div>
                     </div>
@@ -511,6 +724,21 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                         <div id="teacherCodesContent"></div>
                     </div>
 
+                    <!-- Tab: Class Analytics (v32) -->
+                    <div id="teacher-analytics" class="tab-content hidden">
+                        <div id="teacherAnalyticsContent"></div>
+                    </div>
+
+                    <!-- Tab: Student Progress (v32) -->
+                    <div id="teacher-progress" class="tab-content hidden">
+                        <div id="teacherProgressContent"></div>
+                    </div>
+
+                    <!-- Tab: Study Resources (teacher) -->
+                    <div id="teacher-resources" class="tab-content hidden">
+                        <div id="teacherResourcesContent"></div>
+                    </div>
+
                     <!-- Tab: Teacher Settings -->
                     <div id="teacher-settings" class="tab-content hidden">
                         <div id="teacherSettingsContent"></div>
@@ -525,13 +753,25 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
         <div class="container">
             <!-- Timer / Header section -->
             <div class="exam-header-strip">
-                <div class="exam-header-left">
+                <div class="exam-header-left" style="display:flex;align-items:center;gap:0.6rem;">
+                    <button id="studyBackBtn" class="btn btn-secondary btn-small" style="display:none;padding:0.35rem 0.65rem;" title="Exit to dashboard">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        Back
+                    </button>
                     <h2 id="examTitle">Exam Title</h2>
                 </div>
                 <div class="exam-timer-box" id="examTimerContainer">
                     <span class="timer-label">Time Remaining:</span>
                     <span id="examTimer" class="timer-value">30:00</span>
                 </div>
+            </div>
+
+            <!-- Progress bar — shows answered/total -->
+            <div class="exam-progress-strip" id="examProgressStrip">
+                <div class="exam-progress-bar-track">
+                    <div class="exam-progress-bar-fill" id="examProgressBar" style="width:0%;background:var(--color-primary);transition:width 0.3s, background 0.3s;"></div>
+                </div>
+                <div class="exam-progress-label" id="examProgressLabel">0 / 0 answered</div>
             </div>
 
             <!-- Double Panel Workspace -->
@@ -1265,6 +1505,49 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
         </div>
     </div>
 
+    <!-- Register Single Student Modal -->
+    <div id="registerStudentModal" class="modal hidden" style="z-index:13000;">
+        <div class="modal-content" style="max-width:520px;width:96vw;max-height:90vh;overflow-y:auto;">
+            <div class="modal-header">
+                <h3>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:7px;vertical-align:middle;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    Register New Student
+                </h3>
+                <button id="closeRegisterStudent" class="close-btn">&times;</button>
+            </div>
+            <form id="registerStudentForm" style="padding:1.25rem 1.5rem;">
+                <div id="registerStudentError" style="display:none;margin-bottom:1rem;padding:0.7rem 0.9rem;background:rgba(231,76,60,0.1);color:#e74c3c;border-radius:0.5rem;font-size:0.88rem;"></div>
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;font-weight:600;margin-bottom:0.4rem;">Full Name <span style="color:var(--color-danger);">*</span></label>
+                    <input type="text" id="regStuName" class="form-input" placeholder="e.g. Abebe Johnson" required style="width:100%;">
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;font-weight:600;margin-bottom:0.4rem;">Email <span style="color:var(--color-danger);">*</span></label>
+                    <input type="email" id="regStuEmail" class="form-input" placeholder="e.g. abebe@example.com" required style="width:100%;">
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;font-weight:600;margin-bottom:0.4rem;">Student ID <span style="color:var(--color-danger);">*</span></label>
+                    <input type="text" id="regStuUserId" class="form-input" placeholder="e.g. ETS1234/15" required style="width:100%;">
+                </div>
+                <div style="margin-bottom:1.25rem;">
+                    <label style="display:block;font-weight:600;margin-bottom:0.4rem;">Password <span style="color:var(--color-danger);">*</span></label>
+                    <div style="display:flex;gap:0.5rem;">
+                        <input type="text" id="regStuPassword" class="form-input" placeholder="Min. 6 characters" required minlength="6" style="flex:1;">
+                        <button type="button" id="regStuGenPw" class="btn btn-secondary" style="white-space:nowrap;">Generate</button>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--color-text-secondary);margin-top:0.3rem;">Tip: Click Generate to create a strong 8-char password.</div>
+                </div>
+                <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+                    <button type="button" id="cancelRegisterStudent" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg>
+                        Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Bulk Import Students Modal -->
     <div id="bulkImportModal" class="modal hidden" style="z-index:13000;">
         <div class="modal-content" style="max-width:680px;width:96vw;max-height:90vh;overflow-y:auto;">
@@ -1312,13 +1595,39 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
         </div>
     </div>
 
-    <script src="js/core.js?v=31"></script>
-    <script src="js/auth.js?v=31"></script>
-    <script src="js/dashboard.js?v=31"></script>
-    <script src="js/student.js?v=31"></script>
-    <script src="js/teacher.js?v=31"></script>
-    <script src="js/exam.js?v=31"></script>
-    <script src="js/exam-creation.js?v=31"></script>
-    <script src="js/app.js?v=31"></script>
+    <!-- Question Discussion Modal -->
+    <div id="questionDiscussionModal" class="modal hidden" style="z-index:13500;">
+        <div class="modal-content" style="max-width:720px;width:96vw;max-height:85vh;display:flex;flex-direction:column;">
+            <div class="modal-header">
+                <h3>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:7px;vertical-align:middle;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Question Discussion
+                </h3>
+                <button id="closeDiscussionModal" class="close-btn">&times;</button>
+            </div>
+            <div id="discussionQuestionPreview" style="padding:0.9rem 1.5rem;border-bottom:1px solid var(--color-border);font-size:0.92rem;color:var(--color-text-secondary);max-height:160px;overflow:auto;"></div>
+            <div id="discussionList" style="flex:1;overflow-y:auto;padding:0.9rem 1.5rem;"></div>
+            <div style="padding:0.75rem 1.5rem;border-top:1px solid var(--color-border);">
+                <textarea id="discussionReplyText" class="form-input" placeholder="Add your comment or question..." rows="2" style="width:100%;resize:vertical;"></textarea>
+                <div style="display:flex;justify-content:flex-end;margin-top:0.5rem;">
+                    <button id="postDiscussionBtn" class="btn btn-primary btn-small">Post Comment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/core.js?v=39"></script>
+    <script src="js/auth.js?v=39"></script>
+    <script src="js/dashboard.js?v=39"></script>
+    <script src="js/student.js?v=39"></script>
+    <script src="js/teacher.js?v=39"></script>
+    <script src="js/exam.js?v=39"></script>
+    <script src="js/exam-creation.js?v=39"></script>
+    <script src="js/study.js?v=39"></script>
+    <script src="js/question-renderer.js?v=39"></script>
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="js/app.js?v=39"></script>
 </body>
 </html>

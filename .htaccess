@@ -6,6 +6,16 @@ Options -Indexes
 # Default charset
 AddDefaultCharset UTF-8
 
+# ──────────────────────────────────────────────────
+# Application config
+# Public student self-signup is DISABLED by default.
+# Students must be created by a teacher via the
+# "Register Student" button or CSV bulk-import.
+# To RE-ENABLE self-signup, comment out the next line
+# OR change it to: SetEnv ALLOW_SIGNUP true
+# ──────────────────────────────────────────────────
+SetEnv ALLOW_SIGNUP false
+
 # Enable URL rewriting
 <IfModule mod_rewrite.c>
     RewriteEngine On
@@ -35,10 +45,13 @@ AddDefaultCharset UTF-8
     ExpiresActive On
     ExpiresByType text/css "access plus 1 day"
     ExpiresByType application/javascript "access plus 1 day"
+    ExpiresByType text/javascript "access plus 1 day"
     ExpiresByType image/png "access plus 7 days"
     ExpiresByType image/jpeg "access plus 7 days"
     ExpiresByType image/gif "access plus 7 days"
     ExpiresByType image/svg+xml "access plus 7 days"
+    ExpiresByType application/manifest+json "access plus 1 hour"
+    ExpiresByType application/json "access plus 1 hour"
 </IfModule>
 
 # Security headers
@@ -48,13 +61,27 @@ AddDefaultCharset UTF-8
     Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
+# PWA — serve manifest.json with the correct MIME type
+<IfModule mod_mime.c>
+    AddType application/manifest+json .json
+    AddType application/javascript .js
+    AddType text/cache-manifest .appcache
+</IfModule>
+
+# Allow service worker scope = root (so it can intercept all requests)
+<IfModule mod_headers.c>
+    <Files "sw.js">
+        Header set Service-Worker-Allowed "/"
+    </Files>
+</IfModule>
+
 # PHP settings
 <IfModule mod_php7.c>
     php_value display_errors Off
     php_value log_errors On
     php_value max_execution_time 120
-    php_value upload_max_filesize 10M
-    php_value post_max_size 12M
+    php_value upload_max_filesize 30M
+    php_value post_max_size 32M
     php_value session.cookie_httponly 1
     php_value session.cookie_samesite Lax
     php_value session.gc_maxlifetime 2592000
@@ -63,8 +90,8 @@ AddDefaultCharset UTF-8
     php_value display_errors Off
     php_value log_errors On
     php_value max_execution_time 120
-    php_value upload_max_filesize 10M
-    php_value post_max_size 12M
+    php_value upload_max_filesize 30M
+    php_value post_max_size 32M
     php_value session.cookie_httponly 1
     php_value session.cookie_samesite Lax
     php_value session.gc_maxlifetime 2592000

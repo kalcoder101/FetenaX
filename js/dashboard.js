@@ -22,12 +22,30 @@ function switchTab(role, tabId) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
     });
 
+    nav.querySelectorAll('.menu-group').forEach(function (group) {
+        var hasActive = group.querySelector('.menu-item.active') !== null;
+        var header = group.querySelector('.menu-group-header');
+        if (header) {
+            header.classList.toggle('active', hasActive);
+        }
+        if (hasActive) {
+            group.classList.add('open');
+        }
+    });
+
     var mainContentTitle = document.getElementById('mainContentTitle');
     var mainContentSubtitle = document.getElementById('mainContentSubtitle');
 
     var titles = {
         'student-exams':        { title: 'Available Exams',      subtitle: 'Select an exam and test your knowledge' },
+        'student-subjects':     { title: 'Practice by Subject',  subtitle: 'Focus on one subject at a time with instant feedback' },
+        'student-mock':         { title: 'Mock Exit Exam',       subtitle: 'Simulate the real 3-hour, 115-question exit exam' },
+        'student-srs':          { title: 'Review Queue (SRS)',   subtitle: 'Spaced-repetition queue — questions you missed, scheduled to reappear' },
+        'student-mastery':      { title: 'Subject Mastery',      subtitle: 'Radar chart + history of your per-subject accuracy' },
+        'student-weakness':     { title: 'My Weaknesses',        subtitle: 'Diagnostic report with smart recommendations' },
         'student-history':      { title: 'My Performance',       subtitle: 'Track your progress and attempt history' },
+        'student-schedule':     { title: 'Study Schedule',       subtitle: 'Plan your study sessions on the calendar' },
+        'student-resources':    { title: 'Study Resources',      subtitle: 'Curated textbook chapters, videos, and notes by subject' },
         'student-leaderboard':  { title: 'Leaderboard',          subtitle: 'See how you rank against other students' },
         'student-calendar':     { title: 'Calendar',             subtitle: 'Upcoming exams and your attempt history' },
         'student-settings':     { title: 'Profile Settings',     subtitle: 'Update your name, avatar and password' },
@@ -38,6 +56,9 @@ function switchTab(role, tabId) {
         'teacher-bank':         { title: 'Question Bank',        subtitle: 'Manage reusable questions for any exam' },
         'teacher-groups':       { title: 'Class Groups',         subtitle: 'Organise students into groups and assign exams' },
         'teacher-codes':        { title: 'Access Codes',         subtitle: 'View and manage exam access codes' },
+        'teacher-analytics':    { title: 'Class Analytics',       subtitle: 'Class-wide subject mastery, pass rates, and hardest questions' },
+        'teacher-progress':     { title: 'Student Progress',      subtitle: 'Per-student mastery across subjects — identify who needs help' },
+        'teacher-resources':    { title: 'Study Resources',      subtitle: 'Add curated study materials for students' },
         'teacher-settings':     { title: 'Profile Settings',     subtitle: 'Update your name, avatar and password' }
     };
 
@@ -50,9 +71,19 @@ function switchTab(role, tabId) {
     if (tabId === 'student-leaderboard')  loadLeaderboard();
     if (tabId === 'student-calendar')     loadCalendar();
     if (tabId === 'student-settings')     loadSettingsPanel('student');
+    if (tabId === 'student-subjects')     loadStudentSubjects();
+    if (tabId === 'student-mock')         loadMockExam();
+    if (tabId === 'student-srs')          loadSrsQueue();
+    if (tabId === 'student-mastery')      loadSubjectMastery();
+    if (tabId === 'student-weakness')     loadWeaknessReport();
+    if (tabId === 'student-schedule')     loadStudySchedule();
+    if (tabId === 'student-resources')    loadStudyResourcesStudent();
     if (tabId === 'teacher-bank')         loadTeacherBank();
     if (tabId === 'teacher-groups')       loadTeacherGroups();
     if (tabId === 'teacher-codes')        loadAccessCodes();
+    if (tabId === 'teacher-analytics')    loadClassAnalytics();
+    if (tabId === 'teacher-progress')     loadStudentProgress();
+    if (tabId === 'teacher-resources')    loadTeacherResources();
     if (tabId === 'teacher-settings')     loadSettingsPanel('teacher');
 }
 
@@ -84,8 +115,31 @@ function showDashboardForRole(role) {
         studentNav.classList.remove('hidden');
         teacherNav.classList.add('hidden');
         studentNav.querySelectorAll('.menu-item').forEach(function (btn) { btn.classList.remove('active'); });
-        studentNav.querySelector('[data-tab="student-exams"]').classList.add('active');
-        switchTab('student', 'student-exams');
+
+        // Honor PWA shortcut deep link (e.g. ?action=mock → student-mock tab)
+        var pendingTab = 'student-exams';
+        try {
+            var action = localStorage.getItem('fetenax_pending_action');
+            if (action) {
+                var map = {
+                    'mock': 'student-mock',
+                    'practice': 'student-subjects',
+                    'mastery': 'student-mastery',
+                    'srs': 'student-srs',
+                    'weakness': 'student-weakness',
+                    'schedule': 'student-schedule',
+                    'resources': 'student-resources',
+                    'history': 'student-history'
+                };
+                if (map[action]) pendingTab = map[action];
+                localStorage.removeItem('fetenax_pending_action');
+            }
+        } catch (e) {}
+
+        var targetBtn = studentNav.querySelector('[data-tab="' + pendingTab + '"]');
+        if (targetBtn) targetBtn.classList.add('active');
+        else studentNav.querySelector('[data-tab="student-exams"]').classList.add('active');
+        switchTab('student', pendingTab);
         loadStudentDashboard();
     } else {
         document.getElementById('teacherDashboard').classList.remove('hidden');

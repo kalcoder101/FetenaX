@@ -1,0 +1,63 @@
+{
+    "name": "FetenaX — Exam Platform",
+    "short_name": "FetenaX",
+    "description": "CS Exit Exam preparation platform with practice, mock exams, and analytics",
+    "start_url": "./index.php",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#faf7f0",
+    "theme_color": "#57785a",
+    "categories": ["education", "productivity"],
+    "lang": "en",
+    "dir": "ltr",
+    "icons": [
+        {
+            "src": "Img/fetenAX.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "Img/fetenAX.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "Img/fetenAX.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "Img/fetenAX.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Take Mock Exam",
+            "short_name": "Mock Exam",
+            "description": "Start a 115-question mock exit exam",
+            "url": "./index.php?action=mock",
+            "icons": [{ "src": "Img/fetenAX.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "Practice by Subject",
+            "short_name": "Practice",
+            "description": "Pick a subject and practice questions",
+            "url": "./index.php?action=practice",
+            "icons": [{ "src": "Img/fetenAX.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "My Performance",
+            "short_name": "Performance",
+            "description": "View your mastery radar and progress",
+            "url": "./index.php?action=mastery",
+            "icons": [{ "src": "Img/fetenAX.png", "sizes": "96x96" }]
+        }
+    ]
+}

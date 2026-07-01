@@ -1174,33 +1174,38 @@ async function loadAccessCodes() {
     if (!container) return;
     container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary);">Loading access codes…</div>';
 
-    var res = await apiRequest('teacher_analytics', {}, 'GET');
-    if (res.status !== 'success' || !res.analytics) {
-        container.innerHTML = '<div style="padding:1.5rem;color:var(--color-danger);">Failed to load exams.</div>';
+    // Use the dedicated access codes endpoint (returns codePlain persisted in access_codes table).
+    var res = await apiRequest('teacher_get_access_codes', {}, 'GET');
+    if (res.status !== 'success' || !res.codes) {
+        container.innerHTML = '<div style="padding:1.5rem;color:var(--color-danger);">Failed to load access codes.</div>';
         return;
     }
 
-    var exams = res.analytics;
+    var exams = res.codes;
     if (exams.length === 0) {
         container.innerHTML =
             '<div class="analytics-empty-state">' +
                 '<div class="aems-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>' +
                 '<div class="aems-title">No exams created yet</div>' +
-                '<div class="aems-desc">Create an exam with an access code to see it listed here.</div>' +
+                '<div class="aems-desc">Create an exam, then come back here to set its access code.</div>' +
             '</div>';
         return;
     }
 
-    // Build the access codes list — use hasAccessCode from analytics response
+    var protectedCount = exams.filter(function (e) { return e.hasCode; }).length;
+
     container.innerHTML =
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">' +
-            '<h3 style="font-size:1.1rem;font-weight:700;margin:0;">Exam Access Codes</h3>' +
-            '<span style="font-size:0.82rem;color:var(--color-text-secondary);">' + exams.length + ' exam' + (exams.length === 1 ? '' : 's') + '</span>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.6rem;">' +
+            '<h3 style="font-size:1.15rem;font-weight:700;margin:0;">Exam Access Codes</h3>' +
+            '<span style="font-size:0.82rem;color:var(--color-text-secondary);">' +
+                exams.length + ' exam' + (exams.length === 1 ? '' : 's') + ' · ' +
+                protectedCount + ' protected · ' + (exams.length - protectedCount) + ' open' +
+            '</span>' +
         '</div>' +
-        '<div style="font-size:0.82rem;color:var(--color-text-secondary);margin-bottom:1rem;padding:0.6rem 0.85rem;background:rgba(26,80,139,0.06);border:1px solid rgba(26,80,139,0.15);border-radius:0.5rem;">' +
-            '<b>ℹ Note:</b> Access codes are shown in plain text for easy sharing with students. Click "Regenerate" to create a new code, or "Set Code" to add one.' +
+        '<div style="font-size:0.85rem;color:var(--color-text-secondary);margin-bottom:1.25rem;padding:0.75rem 1rem;background:rgba(87,120,90,0.08);border:1px solid rgba(87,120,90,0.18);border-radius:0.6rem;line-height:1.55;">' +
+            '<b>Persistent storage:</b> Codes are saved to a dedicated <code>access_codes</code> table and survive exam edits. Use <b>Generate</b> to create a random 6-char code, <b>Set</b> to type a custom one, or <b>Delete</b> to remove protection.' +
         '</div>' +
-        '<div id="accessCodesList"></div>';
+        '<div id="accessCodesList" style="display:grid;gap:0.85rem;"></div>';
 
     var list = document.getElementById('accessCodesList');
     list.innerHTML = '';
@@ -1208,31 +1213,44 @@ async function loadAccessCodes() {
         var card = document.createElement('div');
         card.className = 'access-code-card';
         var diffColor = { Easy: 'var(--color-success)', Medium: '#f59e0b', Hard: 'var(--color-danger)' }[exam.difficulty] || 'var(--color-primary)';
-        var hasCode = exam.hasAccessCode;
+        var hasCode = exam.hasCode;
         var accessCode = exam.accessCode || '';
         var statusBadge = hasCode
             ? '<span class="ac-status ac-status-set">🔒 Protected</span>'
             : '<span class="ac-status ac-status-none">🔓 Open Access</span>';
 
-        // Show the actual code if available, otherwise show status text
         var codeDisplay = '';
         if (hasCode && accessCode) {
-            codeDisplay = '<div class="ac-code-display" id="ac-code-' + exam.id + '">' + escapeHtmlNotif(accessCode) + '</div>';
-        } else if (hasCode) {
-            codeDisplay = '<div class="ac-code-value has-code">✓ Code set (created before plain-text storage)</div>';
+            codeDisplay = '<div class="ac-code-display" id="ac-code-' + exam.examId + '">' + escapeHtmlNotif(accessCode) + '</div>';
         } else {
             codeDisplay = '<div class="ac-code-value no-code">No access code — any student can start</div>';
         }
 
-        // Copy button only if we have the actual code
         var copyBtn = (hasCode && accessCode)
-            ? '<button class="btn btn-secondary btn-small ac-copy-btn" data-code="' + escapeHtmlNotif(accessCode) + '" title="Copy code"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'
+            ? '<button class="btn btn-secondary btn-small" data-ac-action="copy" data-ac-code="' + escapeHtmlNotif(accessCode) + '" data-exam-id="' + exam.examId + '" title="Copy code"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'
+            : '';
+
+        var genBtn = '<button class="btn btn-primary btn-small" data-ac-action="regenerate" data-exam-id="' + exam.examId + '" title="Generate a random 6-char code">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>' +
+            (hasCode ? 'Regenerate' : 'Generate') +
+            '</button>';
+
+        var setBtn = '<button class="btn btn-secondary btn-small" data-ac-action="set" data-exam-id="' + exam.examId + '" title="Type a custom code">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+            'Set' +
+            '</button>';
+
+        var delBtn = hasCode
+            ? '<button class="btn btn-danger btn-small" data-ac-action="delete" data-exam-id="' + exam.examId + '" title="Delete access code">' +
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>' +
+                'Delete' +
+              '</button>'
             : '';
 
         card.innerHTML =
             '<div class="ac-card-header">' +
                 '<div class="ac-card-title">' + escapeHtmlNotif(exam.title) + '</div>' +
-                '<div style="display:flex;gap:0.35rem;align-items:center;">' +
+                '<div style="display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap;">' +
                     statusBadge +
                     '<span class="ac-card-chip" style="color:' + diffColor + ';background:' + diffColor + '18;">' + exam.difficulty + '</span>' +
                 '</div>' +
@@ -1242,36 +1260,155 @@ async function loadAccessCodes() {
                 '<span class="ac-meta-item">' + exam.totalQuestions + 'Q · ' + exam.duration + 'min</span>' +
                 '<span class="ac-meta-item">Max attempts: ' + (exam.maxAttempts || 1) + '</span>' +
             '</div>' +
-            '<div class="ac-code-row">' +
+            '<div class="ac-code-row" style="flex-wrap:wrap;">' +
                 '<div class="ac-code-label">Access Code:</div>' +
                 codeDisplay +
                 copyBtn +
-                '<button class="btn btn-primary btn-small ac-edit-btn" data-exam-id="' + exam.id + '" title="Edit exam to set/regenerate code">' +
-                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
-                    (hasCode ? 'Regenerate' : 'Set Code') +
-                '</button>' +
+            '</div>' +
+            '<div style="display:flex;gap:0.4rem;margin-top:0.7rem;flex-wrap:wrap;">' +
+                genBtn + setBtn + delBtn +
             '</div>';
 
         list.appendChild(card);
     });
+    // Edit/regenerate/set/delete buttons are wired globally via initAccessCodesManager()
+}
 
-    // Wire copy buttons
-    list.querySelectorAll('.ac-copy-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var code = this.getAttribute('data-code');
-            navigator.clipboard.writeText(code).then(function () {
-                showToast('Code "' + code + '" copied to clipboard!', 'success');
-            }).catch(function () {
-                showToast('Copy failed. Code: ' + code, 'error');
+// =========================================================================
+// REGISTER STUDENT MODAL
+// =========================================================================
+
+function initRegisterStudent() {
+    var btn      = document.getElementById('registerStudentBtn');
+    var modal    = document.getElementById('registerStudentModal');
+    var closeBtn = document.getElementById('closeRegisterStudent');
+    var cancelBtn = document.getElementById('cancelRegisterStudent');
+    var form     = document.getElementById('registerStudentForm');
+    var genPwBtn = document.getElementById('regStuGenPw');
+    var errBox   = document.getElementById('registerStudentError');
+
+    if (!btn || !modal || !form) return;
+
+    function openModal() {
+        form.reset();
+        if (errBox) { errBox.style.display = 'none'; errBox.textContent = ''; }
+        modal.classList.remove('hidden');
+    }
+    function closeModal() { modal.classList.add('hidden'); }
+
+    btn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    if (genPwBtn) {
+        genPwBtn.addEventListener('click', function () {
+            var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+            var pw = '';
+            for (var i = 0; i < 8; i++) pw += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('regStuPassword').value = pw;
+        });
+    }
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var name     = document.getElementById('regStuName').value.trim();
+        var email    = document.getElementById('regStuEmail').value.trim();
+        var userId   = document.getElementById('regStuUserId').value.trim();
+        var password = document.getElementById('regStuPassword').value;
+
+        if (!name || !email || !userId || !password) {
+            if (errBox) { errBox.textContent = 'All fields are required.'; errBox.style.display = 'block'; }
+            return;
+        }
+        if (password.length < 6) {
+            if (errBox) { errBox.textContent = 'Password must be at least 6 characters.'; errBox.style.display = 'block'; }
+            return;
+        }
+
+        var submitBtn = form.querySelector('[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating…'; }
+
+        try {
+            var res = await apiRequest('teacher_register_student', {
+                name: name, email: email, userId: userId, password: password
             });
-        });
+            if (res.status === 'success') {
+                closeModal();
+                showToast(res.message || 'Student registered successfully!', 'success');
+                loadTeacherDashboard();
+            } else {
+                if (errBox) { errBox.textContent = res.message || 'Failed to register student.'; errBox.style.display = 'block'; }
+            }
+        } catch (err) {
+            if (errBox) { errBox.textContent = 'Network error: ' + err.message; errBox.style.display = 'block'; }
+        } finally {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg> Create Account'; }
+        }
     });
+}
 
-    // Wire edit/regenerate buttons — open the edit exam modal
-    list.querySelectorAll('.ac-edit-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var examId = parseInt(this.getAttribute('data-exam-id'));
-            openEditExam(examId);
-        });
+// =========================================================================
+// ACCESS CODES — persistent management
+// (Replaces loadAccessCodes with a fuller version that supports
+//  create / edit / delete codes directly via a dedicated table).
+// =========================================================================
+
+function initAccessCodesManager() {
+    // Use document-level delegation so it works even after re-renders.
+    document.addEventListener('click', async function (e) {
+        var t = e.target.closest('[data-ac-action]');
+        if (!t) return;
+        var action = t.getAttribute('data-ac-action');
+        var examId = parseInt(t.getAttribute('data-exam-id') || '0');
+        if (!examId) return;
+
+        if (action === 'copy') {
+            var code = t.getAttribute('data-ac-code') || '';
+            try {
+                await navigator.clipboard.writeText(code);
+                showToast('Code "' + code + '" copied!', 'success');
+            } catch (_) {
+                showToast('Copy failed. Code: ' + code, 'error');
+            }
+        } else if (action === 'regenerate') {
+            var newCode = generateAccessCode();
+            var res = await apiRequest('teacher_set_access_code', { examId: examId, code: newCode });
+            if (res.status === 'success') {
+                showToast('New code generated: ' + newCode, 'success');
+                loadAccessCodes();
+            } else {
+                showToast(res.message || 'Failed to generate code.', 'error');
+            }
+        } else if (action === 'set') {
+            var input = prompt('Enter access code for this exam (leave empty to remove):', '');
+            if (input === null) return;
+            input = input.trim();
+            var r2 = await apiRequest('teacher_set_access_code', { examId: examId, code: input });
+            if (r2.status === 'success') {
+                showToast(input ? 'Access code saved.' : 'Access code removed.', 'success');
+                loadAccessCodes();
+            } else {
+                showToast(r2.message || 'Failed to save code.', 'error');
+            }
+        } else if (action === 'delete') {
+            if (!confirm('Remove the access code from this exam? Students will not need a code to start.')) return;
+            var r3 = await apiRequest('teacher_set_access_code', { examId: examId, code: '' });
+            if (r3.status === 'success') {
+                showToast('Access code removed.', 'success');
+                loadAccessCodes();
+            } else {
+                showToast(r3.message || 'Failed to remove code.', 'error');
+            }
+        }
     });
+}
+
+function generateAccessCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var s = '';
+    for (var i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+    return s;
 }

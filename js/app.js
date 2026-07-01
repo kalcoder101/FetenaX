@@ -27,23 +27,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // =========================================================================
     // THEME TOGGLE (dark / light mode)
+    // CSS targets `body.dark-mode`, so we must apply/remove that CLASS on <body>.
+    // We also keep data-theme on <html> for backwards compatibility.
     // =========================================================================
 
-    function toggleTheme() {
+    function applyTheme(theme) {
+        var body = document.body;
         var root = document.documentElement;
-        var current = root.getAttribute('data-theme');
-        root.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-        localStorage.setItem('theme', root.getAttribute('data-theme'));
+        if (theme === 'dark') {
+            body.classList.add('dark-mode');
+            root.setAttribute('data-theme', 'dark');
+        } else {
+            body.classList.remove('dark-mode');
+            root.setAttribute('data-theme', 'light');
+        }
+        // Update any toggle icon
+        document.querySelectorAll('[data-theme-icon]').forEach(function (el) {
+            el.textContent = (theme === 'dark') ? '\u2600\ufe0f' : '\ud83c\udf19';
+        });
     }
 
-    // Restore saved theme
-    var savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-        // Default to dark
-        document.documentElement.setAttribute('data-theme', 'dark');
+    function toggleTheme() {
+        var isDark = document.body.classList.contains('dark-mode');
+        var next = isDark ? 'light' : 'dark';
+        applyTheme(next);
+        try { localStorage.setItem('theme', next); } catch (e) {}
     }
+
+    // Restore saved theme (apply BEFORE first paint to avoid flash)
+    var savedTheme = 'dark';
+    try { savedTheme = localStorage.getItem('theme') || 'dark'; } catch (e) {}
+    applyTheme(savedTheme);
 
     if (themeToggle)     themeToggle.addEventListener('click', toggleTheme);
     if (mainThemeToggle) mainThemeToggle.addEventListener('click', toggleTheme);
@@ -184,6 +198,26 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Toggle menu groups on click (primarily for mobile accordion, but works on desktop too)
+    document.querySelectorAll('.menu-group-header').forEach(function (header) {
+        header.addEventListener('click', function (e) {
+            e.preventDefault();
+            var group = this.closest('.menu-group');
+            if (!group) return;
+            var isOpen = group.classList.contains('open');
+            
+            // Accordion behavior: close other groups
+            var parentNav = group.closest('.sidebar-menu');
+            if (parentNav) {
+                parentNav.querySelectorAll('.menu-group').forEach(function (g) {
+                    if (g !== group) g.classList.remove('open');
+                });
+            }
+            
+            group.classList.toggle('open', !isOpen);
+        });
+    });
+
     // =========================================================================
     // EXAM BUTTONS (wired with fresh listeners each time)
     // =========================================================================
@@ -198,6 +232,10 @@ document.addEventListener('DOMContentLoaded', function () {
     initExamCreation();
     initBulkExamImport();
     initBulkStudentImport();
+    initRegisterStudent();
+    initAccessCodesManager();
+    initMobileNav();
+    initPWA();
 
     // =========================================================================
     // NOTIFICATIONS
@@ -394,3 +432,160 @@ document.addEventListener('DOMContentLoaded', function () {
         startNotificationPolling();
     });
 });
+
+// =========================================================================
+// MOBILE NAV — hamburger button + slide-out sidebar
+// =========================================================================
+function initMobileNav() {
+    var hamburgerBtn = document.getElementById('mobileHamburgerBtn');
+    var closeBtn     = document.getElementById('sidebarCloseBtn');
+    var sidebar      = document.getElementById('mainSidebar');
+    var overlay      = document.getElementById('sidebarOverlay');
+    if (!sidebar) return;
+
+    function openSidebar() {
+        sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('active');
+        if (closeBtn) closeBtn.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('active');
+        if (closeBtn) closeBtn.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    if (hamburgerBtn) hamburgerBtn.addEventListener('click', openSidebar);
+    if (closeBtn)     closeBtn.addEventListener('click', closeSidebar);
+    if (overlay)      overlay.addEventListener('click', closeSidebar);
+
+    // Auto-close sidebar when a menu item is clicked (mobile UX)
+    sidebar.querySelectorAll('.menu-item').forEach(function (item) {
+        item.addEventListener('click', function () {
+            if (window.innerWidth <= 900) {
+                // Update the mobile top bar title
+                var label = item.querySelector('span');
+                if (label) {
+                    var mtbTitle = document.getElementById('mtbTitle');
+                    if (mtbTitle) mtbTitle.textContent = label.textContent;
+                }
+                setTimeout(closeSidebar, 150);
+            }
+        });
+    });
+
+    // Sync mobile top bar title when switchTab is called
+    // (We patch the original switchTab to also update mtbTitle)
+    var origSwitchTab = window.switchTab;
+    if (typeof origSwitchTab === 'function') {
+        window.switchTab = function (role, tabId) {
+            origSwitchTab(role, tabId);
+            // Update mobile top bar title from the mainContentTitle element
+            var mainTitle = document.getElementById('mainContentTitle');
+            var mainSub   = document.getElementById('mainContentSubtitle');
+            var mtbTitle  = document.getElementById('mtbTitle');
+            var mtbSub    = document.getElementById('mtbSubtitle');
+            if (mtbTitle && mainTitle) mtbTitle.textContent = mainTitle.textContent;
+            if (mtbSub && mainSub) mtbSub.textContent = mainSub.textContent;
+        };
+    }
+
+    // Close sidebar on Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
+    });
+
+    // Close sidebar when resizing to desktop
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 900) closeSidebar();
+    });
+
+    // Handle ?action=mock / ?action=practice / ?action=mastery deep links (from PWA shortcuts)
+    var params = new URLSearchParams(window.location.search);
+    var action = params.get('action');
+    if (action && typeof localStorage !== 'undefined') {
+        // Stash the requested tab so switchTab can pick it up after auth check
+        try { localStorage.setItem('fetenax_pending_action', action); } catch (e) {}
+    }
+}
+
+// =========================================================================
+// PWA — register service worker + show install prompt
+// =========================================================================
+function initPWA() {
+    // Register service worker (only on https/localhost)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('sw.js').then(function (reg) {
+                console.log('[PWA] Service Worker registered:', reg.scope);
+                // Check for updates every hour
+                setInterval(function () {
+                    reg.update().catch(function () {});
+                }, 60 * 60 * 1000);
+            }).catch(function (err) {
+                console.warn('[PWA] Service Worker registration failed:', err);
+            });
+        });
+    }
+
+    // Capture the install prompt event so we can trigger it later
+    var deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        showPWAInstallBanner(deferredPrompt);
+    });
+
+    window.addEventListener('appinstalled', function () {
+        console.log('[PWA] App installed');
+        hidePWAInstallBanner();
+    });
+}
+
+function showPWAInstallBanner(deferredPrompt) {
+    if (!deferredPrompt) return;
+    // Don't show if user previously dismissed
+    try {
+        if (localStorage.getItem('pwa_install_dismissed') === '1') return;
+    } catch (e) {}
+
+    // Don't show if already running as PWA
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+
+    var banner = document.createElement('div');
+    banner.id = 'pwaInstallBanner';
+    banner.style.cssText = [
+        'position:fixed', 'bottom:0', 'left:0', 'right:0',
+        'background:var(--color-primary)', 'color:#fff',
+        'padding:0.75rem 1rem', 'display:flex', 'align-items:center',
+        'gap:0.7rem', 'z-index:15000', 'box-shadow:0 -4px 12px rgba(0,0,0,0.2)',
+        'font-size:0.9rem'
+    ].join(';') + ';';
+    banner.innerHTML =
+        '<div style="flex:1;">' +
+            '<div style="font-weight:700;font-size:0.95rem;">📱 Install FetenaX</div>' +
+            '<div style="font-size:0.78rem;opacity:0.9;">Add to home screen for offline use & a native app feel.</div>' +
+        '</div>' +
+        '<button id="pwaInstallYes" class="btn" style="background:#fff;color:var(--color-primary);font-weight:700;">Install</button>' +
+        '<button id="pwaInstallNo" class="btn" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.5);">Later</button>';
+    document.body.appendChild(banner);
+
+    document.getElementById('pwaInstallYes').addEventListener('click', async function () {
+        deferredPrompt.prompt();
+        var choice = await deferredPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+            console.log('[PWA] User accepted install');
+        }
+        hidePWAInstallBanner();
+    });
+    document.getElementById('pwaInstallNo').addEventListener('click', function () {
+        try { localStorage.setItem('pwa_install_dismissed', '1'); } catch (e) {}
+        hidePWAInstallBanner();
+    });
+}
+
+function hidePWAInstallBanner() {
+    var banner = document.getElementById('pwaInstallBanner');
+    if (banner) banner.remove();
+}

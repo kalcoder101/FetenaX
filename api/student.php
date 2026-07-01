@@ -68,8 +68,21 @@ if ($action === 'get_exam') {
     }
     skipAttempts:
 
+    // Detect optional columns defensively (v31/v32/v33)
+    $hasExtras = false; $hasImage = false;
+    try {
+        $chk = $pdo->prepare("SHOW COLUMNS FROM `questions` LIKE 'explanation'");
+        $chk->execute();
+        if ($chk->fetch()) $hasExtras = true;
+        $chk2 = $pdo->prepare("SHOW COLUMNS FROM `questions` LIKE 'imageUrl'");
+        $chk2->execute();
+        if ($chk2->fetch()) $hasImage = true;
+    } catch (Exception $e) { /* ignore */ }
+    $extraSelect = $hasExtras ? ',`explanation`,`hint1`,`hint2`' : '';
+    $extraSelect .= $hasImage ? ',`imageUrl`' : '';
+
     // Fetch questions
-    $stmt = $pdo->prepare("SELECT `id`, `question`, `option1`, `option2`, `option3`, `option4`, `points`, `questionType` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
+    $stmt = $pdo->prepare("SELECT `id`, `question`, `option1`, `option2`, `option3`, `option4`, `points`, `questionType`" . $extraSelect . " FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
     $stmt->execute([$examId]);
     $questions = $stmt->fetchAll();
 
@@ -88,13 +101,22 @@ if ($action === 'get_exam') {
             foreach ($indices as $i) $shuffledOptions[] = $options[$i];
             $options = $shuffledOptions;
         }
-        $formattedQuestions[] = [
+        $item = [
             'id' => $q['id'],
             'question' => $q['question'],
             'options' => $options,
             'points' => (int)$q['points'],
             'questionType' => $q['questionType'] ?: 'single'
         ];
+        if ($hasExtras) {
+            $item['explanation'] = isset($q['explanation']) ? ($q['explanation'] ?: null) : null;
+            $item['hint1']       = isset($q['hint1'])       ? ($q['hint1']       ?: null) : null;
+            $item['hint2']       = isset($q['hint2'])       ? ($q['hint2']       ?: null) : null;
+        }
+        if ($hasImage) {
+            $item['imageUrl'] = isset($q['imageUrl']) ? ($q['imageUrl'] ?: null) : null;
+        }
+        $formattedQuestions[] = $item;
     }
     $exam['questions'] = $formattedQuestions;
     unset($exam['accessPassword']);
@@ -304,17 +326,36 @@ if ($action === 'practice_exam') {
     $exam = $stmt->fetch();
     if (!$exam) respond('error', ['message' => 'Exam not found.']);
 
-    $stmt = $pdo->prepare("SELECT `id`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points` FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
+    // Detect if explanation/hint columns exist (defensive against un-migrated DBs)
+    $hasExtras = false; $hasImage = false;
+    try {
+        $chk = $pdo->prepare("SHOW COLUMNS FROM `questions` LIKE 'explanation'");
+        $chk->execute();
+        if ($chk->fetch()) $hasExtras = true;
+        $chk2 = $pdo->prepare("SHOW COLUMNS FROM `questions` LIKE 'imageUrl'");
+        $chk2->execute();
+        if ($chk2->fetch()) $hasImage = true;
+    } catch (Exception $e) { /* ignore */ }
+    $extraCols = $hasExtras ? ',`explanation`,`hint1`,`hint2`' : '';
+    $extraCols .= $hasImage ? ',`imageUrl`' : '';
+
+    $stmt = $pdo->prepare("SELECT `id`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points`" . $extraCols . " FROM `questions` WHERE `examId` = ? ORDER BY `id` ASC");
     $stmt->execute([$examId]);
     $qs = $stmt->fetchAll();
 
-    $questions = array_map(fn($q) => [
-        'id'            => (int)$q['id'],
-        'question'      => $q['question'],
-        'options'       => [$q['option1'],$q['option2'],$q['option3'],$q['option4']],
-        'correctAnswer' => (int)$q['correctAnswer'],
-        'points'        => (int)$q['points']
-    ], $qs);
+    $questions = array_map(function ($q) {
+        return [
+            'id'            => (int)$q['id'],
+            'question'      => $q['question'],
+            'options'       => [$q['option1'],$q['option2'],$q['option3'],$q['option4']],
+            'correctAnswer' => (int)$q['correctAnswer'],
+            'points'        => (int)$q['points'],
+            'explanation'   => isset($q['explanation']) ? ($q['explanation'] ?: null) : null,
+            'hint1'         => isset($q['hint1'])       ? ($q['hint1']       ?: null) : null,
+            'hint2'         => isset($q['hint2'])       ? ($q['hint2']       ?: null) : null,
+            'imageUrl'      => isset($q['imageUrl'])    ? ($q['imageUrl']    ?: null) : null
+        ];
+    }, $qs);
 
     respond('success', ['exam' => $exam, 'questions' => $questions]);
 }

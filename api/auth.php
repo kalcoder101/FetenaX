@@ -82,7 +82,8 @@ if ($action === 'logout') {
 }
 
 if ($action === 'status') {
-    $allowSignup = isset($GLOBALS['allowSignup']) ? $GLOBALS['allowSignup'] : true;
+    // Default to disabling public signup; only enable if ALLOW_SIGNUP=true is set.
+    $allowSignup = getenv('ALLOW_SIGNUP') === 'true';
     if (isset($_SESSION['user'])) {
         respond('success', ['user' => $_SESSION['user'], 'allowSignup' => $allowSignup]);
     } else {

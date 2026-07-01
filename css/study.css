@@ -1,0 +1,179 @@
+/* css/study.css — FetenaX v31 study feature styling. */
+
+/* Subject practice cards */
+.subject-practice-card {
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.subject-practice-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(87,120,90,0.12);
+}
+
+/* Question map cells (re-used from exam.css but ensure they exist) */
+.qmap-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.35rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: var(--glass-bg);
+    color: var(--color-text);
+    transition: background 0.12s, transform 0.12s;
+    user-select: none;
+}
+.qmap-cell:hover { transform: scale(1.05); }
+.qmap-cell.active {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+.qmap-cell.answered {
+    background: rgba(110,154,114,0.25);
+    border-color: var(--color-success);
+    color: var(--color-success);
+}
+.qmap-cell.flagged {
+    border-color: #f59e0b;
+    background: rgba(245,158,11,0.15);
+}
+
+/* Option states for practice feedback */
+.option-item.correct {
+    background: rgba(110,154,114,0.20) !important;
+    border-color: var(--color-success) !important;
+}
+.option-item.correct .option-letter {
+    background: var(--color-success);
+    color: #fff;
+}
+.option-item.wrong {
+    background: rgba(231,76,60,0.18) !important;
+    border-color: var(--color-danger) !important;
+}
+.option-item.wrong .option-letter {
+    background: var(--color-danger);
+    color: #fff;
+}
+
+/* Practice feedback block */
+.practice-feedback {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Mock exam stat tiles */
+.stat-tile {
+    transition: transform 0.15s;
+}
+.stat-tile:hover { transform: translateY(-2px); }
+
+/* Mock hero */
+.mock-hero {
+    background: linear-gradient(135deg, rgba(87,120,90,0.08) 0%, rgba(163,204,59,0.10) 100%);
+}
+
+/* Calendar grid for study schedule */
+.schedule-calendar {
+    background: var(--glass-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 0.6rem;
+    padding: 0.85rem;
+}
+
+/* Discussion modal */
+#discussionList {
+    background: var(--color-bg);
+}
+.discussion-comment {
+    background: var(--glass-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Hint area */
+#hintArea button {
+    font-size: 0.78rem;
+}
+
+/* Radar chart container */
+.subject-mastery-radar {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+.subject-mastery-radar svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Performance line chart */
+.performance-line-chart svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Empty states for study tabs (if not already defined) */
+.analytics-empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--color-text-secondary);
+}
+.analytics-empty-state .aems-icon {
+    margin-bottom: 0.5rem;
+}
+.analytics-empty-state .aems-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.4rem;
+}
+.analytics-empty-state .aems-desc {
+    font-size: 0.9rem;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.55;
+}
+
+/* Question header strip in practice mode */
+.question-header-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.85rem;
+    background: rgba(87,120,90,0.06);
+    border-radius: 0.4rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.85rem;
+}
+.question-number-label {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+.question-points {
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .subject-practice-card,
+body.dark-mode .stat-tile,
+body.dark-mode .mock-hero,
+body.dark-mode .qmap-cell,
+body.dark-mode .discussion-comment {
+    background: rgba(24,34,28,0.75);
+}
+body.dark-mode .question-header-strip {
+    background: rgba(163,204,59,0.08);
+}
+body.dark-mode #discussionList {
+    background: #0c140f;
+}

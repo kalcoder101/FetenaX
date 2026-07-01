@@ -215,17 +215,36 @@ function renderQuestion() {
             '<label class="option-item ' + (isChecked ? 'selected' : '') + '">' +
                 '<input type="radio" name="optionRadio" value="' + i + '" ' + isChecked + '>' +
                 '<span class="option-letter">' + letter + '</span>' +
-                '<span class="option-text-content">' + opt + '</span>' +
+                '<span class="option-text-content">' + (window.renderOptionHTML ? window.renderOptionHTML(opt) : escapeHtmlNotif(opt)) + '</span>' +
             '</label>';
     });
 
+    // Word count + reading time hint
+    var meta = '';
+    if (window.countWords) {
+        var wc = window.countWords(q.question);
+        var rt = window.estimateReadingTime(q.question);
+        meta = '<span style="font-size:0.72rem;color:var(--color-text-secondary);margin-left:0.6rem;">' + wc + ' words · ~' + rt + 's read</span>';
+    }
+
     container.innerHTML =
         '<div class="question-header-strip">' +
-            '<span class="question-number-label">Question ' + (currentExamIndex + 1) + ' of ' + currentExam.questions.length + '</span>' +
-            '<span class="question-points">(' + (q.points || 1) + ' Point)</span>' +
+            '<span class="question-number-label">Question ' + (currentExamIndex + 1) + ' of ' + currentExam.questions.length + meta + '</span>' +
+            '<span class="question-points">(' + (q.points || 1) + ' Point' + ((q.points || 1) > 1 ? 's' : '') + ')</span>' +
         '</div>' +
-        '<div class="question-text">' + q.question + '</div>' +
+        '<div class="question-text" id="questionTextContainer"></div>' +
         '<div class="options-list">' + optionsHtml + '</div>';
+
+    // Render question text with code blocks, images, keyword highlighting
+    var textContainer = document.getElementById('questionTextContainer');
+    if (window.renderQuestionInto) {
+        window.renderQuestionInto(textContainer, q.question, { imageUrl: q.imageUrl });
+    } else {
+        textContainer.innerHTML = escapeHtmlNotif(q.question);
+    }
+
+    // Update progress bar
+    updateExamProgressBar();
 
     container.querySelectorAll('input[name="optionRadio"]').forEach(function (radio) {
         radio.addEventListener('change', async function () {
@@ -236,6 +255,7 @@ function renderQuestion() {
             var questionId = currentExam.questions[currentExamIndex].id;
             await apiRequest('save_answer', { examId: currentExam.id, questionId: questionId, selectedAnswer: answer });
             updateQuestionsGridItem(currentExamIndex);
+            updateExamProgressBar();
         });
     });
 
@@ -262,6 +282,31 @@ function renderQuestion() {
 // =========================================================================
 // QUESTIONS MAP GRID
 // =========================================================================
+
+// =========================================================================
+// PROGRESS BAR — visual indicator of answered/total questions
+// =========================================================================
+function updateExamProgressBar() {
+    var bar = document.getElementById('examProgressBar');
+    var label = document.getElementById('examProgressLabel');
+    if (!bar || !label) return;
+    var total = currentExam.questions.length;
+    if (!total) return;
+    var answered = 0;
+    currentExam.questions.forEach(function (q, i) {
+        // For real exams, currentExamAnswers is by index; for practice, by q.id
+        if (currentExamAnswers[i] !== undefined && currentExamAnswers[i] !== null) answered++;
+    });
+    // Also count flagged
+    var flagged = (currentExamFlags || []).filter(function (f) { return f; }).length;
+    var pct = Math.round(answered * 100 / total);
+    bar.style.width = pct + '%';
+    label.textContent = answered + ' / ' + total + ' answered' + (flagged ? ' · ' + flagged + ' flagged' : '');
+    // Color: green when 100%, orange when >=50%, red otherwise
+    if (pct === 100) bar.style.background = 'var(--color-success)';
+    else if (pct >= 50) bar.style.background = '#f59e0b';
+    else bar.style.background = 'var(--color-primary)';
+}
 
 function renderQuestionsGrid() {
     var grid = document.getElementById('questionsMapGrid');
@@ -496,6 +541,14 @@ async function startPractice(examId) {
     }
 
     currentExam = res.exam;
+    // Practice API returns questions separately from the exam object — attach them.
+    if (res.questions && !currentExam.questions) {
+        currentExam.questions = res.questions;
+    }
+    if (!currentExam.questions || currentExam.questions.length === 0) {
+        alert('This exam has no questions to practice.');
+        return;
+    }
     currentExam._isPractice = true;
     var total = currentExam.questions.length;
     currentExamAnswers = Array(total).fill(null);
@@ -538,17 +591,34 @@ function renderPracticeQuestion() {
             '<label class="option-item ' + (isChecked ? 'selected' : '') + '">' +
                 '<input type="radio" name="optionRadio" value="' + i + '" ' + isChecked + '>' +
                 '<span class="option-letter">' + letter + '</span>' +
-                '<span class="option-text-content">' + opt + '</span>' +
+                '<span class="option-text-content">' + (window.renderOptionHTML ? window.renderOptionHTML(opt) : escapeHtmlNotif(opt)) + '</span>' +
             '</label>';
     });
+
+    // Word count + reading time hint
+    var meta = '';
+    if (window.countWords) {
+        var wc = window.countWords(q.question);
+        var rt = window.estimateReadingTime(q.question);
+        meta = '<span style="font-size:0.72rem;color:var(--color-text-secondary);margin-left:0.6rem;">' + wc + ' words · ~' + rt + 's read</span>';
+    }
+
     container.innerHTML =
         '<div class="question-header-strip">' +
-            '<span class="question-number-label">Practice \u2014 Question ' + (currentExamIndex + 1) + ' of ' + currentExam.questions.length + '</span>' +
-            '<span class="question-points">(' + (q.points || 1) + ' Point)</span>' +
+            '<span class="question-number-label">Practice \u2014 Question ' + (currentExamIndex + 1) + ' of ' + currentExam.questions.length + meta + '</span>' +
+            '<span class="question-points">(' + (q.points || 1) + ' Point' + ((q.points || 1) > 1 ? 's' : '') + ')</span>' +
         '</div>' +
-        '<div class="question-text">' + q.question + '</div>' +
+        '<div class="question-text" id="questionTextContainer"></div>' +
         '<div class="options-list">' + optionsHtml + '</div>' +
         '<div id="practiceFeedback" class="practice-feedback" style="display:none;margin-top:0.5rem;padding:0.6rem 0.9rem;border-radius:0.5rem;font-weight:600;font-size:0.9rem;"></div>';
+
+    // Render question text with code blocks, images, keyword highlighting
+    var textContainer = document.getElementById('questionTextContainer');
+    if (window.renderQuestionInto) {
+        window.renderQuestionInto(textContainer, q.question, { imageUrl: q.imageUrl });
+    } else {
+        textContainer.innerHTML = escapeHtmlNotif(q.question);
+    }
 
     // Show feedback for previously answered questions
     if (currentExamAnswers[currentExamIndex] !== null) {
@@ -593,9 +663,21 @@ function showPracticeFeedback(idx) {
     var isCorrect = ans === q.correctAnswer;
     fb.style.background = isCorrect ? 'rgba(46,204,113,0.12)' : 'rgba(231,76,60,0.12)';
     fb.style.color = isCorrect ? '#2ecc71' : '#e74c3c';
-    fb.textContent = isCorrect
+    var head = isCorrect
         ? '\u2713 Correct! +' + (q.points || 1) + ' point'
         : '\u2717 Incorrect. The correct answer was: ' + (q.options[q.correctAnswer] || 'Option ' + String.fromCharCode(65 + q.correctAnswer));
+    var explanationHtml = '';
+    if (q.explanation) {
+        // Render the explanation as rich text too (may contain code blocks)
+        if (window.renderQuestionHTML) {
+            explanationHtml = '<div style="margin-top:0.6rem;padding:0.6rem 0.85rem;background:rgba(87,120,90,0.08);border-left:3px solid var(--color-primary);border-radius:0.4rem;font-size:0.88rem;line-height:1.55;color:var(--color-text);"><b>💡 Explanation:</b><br>' + window.renderQuestionHTML(q.explanation) + '</div>';
+        } else {
+            explanationHtml = '<div style="margin-top:0.6rem;padding:0.6rem 0.85rem;background:rgba(87,120,90,0.08);border-left:3px solid var(--color-primary);border-radius:0.4rem;font-size:0.88rem;line-height:1.55;color:var(--color-text);"><b>💡 Explanation:</b><br>' + escapeHtmlNotif(q.explanation) + '</div>';
+        }
+    }
+    fb.innerHTML = '<div>' + head + '</div>' + explanationHtml;
+    // Trigger Prism on any code blocks in the explanation
+    if (window.Prism) { try { window.Prism.highlightAllUnder(fb); } catch (e) {} }
 }
 
 function buildPracticeGrid() {
@@ -817,6 +899,8 @@ function wireExamButtons() {
         var newPrev = prevBtn.cloneNode(true);
         prevBtn.parentNode.replaceChild(newPrev, prevBtn);
         newPrev.addEventListener('click', function () {
+            // If a study session (subject/mock/SRS) is active, study.js handles nav.
+            if (typeof studySession !== 'undefined' && studySession && studySession.mode) return;
             if (currentExam && currentExam._isPractice) {
                 if (currentExamIndex > 0) {
                     currentExamIndex--;
@@ -835,6 +919,8 @@ function wireExamButtons() {
         var newNext = nextBtn.cloneNode(true);
         nextBtn.parentNode.replaceChild(newNext, nextBtn);
         newNext.addEventListener('click', function () {
+            // If a study session (subject/mock/SRS) is active, study.js handles nav.
+            if (typeof studySession !== 'undefined' && studySession && studySession.mode) return;
             if (currentExam && currentExam._isPractice) {
                 if (currentExamIndex < currentExam.questions.length - 1) {
                     currentExamIndex++;

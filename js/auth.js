@@ -76,12 +76,15 @@ function hideAuthModal() {
  */
 async function checkAuthStatus() {
     var res = await apiRequest('status', {}, 'GET');
-    // Hide signup tab if server says signup is disabled
-    var allowSignup = res.allowSignup !== false;
-    var signupTab = document.getElementById('authTabSignup');
-    var switchBtn = document.getElementById('switchAuthMode');
-    if (signupTab) signupTab.style.display = allowSignup ? '' : 'none';
-    if (switchBtn) switchBtn.style.display = allowSignup ? '' : 'none';
+    // Signup is disabled by default — students must be registered by a teacher.
+    // To enable self-signup, set ALLOW_SIGNUP=true in your environment / .htaccess.
+    var allowSignup = res.allowSignup === true;
+    var signupTab   = document.getElementById('authTabSignup');
+    var switchBtn   = document.getElementById('switchAuthMode');
+    var signupFields= document.getElementById('signupFields');
+    if (signupTab)    signupTab.style.display    = allowSignup ? '' : 'none';
+    if (switchBtn)    switchBtn.style.display    = allowSignup ? '' : 'none';
+    if (signupFields) signupFields.classList.add('hidden');
 
     if (res.status === 'success' && res.user) {
         currentUser = res.user;

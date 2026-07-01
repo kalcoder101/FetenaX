@@ -8,6 +8,40 @@ if ($currentUser['role'] !== 'teacher') {
     respond('error', ['message' => 'Forbidden. Teachers only.']);
 }
 
+// ============================================================
+//  Helper — detect whether the v31/v32/v33 optional columns
+//  exist on `questions`. Returns SQL fragments + flags.
+// ============================================================
+function teacherQuestionExtrasFragment($pdo) {
+    static $cache = null;
+    if ($cache !== null) return $cache;
+    $has = false; $hasImg = false;
+    try {
+        $chk = $pdo->prepare("SHOW COLUMNS FROM `questions` LIKE 'explanation'");
+        $chk->execute();
+        if ($chk->fetch()) $has = true;
+        $chk2 = $pdo->prepare("SHOW COLUMNS FROM `questions` LIKE 'imageUrl'");
+        $chk2->execute();
+        if ($chk2->fetch()) $hasImg = true;
+    } catch (Exception $e) { /* ignore */ }
+    if ($has) {
+        $cache = [
+            'hasExtras'          => true,
+            'hasImage'           => $hasImg,
+            'insertCols'         => ', `explanation`, `hint1`, `hint2`' . ($hasImg ? ', `imageUrl`' : ''),
+            'insertPlaceholders' => ', ?, ?, ?' . ($hasImg ? ', ?' : '')
+        ];
+    } else {
+        $cache = [
+            'hasExtras'          => false,
+            'hasImage'           => $hasImg,
+            'insertCols'         => $hasImg ? ', `imageUrl`' : '',
+            'insertPlaceholders' => $hasImg ? ', ?' : ''
+        ];
+    }
+    return $cache;
+}
+
 if ($action === 'teacher_stats') {
     $totalExams = $pdo->query("SELECT COUNT(*) FROM `exams`")->fetchColumn();
     $totalAttempts = $pdo->query("SELECT COUNT(*) FROM `results`")->fetchColumn();
@@ -86,6 +120,141 @@ if ($action === 'teacher_students') {
     respond('success', ['students' => $students]);
 }
 
+if ($action === 'teacher_register_student') {
+    $name     = isset($requestData['name'])     ? trim($requestData['name'])     : '';
+    $email    = isset($requestData['email'])    ? trim($requestData['email'])    : '';
+    $userId   = isset($requestData['userId'])   ? trim($requestData['userId'])   : '';
+    $password = isset($requestData['password']) ? $requestData['password']       : '';
+
+    if ($name === '' || $email === '' || $userId === '' || $password === '') {
+        respond('error', ['message' => 'All fields are required.']);
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        respond('error', ['message' => 'Please enter a valid email address.']);
+    }
+    if (strlen($password) < 6) {
+        respond('error', ['message' => 'Password must be at least 6 characters.']);
+    }
+
+    // Check duplicates
+    $chk = $pdo->prepare("SELECT COUNT(*) FROM `users` WHERE `email` = ? OR `userId` = ?");
+    $chk->execute([$email, $userId]);
+    if ((int)$chk->fetchColumn() > 0) {
+        respond('error', ['message' => 'A student with this email or Student ID already exists.']);
+    }
+
+    // Build avatar from initials
+    $words  = explode(' ', $name);
+    $avatar = '';
+    foreach ($words as $w) {
+        if ($w !== '') $avatar .= strtoupper(substr($w, 0, 1));
+    }
+    $avatar = substr($avatar, 0, 2) ?: 'ST';
+
+    $hashed = password_hash($password, PASSWORD_BCRYPT);
+    $stmt = $pdo->prepare(
+        "INSERT INTO `users` (`email`, `password`, `role`, `name`, `avatar`, `userId`)
+         VALUES (:email, :password, 'student', :name, :avatar, :userId)"
+    );
+    $stmt->execute([
+        ':email'    => $email,
+        ':password' => $hashed,
+        ':name'     => $name,
+        ':avatar'   => $avatar,
+        ':userId'   => $userId,
+    ]);
+
+    $newId = (int)$pdo->lastInsertId();
+    respond('success', [
+        'studentId' => $newId,
+        'message'   => "Student '$name' registered successfully."
+    ]);
+}
+
+// ============================================================
+// ACCESS CODES — persistent CRUD
+// ============================================================
+
+if ($action === 'teacher_get_access_codes') {
+    // Return list of all exams with their access codes (if any).
+    // The teacher_codes tab consumes this.
+    $stmt = $pdo->prepare(
+        "SELECT e.`id` AS examId, e.`title`, e.`subject`, e.`difficulty`,
+                e.`duration`, e.`totalQuestions`, e.`maxAttempts`,
+                ac.`codePlain`, ac.`updatedAt` AS codeUpdatedAt
+         FROM `exams` e
+         LEFT JOIN `access_codes` ac ON ac.`examId` = e.`id`
+         ORDER BY e.`id` DESC"
+    );
+    $stmt->execute();
+    $rows = $stmt->fetchAll();
+
+    $out = array_map(function ($r) {
+        return [
+            'examId'        => (int)$r['examId'],
+            'title'         => $r['title'],
+            'subject'       => $r['subject'],
+            'difficulty'    => $r['difficulty'],
+            'duration'      => (int)$r['duration'],
+            'totalQuestions'=> (int)$r['totalQuestions'],
+            'maxAttempts'   => (int)$r['maxAttempts'],
+            'hasCode'       => !empty($r['codePlain']),
+            'accessCode'    => $r['codePlain'] ?: null,
+            'codeUpdatedAt' => $r['codeUpdatedAt'] ?? null,
+        ];
+    }, $rows);
+
+    respond('success', ['codes' => $out]);
+}
+
+if ($action === 'teacher_set_access_code') {
+    $examId = isset($requestData['examId']) ? (int)$requestData['examId'] : 0;
+    $code   = isset($requestData['code'])   ? trim($requestData['code'])   : '';
+
+    if ($examId <= 0) respond('error', ['message' => 'Invalid exam ID.']);
+
+    // Verify the exam exists (any teacher can manage codes for any exam in this version;
+    // tighten to `createdBy = currentUser.id` if you want strict ownership).
+    $chk = $pdo->prepare("SELECT id FROM `exams` WHERE `id` = ?");
+    $chk->execute([$examId]);
+    if (!$chk->fetch()) respond('error', ['message' => 'Exam not found.']);
+
+    if ($code === '') {
+        // Remove the code (delete row + clear legacy columns on exams table).
+        $pdo->prepare("DELETE FROM `access_codes` WHERE `examId` = ?")->execute([$examId]);
+        $pdo->prepare("UPDATE `exams` SET `accessPassword` = NULL, `accessCodePlain` = NULL WHERE `id` = ?")
+            ->execute([$examId]);
+        respond('success', ['message' => 'Access code removed.']);
+    }
+
+    // Save the code
+    $hash = password_hash($code, PASSWORD_BCRYPT);
+    $stmt = $pdo->prepare(
+        "INSERT INTO `access_codes` (`examId`, `codePlain`, `codeHash`, `createdBy`)
+         VALUES (:examId, :code, :hash, :uid)
+         ON DUPLICATE KEY UPDATE `codePlain` = :code2, `codeHash` = :hash2, `updatedAt` = CURRENT_TIMESTAMP"
+    );
+    $stmt->execute([
+        ':examId' => $examId, ':code'  => $code,  ':hash'  => $hash, ':uid' => $currentUser['id'],
+        ':code2'  => $code,   ':hash2' => $hash,
+    ]);
+
+    // Also mirror into the legacy `exams` columns so the student-side access check keeps working
+    $pdo->prepare("UPDATE `exams` SET `accessPassword` = ?, `accessCodePlain` = ? WHERE `id` = ?")
+        ->execute([$hash, $code, $examId]);
+
+    respond('success', ['code' => $code, 'message' => 'Access code saved.']);
+}
+
+if ($action === 'teacher_delete_access_code') {
+    $examId = isset($requestData['examId']) ? (int)$requestData['examId'] : 0;
+    if ($examId <= 0) respond('error', ['message' => 'Invalid exam ID.']);
+    $pdo->prepare("DELETE FROM `access_codes` WHERE `examId` = ?")->execute([$examId]);
+    $pdo->prepare("UPDATE `exams` SET `accessPassword` = NULL, `accessCodePlain` = NULL WHERE `id` = ?")
+        ->execute([$examId]);
+    respond('success', ['message' => 'Access code deleted.']);
+}
+
 if ($action === 'teacher_reset_password') {
     $studentId = isset($requestData['studentId']) ? (int)$requestData['studentId'] : 0;
     $newPassword = isset($requestData['newPassword']) ? trim($requestData['newPassword']) : '';
@@ -149,6 +318,12 @@ if ($action === 'teacher_create_exam') {
     if (empty($title) || empty($subject) || count($questions) === 0) {
         respond('error', ['message' => 'Please fill in all details and add at least one question.']);
     }
+    // MANDATORY ACCESS CODE: every exam must have one.
+    // If teacher didn't supply one, auto-generate a 6-char code.
+    if ($accessPassword === '') {
+        $accessPassword = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+    }
+    $hashedPassword = password_hash($accessPassword, PASSWORD_BCRYPT);
 
     $pdo->beginTransaction();
     try {
@@ -156,15 +331,32 @@ if ($action === 'teacher_create_exam') {
                                VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$title, $subject, $duration, count($questions), $difficulty, $currentUser['id'],
                         $passMark, $shuffleQuestions, $shuffleOptions, $showCorrect, $allowReReview, $maxAttempts,
-                        $hashedPassword, $accessPassword !== '' ? $accessPassword : null, $availableFrom, $availableUntil, $category]);
+                        $hashedPassword, $accessPassword, $availableFrom, $availableUntil, $category]);
         $examId = $pdo->lastInsertId();
 
-        $stmtQ = $pdo->prepare("INSERT INTO `questions` (`examId`, `question`, `option1`, `option2`, `option3`, `option4`, `correctAnswer`, `points`, `questionType`, `acceptedAnswers`)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        // Persist the access code into the dedicated access_codes table as well.
+        $pdo->prepare(
+            "INSERT INTO `access_codes` (`examId`,`codePlain`,`codeHash`,`createdBy`)
+             VALUES (?, ?, ?, ?)"
+        )->execute([$examId, $accessPassword, $hashedPassword, $currentUser['id']]);
+
+        $extras = teacherQuestionExtrasFragment($pdo);
+        $stmtQ = $pdo->prepare(
+            "INSERT INTO `questions` (`examId`, `question`, `option1`, `option2`, `option3`, `option4`, `correctAnswer`, `points`, `questionType`, `acceptedAnswers`" . $extras['insertCols'] . ")
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?" . $extras['insertPlaceholders'] . ")"
+        );
         foreach ($questions as $q) {
             $qType    = isset($q['questionType']) ? trim($q['questionType']) : 'single';
             $accepted = isset($q['acceptedAnswers']) ? json_encode($q['acceptedAnswers']) : null;
-            $stmtQ->execute([
+            $expl     = isset($q['explanation']) ? trim($q['explanation']) : null;
+            $h1       = isset($q['hint1']) ? trim($q['hint1']) : null;
+            $h2       = isset($q['hint2']) ? trim($q['hint2']) : null;
+            $imgUrl   = isset($q['imageUrl']) ? trim($q['imageUrl']) : null;
+            if ($expl === '') $expl = null;
+            if ($h1   === '') $h1   = null;
+            if ($h2   === '') $h2   = null;
+            if ($imgUrl === '') $imgUrl = null;
+            $params = [
                 $examId,
                 $q['question'],
                 $q['options'][0],
@@ -175,12 +367,21 @@ if ($action === 'teacher_create_exam') {
                 isset($q['points']) ? (int)$q['points'] : 1,
                 $qType,
                 $accepted
-            ]);
+            ];
+            if ($extras['hasExtras']) {
+                $params[] = $expl;
+                $params[] = $h1;
+                $params[] = $h2;
+            }
+            if ($extras['hasImage']) {
+                $params[] = $imgUrl;
+            }
+            $stmtQ->execute($params);
         }
 
         $pdo->commit();
         notifyStudentsOfNewExam($pdo, $currentUser['id'], $examId, $title);
-        respond('success');
+        respond('success', ['examId' => (int)$examId, 'accessCode' => $accessPassword]);
     } catch (Exception $e) {
         $pdo->rollBack();
         respond('error', ['message' => 'Failed to create exam: ' . $e->getMessage()]);
@@ -232,15 +433,45 @@ if ($action === 'teacher_edit_exam') {
         $params = array_merge([$title, $subject, $duration, count($questions), $difficulty, $passMark, $shuffleQuestions, $shuffleOptions, $showCorrect, $allowReReview, $maxAttempts, $availableFrom, $availableUntil, $category], $passwordParams, [$examId]);
         $pdo->prepare($sql)->execute($params);
 
+        // If a new access code was supplied, persist it to the access_codes table too.
+        if ($accessPassword !== '' && $hashedPassword !== null) {
+            $pdo->prepare(
+                "INSERT INTO `access_codes` (`examId`,`codePlain`,`codeHash`,`createdBy`)
+                 VALUES (?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE `codePlain` = VALUES(`codePlain`), `codeHash` = VALUES(`codeHash`), `updatedAt` = CURRENT_TIMESTAMP"
+            )->execute([$examId, $accessPassword, $hashedPassword, $currentUser['id']]);
+        }
+
         $pdo->prepare("DELETE FROM `questions` WHERE `examId` = ?")->execute([$examId]);
-        $stmtQ = $pdo->prepare("INSERT INTO `questions` (`examId`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points`) VALUES (?,?,?,?,?,?,?,?)");
+        $extras = teacherQuestionExtrasFragment($pdo);
+        $stmtQ = $pdo->prepare(
+            "INSERT INTO `questions` (`examId`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points`" . $extras['insertCols'] . ")
+             VALUES (?,?,?,?,?,?,?,?" . $extras['insertPlaceholders'] . ")"
+        );
         foreach ($questions as $q) {
-            $stmtQ->execute([
+            $expl = isset($q['explanation']) ? trim($q['explanation']) : null;
+            $h1   = isset($q['hint1'])       ? trim($q['hint1'])       : null;
+            $h2   = isset($q['hint2'])       ? trim($q['hint2'])       : null;
+            $imgUrl = isset($q['imageUrl'])  ? trim($q['imageUrl'])    : null;
+            if ($expl === '') $expl = null;
+            if ($h1   === '') $h1   = null;
+            if ($h2   === '') $h2   = null;
+            if ($imgUrl === '') $imgUrl = null;
+            $params = [
                 $examId, $q['question'],
                 $q['options'][0], $q['options'][1], $q['options'][2], $q['options'][3],
                 (int)$q['correctAnswer'],
                 isset($q['points']) ? max(1,(int)$q['points']) : 1
-            ]);
+            ];
+            if ($extras['hasExtras']) {
+                $params[] = $expl;
+                $params[] = $h1;
+                $params[] = $h2;
+            }
+            if ($extras['hasImage']) {
+                $params[] = $imgUrl;
+            }
+            $stmtQ->execute($params);
         }
         $pdo->commit();
         respond('success', ['message' => 'Exam updated.']);
@@ -538,24 +769,100 @@ if ($action === 'teacher_bulk_import_exam') {
 
     $pdo->beginTransaction();
     try {
-        $pdo->prepare("INSERT INTO `exams` (`title`,`subject`,`duration`,`totalQuestions`,`difficulty`,`createdBy`,`createdAt`) VALUES (?,?,?,?,?,NOW())")
-            ->execute([$title, $subject, $duration, count($csvRows), $difficulty, $currentUser['id']]);
+        // Auto-generate a mandatory access code for every bulk-imported exam.
+        // (Mandatory access codes are now policy: no exam can be started without one.)
+        $accessCode  = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+        $accessHash  = password_hash($accessCode, PASSWORD_BCRYPT);
+
+        // Use NAMED placeholders to make parameter-count mismatches impossible.
+        $stmtExam = $pdo->prepare(
+            "INSERT INTO `exams`
+             (`title`,`subject`,`duration`,`totalQuestions`,`difficulty`,`createdBy`,`createdAt`,
+              `accessPassword`,`accessCodePlain`)
+             VALUES
+             (:title,:subject,:duration,:totalQuestions,:difficulty,:createdBy,NOW(),
+              :accessPassword,:accessCodePlain)"
+        );
+        $stmtExam->execute([
+            ':title'           => $title,
+            ':subject'         => $subject,
+            ':duration'        => $duration,
+            ':totalQuestions'  => count($csvRows),
+            ':difficulty'      => $difficulty,
+            ':createdBy'       => $currentUser['id'],
+            ':accessPassword'  => $accessHash,
+            ':accessCodePlain' => $accessCode,
+        ]);
         $examId = $pdo->lastInsertId();
-        $insQ = $pdo->prepare("INSERT INTO `questions` (`examId`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points`,`questionType`) VALUES (?,?,?,?,?,?,?,?,?)");
+
+        // Persist into the dedicated access_codes table as well.
+        $pdo->prepare(
+            "INSERT INTO `access_codes` (`examId`,`codePlain`,`codeHash`,`createdBy`)
+             VALUES (:examId, :code, :hash, :uid)"
+        )->execute([
+            ':examId' => $examId,
+            ':code'   => $accessCode,
+            ':hash'   => $accessHash,
+            ':uid'    => $currentUser['id'],
+        ]);
+
+        $extras = teacherQuestionExtrasFragment($pdo);
+        $insQ = $pdo->prepare(
+            "INSERT INTO `questions`
+             (`examId`,`question`,`option1`,`option2`,`option3`,`option4`,`correctAnswer`,`points`,`questionType`" . $extras['insertCols'] . ")
+             VALUES
+             (:examId,:question,:opt1,:opt2,:opt3,:opt4,:correct,:pts,:qtype" . ($extras['hasExtras'] ? ',:expl,:h1,:h2' : '') . ($extras['hasImage'] ? ',:img' : '') . ")"
+        );
         $imported = 0; $errors = 0;
         foreach ($csvRows as $row) {
             while (count($row) < 6) $row[] = '';
             $qText = trim($row[0]);
             if ($qText === '') { $errors++; continue; }
             $opts = [trim($row[1]), trim($row[2]), trim($row[3]), trim($row[4])];
+            // Pad to 4 options
+            while (count($opts) < 4) $opts[] = '';
             $correct = isset($row[5]) ? (int)$row[5] : 0;
             if ($correct < 0 || $correct > 3) $correct = 0;
             $pts = isset($row[6]) && $row[6] !== '' ? max(1, (int)$row[6]) : 1;
-            $insQ->execute([$examId, $qText, $opts[0], $opts[1], $opts[2], $opts[3], $correct, $pts, 'single']);
+            // Optional extra CSV columns (7=explanation, 8=hint1, 9=hint2, 10=imageUrl)
+            $expl = isset($row[7]) ? trim($row[7]) : null;
+            $h1   = isset($row[8]) ? trim($row[8]) : null;
+            $h2   = isset($row[9]) ? trim($row[9]) : null;
+            $img  = isset($row[10]) ? trim($row[10]) : null;
+            if ($expl === '') $expl = null;
+            if ($h1   === '') $h1   = null;
+            if ($h2   === '') $h2   = null;
+            if ($img  === '') $img  = null;
+            $params = [
+                ':examId'   => $examId,
+                ':question' => $qText,
+                ':opt1'     => $opts[0],
+                ':opt2'     => $opts[1],
+                ':opt3'     => $opts[2],
+                ':opt4'     => $opts[3],
+                ':correct'  => $correct,
+                ':pts'      => $pts,
+                ':qtype'    => 'single',
+            ];
+            if ($extras['hasExtras']) {
+                $params[':expl'] = $expl;
+                $params[':h1']   = $h1;
+                $params[':h2']   = $h2;
+            }
+            if ($extras['hasImage']) {
+                $params[':img'] = $img;
+            }
+            $insQ->execute($params);
             $imported++;
         }
         $pdo->commit();
-        respond('success', ['examId' => (int)$examId, 'imported' => $imported, 'errors' => $errors, 'message' => "Imported $imported questions."]);
+        respond('success', [
+            'examId'      => (int)$examId,
+            'imported'    => $imported,
+            'errors'      => $errors,
+            'accessCode'  => $accessCode,
+            'message'     => "Imported $imported questions. Access code: $accessCode"
+        ]);
     } catch (Exception $e) {
         $pdo->rollBack();
         respond('error', ['message' => 'Import failed: ' . $e->getMessage()]);

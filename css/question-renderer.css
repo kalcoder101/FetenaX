@@ -1,0 +1,304 @@
+/* css/question-renderer.css — FetenaX v33
+   Styles for rendered question text: code blocks, inline code,
+   images, keyword highlights, number highlights, progress bar. */
+
+/* =========================================================================
+   PROGRESS BAR — visual indicator at the top of exam interface
+   ========================================================================= */
+.exam-progress-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.5rem 1rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+.exam-progress-bar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(120,120,120,0.18);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.exam-progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease, background 0.3s ease;
+    border-radius: 4px;
+}
+.exam-progress-label {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+/* =========================================================================
+   QUESTION TEXT — base typography
+   ========================================================================= */
+.question-text {
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--color-text);
+    margin-bottom: 1rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+.question-text p {
+    margin: 0 0 0.6rem 0;
+}
+.question-text p:last-child {
+    margin-bottom: 0;
+}
+.question-text strong {
+    font-weight: 700;
+    color: var(--color-text);
+}
+.question-text em {
+    font-style: italic;
+}
+
+/* =========================================================================
+   CODE BLOCKS — ```lang ... ```
+   ========================================================================= */
+.code-block-wrapper {
+    position: relative;
+    margin: 0.85rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: #1e1e2e;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.code-block-lang {
+    position: absolute;
+    top: 0; right: 0;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.05);
+    border-bottom-left-radius: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    z-index: 1;
+}
+.code-block-wrapper pre {
+    margin: 0;
+    padding: 0.85rem 1rem;
+    background: transparent !important;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: #f8f8f2;
+}
+.code-block-wrapper pre code {
+    background: transparent !important;
+    padding: 0 !important;
+    font-size: inherit !important;
+    color: inherit !important;
+    white-space: pre;
+}
+
+/* Inline code: `code` */
+code.inline-code {
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 0.88em;
+    background: rgba(87,120,90,0.15);
+    color: var(--color-primary);
+    padding: 0.12rem 0.35rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(87,120,90,0.2);
+    white-space: nowrap;
+}
+body.dark-mode code.inline-code {
+    background: rgba(163,204,59,0.18);
+    color: #a3cc3b;
+    border-color: rgba(163,204,59,0.25);
+}
+
+/* =========================================================================
+   IMAGES in question text
+   ========================================================================= */
+.question-image-attached,
+.question-image-inline {
+    margin: 0.85rem 0;
+    text-align: center;
+}
+.question-image-attached img,
+.question-image-inline img {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+.question-image-attached img:hover {
+    transform: scale(1.02);
+}
+.question-image-caption {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.3rem;
+    font-style: italic;
+}
+.question-image-attached.image-error,
+.question-image-inline.image-error {
+    padding: 0.85rem 1rem;
+    background: rgba(231,76,60,0.08);
+    border: 1px dashed var(--color-danger);
+    border-radius: 0.5rem;
+}
+.image-error-msg {
+    color: var(--color-danger);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* =========================================================================
+   KEYWORD HIGHLIGHTING — NOT, EXCEPT, ALWAYS, NEVER, etc.
+   ========================================================================= */
+mark.kw-highlight {
+    background: rgba(245,158,11,0.25);
+    color: #b45309;
+    padding: 0.05rem 0.3rem;
+    border-radius: 0.2rem;
+    font-weight: 700;
+    border: 1px solid rgba(245,158,11,0.4);
+}
+body.dark-mode mark.kw-highlight {
+    background: rgba(245,158,11,0.3);
+    color: #fcd34d;
+    border-color: rgba(245,158,11,0.5);
+}
+
+/* Specific keyword colors for emphasis levels */
+mark.kw-not,
+mark.kw-except,
+mark.kw-except-that,
+mark.kw-never,
+mark.kw-must-not,
+mark.kw-should-not,
+mark.kw-incorrect,
+mark.kw-invalid,
+mark.kw-false {
+    background: rgba(231,76,60,0.25);
+    color: #c0392b;
+    border-color: rgba(231,76,60,0.45);
+}
+body.dark-mode mark.kw-not,
+body.dark-mode mark.kw-except,
+body.dark-mode mark.kw-never,
+body.dark-mode mark.kw-must-not,
+body.dark-mode mark.kw-should-not,
+body.dark-mode mark.kw-incorrect,
+body.dark-mode mark.kw-invalid,
+body.dark-mode mark.kw-false {
+    background: rgba(231,76,60,0.35);
+    color: #fca5a5;
+    border-color: rgba(231,76,60,0.5);
+}
+
+mark.kw-always,
+mark.kw-must,
+mark.kw-true,
+mark.kw-correct,
+mark.kw-valid,
+mark.kw-all,
+mark.kw-only {
+    background: rgba(110,154,114,0.25);
+    color: #2d5a3d;
+    border-color: rgba(110,154,114,0.45);
+}
+body.dark-mode mark.kw-always,
+body.dark-mode mark.kw-must,
+body.dark-mode mark.kw-true,
+body.dark-mode mark.kw-correct,
+body.dark-mode mark.kw-valid,
+body.dark-mode mark.kw-all,
+body.dark-mode mark.kw-only {
+    background: rgba(110,154,114,0.35);
+    color: #86efac;
+    border-color: rgba(110,154,114,0.5);
+}
+
+/* =========================================================================
+   NUMBER HIGHLIGHTING — bold colored numbers for quick scanning
+   ========================================================================= */
+.num-highlight {
+    font-weight: 700;
+    color: var(--color-primary);
+    font-variant-numeric: tabular-nums;
+}
+body.dark-mode .num-highlight {
+    color: #a3cc3b;
+}
+
+/* =========================================================================
+   OPTION TEXT — render rich content (inline code, bold, numbers)
+   ========================================================================= */
+.option-text-content code.inline-code {
+    font-size: 0.84em;
+}
+.option-text-content strong {
+    color: var(--color-text);
+}
+
+/* =========================================================================
+   EXAM HEADER STRIP — make room for word count + reading time meta
+   ========================================================================= */
+.question-header-strip {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.question-header-strip .question-number-label {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* =========================================================================
+   RESPONSIVE TWEAKS
+   ========================================================================= */
+@media (max-width: 768px) {
+    .code-block-wrapper pre {
+        font-size: 0.78rem;
+        padding: 0.7rem 0.85rem;
+    }
+    .question-image-attached img,
+    .question-image-inline img {
+        max-height: 280px;
+    }
+    .exam-progress-strip {
+        padding: 0.4rem 0.7rem;
+    }
+    .exam-progress-label {
+        font-size: 0.72rem;
+    }
+}
+
+/* =========================================================================
+   PRINT STYLES — for printable exam copies
+   ========================================================================= */
+@media print {
+    .exam-progress-strip,
+    .code-block-lang {
+        display: none !important;
+    }
+    .code-block-wrapper {
+        border: 1px solid #999;
+        background: #f5f5f5 !important;
+        page-break-inside: avoid;
+    }
+    .code-block-wrapper pre {
+        color: #000 !important;
+    }
+    mark.kw-highlight {
+        background: #fff3cd !important;
+        color: #000 !important;
+    }
+}
