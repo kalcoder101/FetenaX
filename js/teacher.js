@@ -15,17 +15,19 @@ async function loadSystemAdminDashboard() {
     var usersRes = await apiRequest('admin_users', {}, 'GET');
 
     if (statsRes.status !== 'success' || usersRes.status !== 'success') {
-        container.innerHTML = '<div class="analytics-error-state"><div class="aes-icon">⚠</div><div class="aes-title">Administration unavailable</div><div class="aes-desc">The server could not load the admin dashboard. Please try again.</div></div>';
+        container.innerHTML = '<div class="analytics-error-state"><div class="aes-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v5"/><path d="M12 16h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg></div><div class="aes-title">Administration unavailable</div><div class="aes-desc">The server could not load the admin dashboard. Please try again.</div></div>';
         return;
     }
 
     var stats = statsRes.stats || {};
     var users = usersRes.users || [];
     var rows = '';
+    var recentUsers = (statsRes.recentUsers || []).slice(0, 10);
+    var recentExams = (statsRes.recentExams || []).slice(0, 10);
     var createForm = '' +
-        '<div class="glass-card" style="padding:1rem 1rem 1.1rem;margin-bottom:1rem;">' +
+        '<div class="glass-card admin-create-card">' +
             '<div class="card-header-flex"><h3>Create New Account</h3></div>' +
-            '<div style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">' +
+            '<div class="admin-create-grid">' +
                 '<input id="adminCreateName" class="form-input" placeholder="Full name" />' +
                 '<input id="adminCreateEmail" class="form-input" placeholder="Email" />' +
                 '<input id="adminCreateUserId" class="form-input" placeholder="Student/Staff ID" />' +
@@ -35,26 +37,28 @@ async function loadSystemAdminDashboard() {
                     '<option value="teacher">Teacher</option>' +
                     '<option value="system_admin">System Admin</option>' +
                 '</select>' +
-                '<button id="adminCreateUserBtn" class="btn btn-primary">Create Account</button>' +
+                '<button id="adminCreateUserBtn" class="btn btn-primary admin-create-btn">Create Account</button>' +
             '</div>' +
         '</div>';
     users.forEach(function (u) {
         var roleValue = u.role || 'student';
-        rows += '<div class="glass-card" style="padding:0.95rem 1rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:0.75rem;margin-bottom:0.8rem;">' +
-            '<div style="display:flex;align-items:center;gap:0.75rem;min-width:220px;">' +
-                '<div style="width:2.2rem;height:2.2rem;border-radius:999px;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">' + escapeHtmlNotif((u.name || u.email || 'U').substring(0, 2).toUpperCase()) + '</div>' +
+        rows += '<div class="admin-user-row">' +
+            '<div class="admin-user-meta">' +
+                '<div class="admin-avatar-chip">' + escapeHtmlNotif((u.name || u.email || 'U').substring(0, 2).toUpperCase()) + '</div>' +
                 '<div>' +
-                    '<div style="font-weight:700;">' + escapeHtmlNotif(u.name || u.email || 'Unknown user') + '</div>' +
-                    '<div style="font-size:0.82rem;color:var(--color-text-secondary);">' + escapeHtmlNotif(u.email || '') + ' • ' + escapeHtmlNotif(u.userId || '') + '</div>' +
+                    '<div class="admin-user-name">' + escapeHtmlNotif(u.name || u.email || 'Unknown user') + '</div>' +
+                    '<div class="admin-user-sub">' + escapeHtmlNotif(u.email || '') + ' • ' + escapeHtmlNotif(u.userId || '') + '</div>' +
                 '</div>' +
             '</div>' +
-            '<div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">' +
-                '<select class="form-input form-select admin-role-select" data-user-id="' + u.id + '" style="min-width:140px;">' +
+            '<div>' +
+                '<select class="form-input form-select admin-role-select" data-user-id="' + u.id + '">' +
                     '<option value="student"' + (roleValue === 'student' ? ' selected' : '') + '>Student</option>' +
                     '<option value="teacher"' + (roleValue === 'teacher' ? ' selected' : '') + '>Teacher</option>' +
                     '<option value="system_admin"' + (roleValue === 'system_admin' ? ' selected' : '') + '>System Admin</option>' +
                 '</select>' +
-                '<button class="btn btn-secondary btn-small admin-reset-btn" data-user-id="' + u.id + '">Reset Password</button>' +
+            '</div>' +
+            '<div>' +
+                '<button class="btn btn-primary admin-reset-btn" data-user-id="' + u.id + '">Reset Password</button>' +
             '</div>' +
         '</div>';
     });
@@ -62,30 +66,30 @@ async function loadSystemAdminDashboard() {
     container.innerHTML = '' +
         createForm +
         '<div class="stats-cards-grid" style="margin-bottom:1.25rem;">' +
-            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">👤</div><div><div class="stat-card-label">Total Users</div><div class="stat-card-number">' + (stats.users || 0) + '</div></div></div>' +
-            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">🎓</div><div><div class="stat-card-label">Students</div><div class="stat-card-number">' + (stats.students || 0) + '</div></div></div>' +
-            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">🧑‍🏫</div><div><div class="stat-card-label">Teachers</div><div class="stat-card-number">' + (stats.teachers || 0) + '</div></div></div>' +
-            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">🛡️</div><div><div class="stat-card-label">Admins</div><div class="stat-card-number">' + (stats.admins || 0) + '</div></div></div>' +
-            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">📝</div><div><div class="stat-card-label">Exams</div><div class="stat-card-number">' + (stats.exams || 0) + '</div></div></div>' +
-            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">📈</div><div><div class="stat-card-label">Attempts</div><div class="stat-card-number">' + (stats.attempts || 0) + '</div></div></div>' +
-            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">📊</div><div><div class="stat-card-label">Average Score</div><div class="stat-card-number">' + (stats.averageScore || 0) + '%</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon admin-stat-icon" style="color:var(--color-primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div><div class="stat-card-label">Total Users</div><div class="stat-card-number">' + (stats.users || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon admin-stat-icon" style="color:var(--color-primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16"/><path d="M7 7V4h10v3"/><path d="M6 7v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/><path d="M10 11h4"/></svg></div><div><div class="stat-card-label">Students</div><div class="stat-card-number">' + (stats.students || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon admin-stat-icon" style="color:var(--color-primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="10" cy="7" r="3"/><path d="M17 8v6"/><path d="M20 11h-6"/></svg></div><div><div class="stat-card-label">Teachers</div><div class="stat-card-number">' + (stats.teachers || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon admin-stat-icon" style="color:var(--color-primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 4v5c0 4.3-2.7 6.8-7 9-4.3-2.2-7-4.7-7-9V7l7-4Z"/><path d="M9.5 12.5 11 14l3.5-4"/></svg></div><div><div class="stat-card-label">Admins</div><div class="stat-card-number">' + (stats.admins || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon admin-stat-icon" style="color:var(--color-primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2v4"/><path d="M16 2v4"/><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 13h8"/><path d="M8 17h5"/></svg></div><div><div class="stat-card-label">Exams</div><div class="stat-card-number">' + (stats.exams || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon admin-stat-icon" style="color:var(--color-primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5"/><path d="M20 19V9"/><path d="M4 19h16"/><path d="M8 15v-2"/><path d="M12 15v-4"/><path d="M16 15v-6"/></svg></div><div><div class="stat-card-label">Attempts</div><div class="stat-card-number">' + (stats.attempts || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon admin-stat-icon" style="color:var(--color-primary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18V6"/><path d="M20 18V9"/><path d="M4 18h16"/><path d="M8 14h2"/><path d="M14 14h2"/><path d="M11 10h2"/></svg></div><div><div class="stat-card-label">Average Score</div><div class="stat-card-number">' + (stats.averageScore || 0) + '%</div></div></div>' +
         '</div>' +
         '<div class="dashboard-split-grid" style="gap:1rem;">' +
-            '<div class="glass-card" style="min-width:0;">' +
+            '<div class="glass-card admin-management-card">' +
                 '<div class="card-header-flex"><h3>Account Management</h3></div>' +
-                '<div style="display:flex;flex-direction:column;gap:0.5rem;">' + rows + '</div>' +
+                '<div class="admin-inline-scroll"><div class="admin-user-list">' + rows + '</div></div>' +
             '</div>' +
-            '<div class="glass-card" style="min-width:0;">' +
+            '<div class="glass-card admin-management-card">' +
                 '<div class="card-header-flex"><h3>Recent Platform Activity</h3></div>' +
                 '<div style="display:flex;flex-direction:column;gap:0.75rem;">' +
                     '<div><div style="font-size:0.82rem;color:var(--color-text-secondary);margin-bottom:0.4rem;">Recent users</div>' +
-                    '<div style="display:flex;flex-direction:column;gap:0.45rem;">' + (statsRes.recentUsers || []).map(function (u) {
-                        return '<div style="padding:0.55rem 0.7rem;background:var(--glass-bg);border-radius:0.6rem;font-size:0.9rem;">' + escapeHtmlNotif(u.name || u.email || 'Unknown') + ' <span style="color:var(--color-text-secondary);">(' + escapeHtmlNotif((u.role || 'student').replace('_', ' ')) + ')</span></div>';
-                    }).join('') + '</div></div>' +
+                    '<div class="admin-inline-scroll"><div class="admin-activity-list">' + (recentUsers.length ? recentUsers.map(function (u) {
+                        return '<div class="admin-activity-item">' + escapeHtmlNotif(u.name || u.email || 'Unknown') + '<div class="muted">' + escapeHtmlNotif((u.role || 'student').replace('_', ' ')) + '</div></div>';
+                    }).join('') : '<div class="admin-activity-item">No recent users yet.</div>') + '</div></div></div>' +
                     '<div><div style="font-size:0.82rem;color:var(--color-text-secondary);margin-bottom:0.4rem;">Recent exams</div>' +
-                    '<div style="display:flex;flex-direction:column;gap:0.45rem;">' + (statsRes.recentExams || []).map(function (e) {
-                        return '<div style="padding:0.55rem 0.7rem;background:var(--glass-bg);border-radius:0.6rem;font-size:0.9rem;">' + escapeHtmlNotif(e.title || 'Untitled exam') + ' <span style="color:var(--color-text-secondary);">(' + escapeHtmlNotif(e.subject || '—') + ')</span></div>';
-                    }).join('') + '</div></div>' +
+                    '<div class="admin-inline-scroll"><div class="admin-activity-list">' + (recentExams.length ? recentExams.map(function (e) {
+                        return '<div class="admin-activity-item">' + escapeHtmlNotif(e.title || 'Untitled exam') + '<div class="muted">' + escapeHtmlNotif(e.subject || '—') + '</div></div>';
+                    }).join('') : '<div class="admin-activity-item">No recent exams yet.</div>') + '</div></div></div>' +
                 '</div>' +
             '</div>' +
         '</div>';
