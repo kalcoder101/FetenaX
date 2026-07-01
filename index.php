@@ -10,6 +10,10 @@ if (file_exists($maintFlag)) {
 }
 // Start session only if not already started (api.php may have started it)
 if (session_status() === PHP_SESSION_NONE) {
+    @ini_set('session.cookie_lifetime', 14400); // 4 hours
+    @ini_set('session.gc_maxlifetime', 14400); // 4 hours
+    @ini_set('session.cookie_httponly', 1);
+    @ini_set('session.cookie_samesite', 'Lax');
     session_start();
 }
 // Strong cache-busting headers — prevent browser from caching old CSS/JS
@@ -232,6 +236,9 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                 <div class="mtb-title" id="mtbTitle">FetenaX</div>
                 <div class="mtb-subtitle" id="mtbSubtitle"></div>
             </div>
+            <button id="mobileLogoutBtn" class="btn btn-logout-icon" title="Logout">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
         </div>
 
         <!-- Overlay behind slide-out sidebar (mobile only) -->
@@ -422,6 +429,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                         </button>
                     </div>
                 </div>
+            </nav>
             
             <div class="sidebar-spacer"></div>
             
@@ -476,6 +484,10 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                     <button id="mainAboutBtn" class="btn btn-secondary-header" title="About FetenaX">About</button>
                     <button id="mainThemeToggle" class="btn btn-secondary-header" title="Toggle Theme">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"></path></svg>
+                    </button>
+                    <button id="headerLogoutBtn" class="btn btn-logout-icon" title="Logout">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span>Logout</span>
                     </button>
                 </div>
             </header>
@@ -807,7 +819,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                             <!-- Question & options will be injected dynamically -->
                         </div>
                         
-                        <!-- Navigation Row -->
+                        <!-- Navigation Row (desktop) -->
                         <div class="exam-nav-controls">
                             <button id="prevBtn" class="btn btn-secondary" disabled>Previous</button>
                             <button id="flagBtn" class="btn btn-warning-outline">
@@ -839,6 +851,45 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                             <span class="legend-color legend-flagged"></span> Flagged
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Mobile floating bottom nav bar (≤700px) -->
+            <div class="exam-mobile-nav" id="examMobileNav" style="display:none;">
+                <button id="mobPrevBtn" class="btn btn-secondary" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                    Prev
+                </button>
+                <button id="mobFlagBtn" class="btn btn-warning-outline" title="Flag question">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                    Flag
+                </button>
+                <button id="mobMapBtn" class="mob-nav-map-btn" title="Question map">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span style="font-size:0.62rem;">Map</span>
+                </button>
+                <button id="mobNextBtn" class="btn btn-primary">
+                    Next
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+
+            <!-- Mobile question map bottom sheet -->
+            <div class="mobile-qmap-backdrop" id="mobileQmapBackdrop"></div>
+            <div class="mobile-qmap-sheet" id="mobileQmapSheet">
+                <div class="mobile-qmap-handle"></div>
+                <div class="mobile-qmap-title">
+                    <span>Question Map</span>
+                    <button class="mobile-qmap-close" id="mobileQmapClose">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <!-- mirrors the desktop grid -->
+                <div class="questions-grid-container" id="mobileQuestionsMapGrid" style="grid-template-columns:repeat(8,1fr);"></div>
+                <div class="grid-legend" style="flex-direction:row;flex-wrap:wrap;gap:0.75rem;margin-top:0.75rem;">
+                    <div class="legend-item"><span class="legend-color legend-active"></span> Active</div>
+                    <div class="legend-item"><span class="legend-color legend-answered"></span> Answered</div>
+                    <div class="legend-item"><span class="legend-color legend-flagged"></span> Flagged</div>
                 </div>
             </div>
         </div>

@@ -14,9 +14,9 @@ if (file_exists($maintFlag)) {
 
 // Start session only if not already started
 if (session_status() === PHP_SESSION_NONE) {
-    // Make sessions persist for 30 days so users don't get logged out constantly
-    @ini_set('session.cookie_lifetime', 30 * 86400); // 30 days
-    @ini_set('session.gc_maxlifetime', 30 * 86400); // 30 days
+    // Make sessions persist for 4 hours
+    @ini_set('session.cookie_lifetime', 14400); // 4 hours
+    @ini_set('session.gc_maxlifetime', 14400); // 4 hours
     @ini_set('session.cookie_httponly', 1);
     @ini_set('session.cookie_samesite', 'Lax');
     session_start();

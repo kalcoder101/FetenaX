@@ -892,6 +892,7 @@ function wireExamButtons() {
             });
             renderQuestion();
             updateQuestionsGridItem(currentExamIndex);
+            syncMobileGrid();
         });
     }
 
@@ -899,18 +900,19 @@ function wireExamButtons() {
         var newPrev = prevBtn.cloneNode(true);
         prevBtn.parentNode.replaceChild(newPrev, prevBtn);
         newPrev.addEventListener('click', function () {
-            // If a study session (subject/mock/SRS) is active, study.js handles nav.
             if (typeof studySession !== 'undefined' && studySession && studySession.mode) return;
             if (currentExam && currentExam._isPractice) {
                 if (currentExamIndex > 0) {
                     currentExamIndex--;
                     renderPracticeQuestion();
                     highlightActiveGridItem();
+                    syncMobileGrid();
                 }
             } else if (currentExamIndex > 0) {
                 currentExamIndex--;
                 renderQuestion();
                 highlightActiveGridItem();
+                syncMobileGrid();
             }
         });
     }
@@ -919,13 +921,13 @@ function wireExamButtons() {
         var newNext = nextBtn.cloneNode(true);
         nextBtn.parentNode.replaceChild(newNext, nextBtn);
         newNext.addEventListener('click', function () {
-            // If a study session (subject/mock/SRS) is active, study.js handles nav.
             if (typeof studySession !== 'undefined' && studySession && studySession.mode) return;
             if (currentExam && currentExam._isPractice) {
                 if (currentExamIndex < currentExam.questions.length - 1) {
                     currentExamIndex++;
                     renderPracticeQuestion();
                     highlightActiveGridItem();
+                    syncMobileGrid();
                 } else {
                     showPracticeSummary();
                 }
@@ -933,12 +935,145 @@ function wireExamButtons() {
                 currentExamIndex++;
                 renderQuestion();
                 highlightActiveGridItem();
+                syncMobileGrid();
             } else {
                 confirmAndSubmit();
             }
         });
     }
+
+    // ── Wire mobile floating nav buttons ──
+    wireMobileExamNav();
 }
+
+function wireMobileExamNav() {
+    var mobileNav = document.getElementById('examMobileNav');
+    if (!mobileNav) return;
+
+    // Show/hide based on viewport
+    function checkMobileNav() {
+        mobileNav.style.display = window.innerWidth <= 700 ? 'flex' : 'none';
+    }
+    checkMobileNav();
+    window.addEventListener('resize', checkMobileNav);
+
+    // Prev
+    var mobPrev = document.getElementById('mobPrevBtn');
+    if (mobPrev) {
+        mobPrev.addEventListener('click', function () {
+            document.getElementById('prevBtn') && document.getElementById('prevBtn').click();
+            syncMobileNavState();
+        });
+    }
+
+    // Flag
+    var mobFlag = document.getElementById('mobFlagBtn');
+    if (mobFlag) {
+        mobFlag.addEventListener('click', function () {
+            document.getElementById('flagBtn') && document.getElementById('flagBtn').click();
+            setTimeout(syncMobileNavState, 50);
+        });
+    }
+
+    // Next
+    var mobNext = document.getElementById('mobNextBtn');
+    if (mobNext) {
+        mobNext.addEventListener('click', function () {
+            document.getElementById('nextBtn') && document.getElementById('nextBtn').click();
+            syncMobileNavState();
+        });
+    }
+
+    // Map — open bottom sheet
+    var mobMap = document.getElementById('mobMapBtn');
+    var sheet   = document.getElementById('mobileQmapSheet');
+    var backdrop = document.getElementById('mobileQmapBackdrop');
+    var closeBtn = document.getElementById('mobileQmapClose');
+
+    function openSheet() {
+        buildMobileGrid();
+        sheet && sheet.classList.add('open');
+        backdrop && backdrop.classList.add('open');
+    }
+    function closeSheet() {
+        sheet && sheet.classList.remove('open');
+        backdrop && backdrop.classList.remove('open');
+    }
+
+    if (mobMap) mobMap.addEventListener('click', openSheet);
+    if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+    if (backdrop) backdrop.addEventListener('click', closeSheet);
+}
+
+function buildMobileGrid() {
+    if (!currentExam) return;
+    var grid = document.getElementById('mobileQuestionsMapGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    currentExam.questions.forEach(function (_, idx) {
+        var cell = document.createElement('button');
+        cell.className = 'grid-cell-btn' +
+            (currentExamAnswers[idx] !== null ? ' answered' : '') +
+            (currentExamFlags[idx] ? ' flagged' : '') +
+            (idx === currentExamIndex ? ' active' : '');
+        cell.innerHTML = '<span class="cell-num">' + (idx + 1) + '</span><span class="cell-shading"></span><span class="cell-flag-dot"></span>';
+        cell.addEventListener('click', function () {
+            currentExamIndex = idx;
+            if (currentExam._isPractice) {
+                renderPracticeQuestion();
+            } else {
+                renderQuestion();
+            }
+            highlightActiveGridItem();
+            syncMobileGrid();
+            // close sheet
+            var sheet = document.getElementById('mobileQmapSheet');
+            var backdrop = document.getElementById('mobileQmapBackdrop');
+            if (sheet) sheet.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('open');
+        });
+        grid.appendChild(cell);
+    });
+}
+
+function syncMobileGrid() {
+    if (!currentExam) return;
+    var grid = document.getElementById('mobileQuestionsMapGrid');
+    if (!grid || !grid.children.length) return;
+    Array.from(grid.children).forEach(function (cell, idx) {
+        cell.classList.toggle('answered', currentExamAnswers[idx] !== null);
+        cell.classList.toggle('flagged',  currentExamFlags[idx]);
+        cell.classList.toggle('active',   idx === currentExamIndex);
+    });
+    syncMobileNavState();
+}
+
+function syncMobileNavState() {
+    var mobPrev = document.getElementById('mobPrevBtn');
+    var mobNext = document.getElementById('mobNextBtn');
+    var mobFlag = document.getElementById('mobFlagBtn');
+    if (!currentExam) return;
+    if (mobPrev) mobPrev.disabled = currentExamIndex === 0;
+    if (mobNext) {
+        var isLast = currentExamIndex === currentExam.questions.length - 1;
+        mobNext.textContent = '';
+        if (isLast) {
+            mobNext.innerHTML = currentExam._isPractice ? 'Finish' : 'Submit';
+            mobNext.className = 'btn btn-success';
+        } else {
+            mobNext.innerHTML = 'Next <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
+            mobNext.className = 'btn btn-primary';
+        }
+    }
+    if (mobFlag) {
+        var isFlagged = currentExamFlags && currentExamFlags[currentExamIndex];
+        mobFlag.className = isFlagged ? 'btn btn-warning' : 'btn btn-warning-outline';
+        mobFlag.innerHTML = isFlagged
+            ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15" stroke="currentColor" stroke-width="2"/></svg> Unflag'
+            : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Flag';
+    }
+}
+
 
 function wireResultsButtons() {
     var backBtn = document.getElementById('resultsBackBtn');

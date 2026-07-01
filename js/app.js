@@ -175,6 +175,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (logoutBtn)     logoutBtn.addEventListener('click', handleLogout);
     if (sidebarLogout) sidebarLogout.addEventListener('click', handleLogout);
 
+    var headerLogoutBtn = document.getElementById('headerLogoutBtn');
+    var mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+    if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', handleLogout);
+    if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', handleLogout);
+
     // =========================================================================
     // SIDEBAR NAVIGATION (tab switching)
     // =========================================================================

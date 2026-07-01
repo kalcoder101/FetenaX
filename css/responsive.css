@@ -71,6 +71,47 @@
     height: 28px;
     width: auto;
 }
+/* Mobile top-bar logout button */
+#mobileLogoutBtn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(224, 122, 95, 0.35);
+    background: rgba(224, 122, 95, 0.08);
+    color: var(--color-danger, #e07a5f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+#mobileLogoutBtn:hover {
+    background: var(--color-danger, #e07a5f);
+    color: #fff;
+    border-color: var(--color-danger, #e07a5f);
+}
+/* Desktop header-strip logout button */
+#headerLogoutBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(224, 122, 95, 0.35);
+    background: rgba(224, 122, 95, 0.08);
+    color: var(--color-danger, #e07a5f);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+#headerLogoutBtn:hover {
+    background: var(--color-danger, #e07a5f);
+    color: #fff;
+    border-color: var(--color-danger, #e07a5f);
+}
 
 /* =========================================================================
    MEDIA QUERIES — switch to mobile layout under 900px

@@ -364,25 +364,254 @@
     border-color: var(--color-danger) !important;
 }
 
-/* --- Responsive: Exam interface --- */
+/* --- Mobile Question Map Drawer --- */
+.mobile-qmap-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 6100;
+}
+.mobile-qmap-backdrop.open { display: block; }
+.mobile-qmap-sheet {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 6200;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-top: 1.5px solid var(--color-border);
+    border-radius: 1.25rem 1.25rem 0 0;
+    padding: 1rem 1rem 2.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
+}
+.mobile-qmap-sheet.open { display: block; }
+.mobile-qmap-handle {
+    width: 40px; height: 4px;
+    background: var(--color-border);
+    border-radius: 99px;
+    margin: 0 auto 1rem;
+}
+.mobile-qmap-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.mobile-qmap-close {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0.2rem;
+}
+
+/* --- Responsive: Exam interface — tablet --- */
 @media (max-width: 900px) {
     .exam-workspace { flex-direction: column; align-items: stretch; }
     .exam-navigation-panel { width: 100%; }
     .questions-grid-container { grid-template-columns: repeat(10, 1fr); }
 }
-@media (max-width: 600px) {
-    .exam-main-panel { flex-direction: column; padding: 1rem; }
-    .exam-info-card {
-        width: 100%; border-right: none;
-        border-bottom: 1.5px solid var(--color-border);
-        padding-right: 0; padding-bottom: 1rem; margin-bottom: 1rem;
-        display: flex; align-items: center; gap: 1.5rem;
+
+/* ============================================================
+   MOBILE EXAM — full redesign for focused, distraction-free UX
+   ============================================================ */
+@media (max-width: 700px) {
+
+    /* Full-screen fixed container */
+    .exam-interface {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
-    .candidate-photo { margin: 0; }
-    .questions-grid-container { grid-template-columns: repeat(5, 1fr); }
+    .exam-interface .container {
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    /* ── Sticky header: compact exam title + timer ── */
+    .exam-header-strip {
+        border-radius: 0;
+        padding: 0.6rem 1rem;
+        margin-bottom: 0;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        gap: 0.5rem;
+    }
+    .exam-header-left h2 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 160px;
+    }
+    #studyBackBtn {
+        padding: 0.3rem 0.5rem !important;
+        font-size: 0.75rem;
+    }
+    .exam-timer-box {
+        padding: 0.35rem 0.7rem;
+        font-size: 1rem;
+        gap: 0.3rem;
+    }
+    .timer-label { display: none; }
+
+    /* ── Progress bar ── */
+    .exam-progress-strip {
+        padding: 0 1rem 0.4rem;
+        margin: 0;
+        flex-shrink: 0;
+    }
+    .exam-progress-bar-track {
+        height: 5px;
+        background: var(--color-border);
+        border-radius: 99px;
+        overflow: hidden;
+        margin-bottom: 0.25rem;
+    }
+    .exam-progress-label {
+        font-size: 0.72rem;
+        color: var(--color-text-secondary);
+    }
+
+    /* ── Workspace: scrollable question area only ── */
+    .exam-workspace {
+        flex: 1;
+        flex-direction: column;
+        overflow: hidden;
+        gap: 0;
+        min-height: 0;
+    }
+
+    /* ── Hide desktop navigation panel — use bottom sheet instead ── */
+    .exam-navigation-panel { display: none !important; }
+
+    /* ── Main panel: question card fills screen ── */
+    .exam-main-panel {
+        flex: 1;
+        flex-direction: column;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+        overflow: hidden;
+        gap: 0;
+    }
+
+    /* ── Hide candidate info card on mobile ── */
+    .exam-info-card { display: none !important; }
+
+    /* ── Question content: scrollable card ── */
+    .exam-content-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 1rem 0.5rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Question header */
+    .question-header-strip {
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.9rem;
+    }
+    .question-number-label { font-size: 0.9rem; }
+    .question-points { font-size: 0.78rem; }
+
+    /* Question text — bigger, readable */
+    .question-text {
+        font-size: 1.05rem;
+        line-height: 1.65;
+        margin-bottom: 1.2rem;
+    }
+
+    /* Options — tall touch targets */
+    .options-list { gap: 0.65rem; }
+    .option-item {
+        padding: 1rem 1rem;
+        border-radius: 0.75rem;
+        font-size: 0.97rem;
+        min-height: 52px;
+        gap: 0;
+        align-items: flex-start;
+    }
+    .option-item:active { transform: scale(0.985); }
+    .option-letter {
+        width: 30px; height: 30px;
+        font-size: 0.88rem;
+        margin-right: 0.85rem;
+        flex-shrink: 0;
+        margin-top: 0.05rem;
+    }
+
+    /* ── Hide inline nav controls — replaced by floating bar ── */
+    .exam-nav-controls { display: none !important; }
+
+    /* ── Floating bottom navigation bar ── */
+    .exam-mobile-nav {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.65rem 0.85rem;
+        padding-bottom: calc(0.65rem + env(safe-area-inset-bottom));
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border-top: 1.5px solid var(--color-border);
+        box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+        flex-shrink: 0;
+        z-index: 40;
+    }
+    .exam-mobile-nav .btn {
+        flex: 1;
+        min-height: 46px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        border-radius: 0.65rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+    }
+    .exam-mobile-nav .mob-nav-map-btn {
+        flex: 0 0 46px;
+        width: 46px;
+        height: 46px;
+        min-height: 46px;
+        padding: 0;
+        border-radius: 0.65rem;
+        border: 1.5px solid var(--color-border);
+        background: var(--color-bg);
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        font-weight: 700;
+        flex-direction: column;
+        gap: 0.1rem;
+        transition: background 0.15s;
+    }
+    .exam-mobile-nav .mob-nav-map-btn:active { background: var(--color-border); }
 }
 
-/* --- Legacy fonts override --- */
+/* Legacy fonts override */
 .dashboard, .exam-interface,
 .exam-card, .stat-card, .student-stats-card, .recent-result-item,
 .exam-title, .exam-meta, .exam-detail,
@@ -390,3 +619,4 @@
 .question-title, .question-text, .option-item {
   font-family: 'Inter', sans-serif !important;
 }
+
