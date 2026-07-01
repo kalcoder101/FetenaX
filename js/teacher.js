@@ -25,19 +25,68 @@ async function loadSystemAdminDashboard() {
     var recentUsers = (statsRes.recentUsers || []).slice(0, 10);
     var recentExams = (statsRes.recentExams || []).slice(0, 10);
     var createForm = '' +
-        '<div class="glass-card admin-create-card">' +
-            '<div class="card-header-flex"><h3>Create New Account</h3></div>' +
-            '<div class="admin-create-grid">' +
-                '<input id="adminCreateName" class="form-input" placeholder="Full name" />' +
-                '<input id="adminCreateEmail" class="form-input" placeholder="Email" />' +
-                '<input id="adminCreateUserId" class="form-input" placeholder="Student/Staff ID" />' +
-                '<input id="adminCreatePassword" class="form-input" type="password" placeholder="Temporary password" />' +
-                '<select id="adminCreateRole" class="form-input form-select">' +
-                    '<option value="student">Student</option>' +
-                    '<option value="teacher">Teacher</option>' +
-                    '<option value="system_admin">System Admin</option>' +
-                '</select>' +
-                '<button id="adminCreateUserBtn" class="btn btn-primary admin-create-btn">Create Account</button>' +
+        '<div class="admin-create-action-row">' +
+            '<button id="adminOpenCreateModalBtn" class="btn btn-primary admin-create-trigger">Create New Account</button>' +
+        '</div>' +
+        '<div id="adminCreateModal" class="admin-create-backdrop hidden">' +
+            '<div class="admin-create-modal" role="dialog" aria-modal="true" aria-labelledby="adminCreateModalTitle">' +
+                '<div class="admin-create-modal-header">' +
+                    '<div>' +
+                        '<div id="adminCreateModalTitle" class="admin-create-modal-title">Create New Account</div>' +
+                        '<div class="admin-create-modal-subtitle">Create a student, teacher, or system admin account in seconds.</div>' +
+                    '</div>' +
+                    '<button id="adminCloseCreateModalBtn" class="admin-create-close-btn" type="button" aria-label="Close">✕</button>' +
+                '</div>' +
+                '<div class="admin-create-grid admin-create-modal-grid">' +
+                    '<div class="admin-form-group">' +
+                        '<label class="admin-form-label" for="adminCreateName">Full name</label>' +
+                        '<input id="adminCreateName" class="form-input" placeholder="Full name" />' +
+                    '</div>' +
+                    '<div class="admin-form-group">' +
+                        '<label class="admin-form-label" for="adminCreateEmail">Email</label>' +
+                        '<input id="adminCreateEmail" class="form-input" placeholder="Email" />' +
+                    '</div>' +
+                    '<div class="admin-form-group">' +
+                        '<label class="admin-form-label" for="adminCreateUserId">Student/Staff ID</label>' +
+                        '<input id="adminCreateUserId" class="form-input" placeholder="Student/Staff ID" />' +
+                    '</div>' +
+                    '<div class="admin-form-group">' +
+                        '<label class="admin-form-label" for="adminCreatePassword">Password</label>' +
+                        '<input id="adminCreatePassword" class="form-input" type="password" placeholder="At least 6 characters" />' +
+                    '</div>' +
+                    '<div class="admin-form-group">' +
+                        '<label class="admin-form-label" for="adminCreateRole">Role</label>' +
+                        '<select id="adminCreateRole" class="form-input form-select">' +
+                            '<option value="student">Student</option>' +
+                            '<option value="teacher">Teacher</option>' +
+                            '<option value="system_admin">System Admin</option>' +
+                        '</select>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="admin-create-actions">' +
+                    '<button id="adminCancelCreateModalBtn" class="btn btn-secondary" type="button">Cancel</button>' +
+                    '<button id="adminCreateUserBtn" class="btn btn-primary admin-create-btn" type="button">Create Account</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div id="adminPasswordModal" class="admin-create-backdrop hidden">' +
+            '<div class="admin-create-modal" role="dialog" aria-modal="true" aria-labelledby="adminPasswordModalTitle">' +
+                '<div class="admin-create-modal-header">' +
+                    '<div>' +
+                        '<div id="adminPasswordModalTitle" class="admin-create-modal-title">Set Account Password</div>' +
+                        '<div class="admin-create-modal-subtitle">Choose a secure password for the selected user.</div>' +
+                    '</div>' +
+                    '<button id="adminClosePasswordModalBtn" class="admin-create-close-btn" type="button" aria-label="Close">✕</button>' +
+                '</div>' +
+                '<div class="admin-form-group" style="margin-top:0.7rem;">' +
+                    '<label class="admin-form-label" for="adminPasswordInput">New password</label>' +
+                    '<input id="adminPasswordInput" class="form-input" type="password" placeholder="At least 6 characters" />' +
+                '</div>' +
+                '<input id="adminPasswordUserId" type="hidden" />' +
+                '<div class="admin-create-actions">' +
+                    '<button id="adminCancelPasswordModalBtn" class="btn btn-secondary" type="button">Cancel</button>' +
+                    '<button id="adminSavePasswordBtn" class="btn btn-primary admin-create-btn" type="button">Save Password</button>' +
+                '</div>' +
             '</div>' +
         '</div>';
     users.forEach(function (u) {
@@ -57,8 +106,9 @@ async function loadSystemAdminDashboard() {
                     '<option value="system_admin"' + (roleValue === 'system_admin' ? ' selected' : '') + '>System Admin</option>' +
                 '</select>' +
             '</div>' +
-            '<div>' +
-                '<button class="btn btn-primary admin-reset-btn" data-user-id="' + u.id + '">Reset Password</button>' +
+            '<div style="display:flex;gap:0.45rem;flex-wrap:wrap;justify-content:flex-end;">' +
+                '<button class="btn btn-primary admin-reset-btn" data-user-id="' + u.id + '">Set Password</button>' +
+                '<button class="btn btn-danger admin-delete-btn" data-user-id="' + u.id + '">Delete</button>' +
             '</div>' +
         '</div>';
     });
@@ -94,6 +144,48 @@ async function loadSystemAdminDashboard() {
             '</div>' +
         '</div>';
 
+    var createModal = document.getElementById('adminCreateModal');
+    var passwordModal = document.getElementById('adminPasswordModal');
+    var openCreateModalBtn = document.getElementById('adminOpenCreateModalBtn');
+    var closeCreateModalBtn = document.getElementById('adminCloseCreateModalBtn');
+    var cancelCreateModalBtn = document.getElementById('adminCancelCreateModalBtn');
+    var closePasswordModalBtn = document.getElementById('adminClosePasswordModalBtn');
+    var cancelPasswordModalBtn = document.getElementById('adminCancelPasswordModalBtn');
+
+    function closeAdminCreateModal() {
+        if (createModal) createModal.classList.add('hidden');
+    }
+
+    function closeAdminPasswordModal() {
+        if (passwordModal) passwordModal.classList.add('hidden');
+        var passwordInput = document.getElementById('adminPasswordInput');
+        if (passwordInput) passwordInput.value = '';
+        var passwordUserId = document.getElementById('adminPasswordUserId');
+        if (passwordUserId) passwordUserId.value = '';
+    }
+
+    if (openCreateModalBtn && createModal) {
+        openCreateModalBtn.addEventListener('click', function () {
+            createModal.classList.remove('hidden');
+            var nameInput = document.getElementById('adminCreateName');
+            if (nameInput) nameInput.focus();
+        });
+    }
+    if (closeCreateModalBtn) closeCreateModalBtn.addEventListener('click', closeAdminCreateModal);
+    if (cancelCreateModalBtn) cancelCreateModalBtn.addEventListener('click', closeAdminCreateModal);
+    if (closePasswordModalBtn) closePasswordModalBtn.addEventListener('click', closeAdminPasswordModal);
+    if (cancelPasswordModalBtn) cancelPasswordModalBtn.addEventListener('click', closeAdminPasswordModal);
+    if (createModal) {
+        createModal.addEventListener('click', function (event) {
+            if (event.target === createModal) closeAdminCreateModal();
+        });
+    }
+    if (passwordModal) {
+        passwordModal.addEventListener('click', function (event) {
+            if (event.target === passwordModal) closeAdminPasswordModal();
+        });
+    }
+
     var createBtn = document.getElementById('adminCreateUserBtn');
     if (createBtn) {
         createBtn.addEventListener('click', async function () {
@@ -107,6 +199,7 @@ async function loadSystemAdminDashboard() {
             var res = await apiRequest('admin_create_user', payload);
             if (res.status === 'success') {
                 showToast('Account created.', 'success');
+                closeAdminCreateModal();
                 loadSystemAdminDashboard();
             } else {
                 showToast(res.message || 'Unable to create account.', 'error');
@@ -128,15 +221,52 @@ async function loadSystemAdminDashboard() {
     });
 
     container.querySelectorAll('.admin-reset-btn').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-            var pw = prompt('Enter a temporary password (at least 6 characters):');
-            if (!pw) return;
-            var res = await apiRequest('admin_reset_user_password', { userId: Number(this.getAttribute('data-user-id')), newPassword: pw });
-            if (res.status === 'success') {
-                showToast('Password reset.', 'success');
-            } else {
-                showToast(res.message || 'Unable to reset password.', 'error');
+        btn.addEventListener('click', function () {
+            var userId = this.getAttribute('data-user-id');
+            var passwordUserId = document.getElementById('adminPasswordUserId');
+            if (passwordModal && passwordUserId) {
+                passwordUserId.value = userId;
+                passwordModal.classList.remove('hidden');
+                var passwordInput = document.getElementById('adminPasswordInput');
+                if (passwordInput) passwordInput.focus();
             }
+        });
+    });
+
+    var savePasswordBtn = document.getElementById('adminSavePasswordBtn');
+    if (savePasswordBtn) {
+        savePasswordBtn.addEventListener('click', async function () {
+            var passwordInput = document.getElementById('adminPasswordInput');
+            var passwordUserId = document.getElementById('adminPasswordUserId');
+            if (!passwordInput || !passwordUserId) return;
+            var pw = passwordInput.value.trim();
+            if (pw.length < 6) {
+                showToast('Password must be at least 6 characters.', 'error');
+                return;
+            }
+            var res = await apiRequest('admin_reset_user_password', { userId: Number(passwordUserId.value), newPassword: pw });
+            if (res.status === 'success') {
+                showToast('Password updated.', 'success');
+                closeAdminPasswordModal();
+            } else {
+                showToast(res.message || 'Unable to update password.', 'error');
+            }
+        });
+    }
+
+    container.querySelectorAll('.admin-delete-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var userId = Number(this.getAttribute('data-user-id'));
+            showCustomConfirm('Delete account', 'Delete this account permanently from the database?', function () {
+                apiRequest('admin_delete_user', { userId: userId }).then(function (res) {
+                    if (res.status === 'success') {
+                        showToast('Account deleted.', 'success');
+                        loadSystemAdminDashboard();
+                    } else {
+                        showToast(res.message || 'Unable to delete account.', 'error');
+                    }
+                });
+            });
         });
     });
 }

@@ -116,7 +116,23 @@ if ($action === 'admin_reset_user_password') {
     $stmt = $pdo->prepare("UPDATE `users` SET `password` = ? WHERE `id` = ?");
     $stmt->execute([$hashed, $userId]);
 
-    respond('success', ['message' => 'Password reset successfully.']);
+    respond('success', ['message' => 'Password updated successfully.']);
+}
+
+if ($action === 'admin_delete_user') {
+    $userId = isset($requestData['userId']) ? (int)$requestData['userId'] : 0;
+
+    if ($userId <= 0) {
+        respond('error', ['message' => 'Invalid user selection.']);
+    }
+    if ($userId === $currentUser['id']) {
+        respond('error', ['message' => 'You cannot delete your own account.']);
+    }
+
+    $stmt = $pdo->prepare("DELETE FROM `users` WHERE `id` = ?");
+    $stmt->execute([$userId]);
+
+    respond('success', ['message' => 'User deleted successfully.']);
 }
 
 respond('error', ['message' => 'Action not found: ' . $action]);

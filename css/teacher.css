@@ -3,18 +3,98 @@
    ============================ */
 
 /* --- Admin Console Tweaks --- */
-.admin-create-card {
-    padding: 1rem 1rem 1.1rem;
+.admin-create-action-row {
+    display: flex;
+    justify-content: flex-end;
     margin-bottom: 1rem;
+}
+.admin-create-trigger {
+    min-height: 44px;
+    font-weight: 700;
+    padding: 0.7rem 1rem;
+    box-shadow: 0 10px 24px rgba(87, 120, 90, 0.2);
 }
 .admin-create-grid {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.8rem;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.admin-create-modal-grid {
+    grid-template-columns: 1fr 1fr;
+    margin-top: 0.6rem;
+}
+.admin-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.admin-form-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 .admin-create-btn {
     min-height: 44px;
     font-weight: 700;
+}
+.admin-create-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(8px);
+}
+.admin-create-modal {
+    width: min(100%, 560px);
+    background: var(--glass-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    padding: 1.1rem 1.15rem 1rem;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+    animation: admin-modal-in 0.18s ease;
+}
+@keyframes admin-modal-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.admin-create-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.2rem;
+}
+.admin-create-modal-title {
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: var(--color-text);
+}
+.admin-create-modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.2rem;
+}
+.admin-create-close-btn {
+    border: none;
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.admin-create-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.7rem;
+    margin-top: 0.95rem;
 }
 .admin-management-card {
     min-width: 0;
