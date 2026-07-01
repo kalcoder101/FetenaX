@@ -20,16 +20,16 @@ function setAuthMode(loginMode) {
     var tabSignup  = document.getElementById('authTabSignup');
 
     if (loginMode) {
-        if (titleEl)    titleEl.textContent = 'Get started';
-        if (subtitleEl) subtitleEl.textContent = 'Welcome to FetenaX — Sign in to your account';
-        if (submitText) submitText.textContent = 'Login';
+        if (titleEl)    titleEl.textContent = 'Welcome back';
+        if (subtitleEl) subtitleEl.textContent = 'Sign in to continue to your exams and progress.';
+        if (submitText) submitText.textContent = 'Sign In';
         if (signupFlds) signupFlds.classList.add('hidden');
         if (tabLogin)   tabLogin.classList.add('active');
         if (tabSignup)  tabSignup.classList.remove('active');
     } else {
-        if (titleEl)    titleEl.textContent = 'Create account';
-        if (subtitleEl) subtitleEl.textContent = 'Sign up as a student to start taking exams';
-        if (submitText) submitText.textContent = 'Sign Up';
+        if (titleEl)    titleEl.textContent = 'Create your account';
+        if (subtitleEl) subtitleEl.textContent = 'Register to join your classes and start your exams.';
+        if (submitText) submitText.textContent = 'Create Account';
         if (signupFlds) signupFlds.classList.remove('hidden');
         if (tabLogin)   tabLogin.classList.remove('active');
         if (tabSignup)  tabSignup.classList.add('active');

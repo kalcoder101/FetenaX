@@ -89,7 +89,14 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                     <img src="Img/fetenAX.png" alt="FetenaX Logo" class="logo-img" style="height:2.1rem;width:auto;vertical-align:middle;margin-right:0.5rem;">
                 </div>
                 <div class="nav-actions">
-                    <button id="aboutBtn" class="btn btn-secondary" title="About this site">About</button>
+                    <button id="aboutBtn" class="btn btn-secondary about-btn" title="About this site">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>
+                        <span>About</span>
+                    </button>
                     <button id="themeToggle" class="btn btn-secondary" title="Toggle theme">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;">
                             <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" stroke="currentColor" stroke-width="2" fill="none" />
@@ -236,6 +243,13 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                 <div class="mtb-title" id="mtbTitle">FetenaX</div>
                 <div class="mtb-subtitle" id="mtbSubtitle"></div>
             </div>
+            <button id="mobileAboutBtn" class="mobile-about-btn" title="About FetenaX" aria-label="Open About">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                </svg>
+            </button>
             <button id="mobileLogoutBtn" class="btn btn-logout-icon" title="Logout">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             </button>
@@ -481,7 +495,14 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                         </div>
                     </div>
 
-                    <button id="mainAboutBtn" class="btn btn-secondary-header" title="About FetenaX">About</button>
+                    <button id="mainAboutBtn" class="btn btn-secondary-header about-btn" title="About FetenaX">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>
+                        <span>About</span>
+                    </button>
                     <button id="mainThemeToggle" class="btn btn-secondary-header" title="Toggle Theme">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"></path></svg>
                     </button>
@@ -1268,6 +1289,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
          LOGIN / SIGNUP — Full page, cream/light theme
          ============================================================ -->
     <div id="authModal" class="auth-fullpage">
+        <div class="auth-panel">
         <!-- LEFT: Brand panel -->
         <aside class="auth-brand-side">
             <div class="auth-brand-content">
@@ -1312,12 +1334,12 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
         <main class="auth-form-side">
             <div class="auth-form-inner">
                 <div class="auth-mode-tabs">
-                    <button type="button" class="auth-mode-tab active" data-mode="login" id="authTabLogin">Login</button>
-                    <button type="button" class="auth-mode-tab" data-mode="signup" id="authTabSignup">Sign Up</button>
+                    <button type="button" class="auth-mode-tab active" data-mode="login" id="authTabLogin">Sign In</button>
+                    <button type="button" class="auth-mode-tab" data-mode="signup" id="authTabSignup">Create Account</button>
                 </div>
 
-                <h2 id="authTitle" class="auth-form-title">Get started</h2>
-                <p id="authSubtitle" class="auth-form-subtitle">Welcome to FetenaX — Sign in to your account</p>
+                <h2 id="authTitle" class="auth-form-title">Welcome back</h2>
+                <p id="authSubtitle" class="auth-form-subtitle">Sign in to continue to your exams, progress, and study tools.</p>
 
                 <form id="authForm" class="auth-form" autocomplete="on">
                     <div id="signupFields" class="auth-signup-fields hidden">
@@ -1354,6 +1376,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                 <button type="button" class="hidden" id="switchAuthMode"></button>
             </div>
         </main>
+        </div>
     </div>
 
     <!-- Reusable Custom Confirmation Modal -->

@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var mainThemeToggle = document.getElementById('mainThemeToggle');
     var aboutBtn        = document.getElementById('aboutBtn');
     var mainAboutBtn    = document.getElementById('mainAboutBtn');
+    var mobileAboutBtn  = document.getElementById('mobileAboutBtn');
     var aboutPage       = document.getElementById('aboutFullPage');
     var aboutBackBtn    = document.getElementById('aboutBackBtn');
     var authForm        = document.getElementById('authForm');
@@ -70,7 +71,8 @@ document.addEventListener('DOMContentLoaded', function () {
         aboutPage.classList.remove('hidden');
         dashboard.classList.add('hidden');
         resultsPage.classList.add('hidden');
-        document.getElementById('examInterface').classList.add('hidden');
+        var examInterface = document.getElementById('examInterface');
+        if (examInterface) examInterface.classList.add('hidden');
         var navbar = document.querySelector('.navbar');
         if (navbar) navbar.classList.remove('hidden');
     }
@@ -84,6 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (aboutBtn)     aboutBtn.addEventListener('click', showAboutPage);
     if (mainAboutBtn) mainAboutBtn.addEventListener('click', showAboutPage);
+    if (mobileAboutBtn) mobileAboutBtn.addEventListener('click', showAboutPage);
     if (aboutBackBtn) aboutBackBtn.addEventListener('click', hideAboutPage);
 
     // =========================================================================
