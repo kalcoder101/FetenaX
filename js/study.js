@@ -1630,7 +1630,7 @@ async function loadDiscussionComments(questionId) {
         var date = new Date(c.createdAt + 'Z').toLocaleString();
         var pinnedBadge = c.isPinned == 1 ? '📌 ' : '';
         var hiddenStyle = c.isHidden == 1 ? 'opacity:0.4;' : '';
-        var isTeacher = currentUser.role === 'teacher';
+        var isTeacher = isTeacherRole(currentUser.role);
         var canDelete = isTeacher || c.userId == currentUser.id;
         var roleTag = c.authorRole === 'teacher' ? '<span style="font-size:0.66rem;background:var(--color-primary);color:#fff;padding:0.05rem 0.35rem;border-radius:0.25rem;margin-left:0.3rem;">TEACHER</span>' : '';
         html +=

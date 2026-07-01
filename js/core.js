@@ -55,6 +55,24 @@ var ICONS = {
 // =========================================================================
 
 /**
+ * Determine whether the supplied role is a student role.
+ * @param {string} role
+ * @returns {boolean}
+ */
+function isStudentRole(role) {
+    return role === 'student';
+}
+
+/**
+ * Determine whether the supplied role is teacher-like (teacher or system admin).
+ * @param {string} role
+ * @returns {boolean}
+ */
+function isTeacherRole(role) {
+    return role === 'teacher' || role === 'system_admin';
+}
+
+/**
  * Format seconds into MM:SS string.
  * @param {number} seconds
  * @returns {string}

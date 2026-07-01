@@ -294,11 +294,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     if (n.link) {
                         // Navigate to the tab indicated by the link
-                        if (currentUser && currentUser.role === 'student' && n.link === 'student-history') {
+                        if (currentUser && isStudentRole(currentUser.role) && n.link === 'student-history') {
                             switchTab('student', 'student-history');
-                        } else if (currentUser && currentUser.role === 'teacher' && n.link === 'teacher-attempts') {
+                        } else if (currentUser && isTeacherRole(currentUser.role) && n.link === 'teacher-attempts') {
                             switchTab('teacher', 'teacher-attempts');
-                        } else if (currentUser && currentUser.role === 'student' && n.link === 'student-exams') {
+                        } else if (currentUser && isStudentRole(currentUser.role) && n.link === 'student-exams') {
                             switchTab('student', 'student-exams');
                         }
                     }

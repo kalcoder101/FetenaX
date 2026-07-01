@@ -1094,7 +1094,7 @@ function wireResultsButtons() {
         newBack.addEventListener('click', function () {
             document.getElementById('resultsPage').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
-            if (currentUser && currentUser.role === 'teacher') {
+            if (currentUser && isTeacherRole(currentUser.role)) {
                 loadTeacherDashboard();
             } else {
                 loadStudentDashboard();

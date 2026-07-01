@@ -11,8 +11,8 @@
  * @param {string} tabId - e.g. 'student-exams', 'teacher-overview'
  */
 function switchTab(role, tabId) {
-    var container = role === 'student' ? document.getElementById('studentDashboard') : document.getElementById('teacherDashboard');
-    var nav = role === 'student' ? document.getElementById('studentNav') : document.getElementById('teacherNav');
+    var container = isStudentRole(role) ? document.getElementById('studentDashboard') : document.getElementById('teacherDashboard');
+    var nav = isStudentRole(role) ? document.getElementById('studentNav') : document.getElementById('teacherNav');
 
     container.querySelectorAll('.tab-content').forEach(function (tab) { tab.classList.add('hidden'); });
     var targetTab = document.getElementById(tabId);
@@ -112,7 +112,7 @@ function showDashboardForRole(role) {
     document.getElementById('sidebarUserName').textContent = currentUser.name || currentUser.email;
     document.getElementById('sidebarUserRole').textContent = roleLabel;
 
-    if (role === 'student') {
+    if (isStudentRole(role)) {
         document.getElementById('studentDashboard').classList.remove('hidden');
         document.getElementById('teacherDashboard').classList.add('hidden');
         studentNav.classList.remove('hidden');
@@ -152,7 +152,7 @@ function showDashboardForRole(role) {
         teacherNav.querySelectorAll('.menu-item').forEach(function (btn) { btn.classList.remove('active'); });
         var adminNavItem = teacherNav.querySelector('[data-tab="teacher-admin"]');
         if (adminNavItem) {
-            adminNavItem.style.display = role === 'system_admin' ? '' : 'none';
+            adminNavItem.style.display = isTeacherRole(role) ? '' : 'none';
         }
         teacherNav.querySelector('[data-tab="teacher-overview"]').classList.add('active');
         switchTab('teacher', 'teacher-overview');
