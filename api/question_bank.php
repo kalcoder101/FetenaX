@@ -2,8 +2,8 @@
 // api/question_bank.php - Question Bank actions for FetenaX
 // Included by api.php. Variables: $pdo, $requestData, $action, $currentUser, respond()
 
-// Verify teacher role
-if ($currentUser['role'] !== 'teacher') {
+// Verify teacher or admin role
+if (!in_array($currentUser['role'], ['teacher', 'system_admin'], true)) {
     respond('error', ['message' => 'Teacher access required.']);
 }
 

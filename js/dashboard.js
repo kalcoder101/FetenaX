@@ -59,6 +59,7 @@ function switchTab(role, tabId) {
         'teacher-analytics':    { title: 'Class Analytics',       subtitle: 'Class-wide subject mastery, pass rates, and hardest questions' },
         'teacher-progress':     { title: 'Student Progress',      subtitle: 'Per-student mastery across subjects — identify who needs help' },
         'teacher-resources':    { title: 'Study Resources',      subtitle: 'Add curated study materials for students' },
+        'teacher-admin':        { title: 'System Administration', subtitle: 'Manage users, roles and platform-wide activity' },
         'teacher-settings':     { title: 'Profile Settings',     subtitle: 'Update your name, avatar and password' }
     };
 
@@ -82,6 +83,7 @@ function switchTab(role, tabId) {
     if (tabId === 'teacher-groups')       loadTeacherGroups();
     if (tabId === 'teacher-codes')        loadAccessCodes();
     if (tabId === 'teacher-analytics')    loadClassAnalytics();
+    if (tabId === 'teacher-admin')        loadSystemAdminDashboard();
     if (tabId === 'teacher-progress')     loadStudentProgress();
     if (tabId === 'teacher-resources')    loadTeacherResources();
     if (tabId === 'teacher-settings')     loadSettingsPanel('teacher');
@@ -105,9 +107,10 @@ function showDashboardForRole(role) {
     var teacherNav = document.getElementById('teacherNav');
 
     var initials = (currentUser.name || currentUser.email || 'US').substring(0, 2).toUpperCase();
+    var roleLabel = role === 'system_admin' ? 'System Admin' : role === 'teacher' ? 'Teacher' : role === 'student' ? 'Student' : role.charAt(0).toUpperCase() + role.slice(1);
     document.getElementById('sidebarAvatar').textContent = initials;
     document.getElementById('sidebarUserName').textContent = currentUser.name || currentUser.email;
-    document.getElementById('sidebarUserRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+    document.getElementById('sidebarUserRole').textContent = roleLabel;
 
     if (role === 'student') {
         document.getElementById('studentDashboard').classList.remove('hidden');
@@ -147,6 +150,10 @@ function showDashboardForRole(role) {
         teacherNav.classList.remove('hidden');
         studentNav.classList.add('hidden');
         teacherNav.querySelectorAll('.menu-item').forEach(function (btn) { btn.classList.remove('active'); });
+        var adminNavItem = teacherNav.querySelector('[data-tab="teacher-admin"]');
+        if (adminNavItem) {
+            adminNavItem.style.display = role === 'system_admin' ? '' : 'none';
+        }
         teacherNav.querySelector('[data-tab="teacher-overview"]').classList.add('active');
         switchTab('teacher', 'teacher-overview');
         loadTeacherDashboard();

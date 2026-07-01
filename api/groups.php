@@ -2,7 +2,7 @@
 // api/groups.php - Class Groups actions for FetenaX
 // Included by api.php. Variables: $pdo, $requestData, $action, $currentUser, respond()
 
-if ($currentUser['role'] !== 'teacher') {
+if (!in_array($currentUser['role'], ['teacher', 'system_admin'], true)) {
     respond('error', ['message' => 'Forbidden.']);
 }
 

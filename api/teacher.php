@@ -3,9 +3,17 @@
 // Included by api.php for teacher_* actions not handled by other domain files.
 // Variables available: $pdo, $requestData, $action, $currentUser, respond()
 
-// Verify teacher role
-if ($currentUser['role'] !== 'teacher') {
-    respond('error', ['message' => 'Forbidden. Teachers only.']);
+// Verify teacher or admin role
+if (!in_array($currentUser['role'], ['teacher', 'system_admin'], true)) {
+    respond('error', ['message' => 'Forbidden. Teachers and administrators only.']);
+}
+
+function teacherCanAccessExam($pdo, $examId, $currentUser) {
+    $stmt = $pdo->prepare("SELECT `createdBy` FROM `exams` WHERE `id` = ?");
+    $stmt->execute([$examId]);
+    $exam = $stmt->fetch();
+    if (!$exam) return false;
+    return $currentUser['role'] === 'system_admin' || (int)$exam['createdBy'] === (int)$currentUser['id'];
 }
 
 // ============================================================
@@ -43,9 +51,23 @@ function teacherQuestionExtrasFragment($pdo) {
 }
 
 if ($action === 'teacher_stats') {
-    $totalExams = $pdo->query("SELECT COUNT(*) FROM `exams`")->fetchColumn();
-    $totalAttempts = $pdo->query("SELECT COUNT(*) FROM `results`")->fetchColumn();
-    $avgScore = $pdo->query("SELECT AVG(score) FROM `results`")->fetchColumn();
+    if ($currentUser['role'] === 'system_admin') {
+        $totalExams = $pdo->query("SELECT COUNT(*) FROM `exams`")->fetchColumn();
+        $totalAttempts = $pdo->query("SELECT COUNT(*) FROM `results`")->fetchColumn();
+        $avgScore = $pdo->query("SELECT AVG(score) FROM `results`")->fetchColumn();
+    } else {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM `exams` WHERE `createdBy` = ?");
+        $stmt->execute([$currentUser['id']]);
+        $totalExams = $stmt->fetchColumn();
+
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM `results` r JOIN `exams` e ON e.id = r.examId WHERE e.createdBy = ?");
+        $stmt->execute([$currentUser['id']]);
+        $totalAttempts = $stmt->fetchColumn();
+
+        $stmt = $pdo->prepare("SELECT AVG(r.score) FROM `results` r JOIN `exams` e ON e.id = r.examId WHERE e.createdBy = ?");
+        $stmt->execute([$currentUser['id']]);
+        $avgScore = $stmt->fetchColumn();
+    }
 
     respond('success', [
         'totalExams' => (int)$totalExams,
@@ -55,7 +77,12 @@ if ($action === 'teacher_stats') {
 }
 
 if ($action === 'teacher_analytics') {
-    $stmt = $pdo->query("SELECT id, title, subject, difficulty, duration, totalQuestions, createdAt, accessPassword, accessCodePlain, passMark, maxAttempts, category, availableFrom, availableUntil FROM `exams` ORDER BY `id` ASC");
+    if ($currentUser['role'] === 'system_admin') {
+        $stmt = $pdo->query("SELECT id, title, subject, difficulty, duration, totalQuestions, createdAt, accessPassword, accessCodePlain, passMark, maxAttempts, category, availableFrom, availableUntil FROM `exams` ORDER BY `id` ASC");
+    } else {
+        $stmt = $pdo->prepare("SELECT id, title, subject, difficulty, duration, totalQuestions, createdAt, accessPassword, accessCodePlain, passMark, maxAttempts, category, availableFrom, availableUntil FROM `exams` WHERE `createdBy` = ? ORDER BY `id` ASC");
+        $stmt->execute([$currentUser['id']]);
+    }
     $exams = $stmt->fetchAll();
 
     $analytics = [];
@@ -104,11 +131,21 @@ if ($action === 'teacher_analytics') {
 }
 
 if ($action === 'teacher_attempts') {
-    $stmt = $pdo->query("SELECT r.*, e.title as examTitle, u.name as studentName 
-                         FROM `results` r 
-                         JOIN `exams` e ON r.examId = e.id 
-                         JOIN `users` u ON r.studentId = u.id 
-                         ORDER BY r.completedAt DESC");
+    if ($currentUser['role'] === 'system_admin') {
+        $stmt = $pdo->query("SELECT r.*, e.title as examTitle, u.name as studentName 
+                             FROM `results` r 
+                             JOIN `exams` e ON r.examId = e.id 
+                             JOIN `users` u ON r.studentId = u.id 
+                             ORDER BY r.completedAt DESC");
+    } else {
+        $stmt = $pdo->prepare("SELECT r.*, e.title as examTitle, u.name as studentName 
+                               FROM `results` r 
+                               JOIN `exams` e ON r.examId = e.id 
+                               JOIN `users` u ON r.studentId = u.id 
+                               WHERE e.createdBy = ?
+                               ORDER BY r.completedAt DESC");
+        $stmt->execute([$currentUser['id']]);
+    }
     $attempts = $stmt->fetchAll();
     respond('success', ['attempts' => $attempts]);
 }
@@ -178,15 +215,28 @@ if ($action === 'teacher_register_student') {
 if ($action === 'teacher_get_access_codes') {
     // Return list of all exams with their access codes (if any).
     // The teacher_codes tab consumes this.
-    $stmt = $pdo->prepare(
-        "SELECT e.`id` AS examId, e.`title`, e.`subject`, e.`difficulty`,
-                e.`duration`, e.`totalQuestions`, e.`maxAttempts`,
-                ac.`codePlain`, ac.`updatedAt` AS codeUpdatedAt
-         FROM `exams` e
-         LEFT JOIN `access_codes` ac ON ac.`examId` = e.`id`
-         ORDER BY e.`id` DESC"
-    );
-    $stmt->execute();
+    if ($currentUser['role'] === 'system_admin') {
+        $stmt = $pdo->prepare(
+            "SELECT e.`id` AS examId, e.`title`, e.`subject`, e.`difficulty`,
+                    e.`duration`, e.`totalQuestions`, e.`maxAttempts`,
+                    ac.`codePlain`, ac.`updatedAt` AS codeUpdatedAt
+             FROM `exams` e
+             LEFT JOIN `access_codes` ac ON ac.`examId` = e.`id`
+             ORDER BY e.`id` DESC"
+        );
+        $stmt->execute();
+    } else {
+        $stmt = $pdo->prepare(
+            "SELECT e.`id` AS examId, e.`title`, e.`subject`, e.`difficulty`,
+                    e.`duration`, e.`totalQuestions`, e.`maxAttempts`,
+                    ac.`codePlain`, ac.`updatedAt` AS codeUpdatedAt
+             FROM `exams` e
+             LEFT JOIN `access_codes` ac ON ac.`examId` = e.`id`
+             WHERE e.`createdBy` = ?
+             ORDER BY e.`id` DESC"
+        );
+        $stmt->execute([$currentUser['id']]);
+    }
     $rows = $stmt->fetchAll();
 
     $out = array_map(function ($r) {
@@ -213,11 +263,9 @@ if ($action === 'teacher_set_access_code') {
 
     if ($examId <= 0) respond('error', ['message' => 'Invalid exam ID.']);
 
-    // Verify the exam exists (any teacher can manage codes for any exam in this version;
-    // tighten to `createdBy = currentUser.id` if you want strict ownership).
-    $chk = $pdo->prepare("SELECT id FROM `exams` WHERE `id` = ?");
-    $chk->execute([$examId]);
-    if (!$chk->fetch()) respond('error', ['message' => 'Exam not found.']);
+    if (!teacherCanAccessExam($pdo, $examId, $currentUser)) {
+        respond('error', ['message' => 'You do not own this exam.']);
+    }
 
     if ($code === '') {
         // Remove the code (delete row + clear legacy columns on exams table).
@@ -249,6 +297,9 @@ if ($action === 'teacher_set_access_code') {
 if ($action === 'teacher_delete_access_code') {
     $examId = isset($requestData['examId']) ? (int)$requestData['examId'] : 0;
     if ($examId <= 0) respond('error', ['message' => 'Invalid exam ID.']);
+    if (!teacherCanAccessExam($pdo, $examId, $currentUser)) {
+        respond('error', ['message' => 'You do not own this exam.']);
+    }
     $pdo->prepare("DELETE FROM `access_codes` WHERE `examId` = ?")->execute([$examId]);
     $pdo->prepare("UPDATE `exams` SET `accessPassword` = NULL, `accessCodePlain` = NULL WHERE `id` = ?")
         ->execute([$examId]);
@@ -284,6 +335,9 @@ if ($action === 'teacher_delete_exam') {
     $examId = isset($requestData['examId']) ? (int)$requestData['examId'] : 0;
     if ($examId <= 0) {
         respond('error', ['message' => 'Invalid exam ID.']);
+    }
+    if (!teacherCanAccessExam($pdo, $examId, $currentUser)) {
+        respond('error', ['message' => 'You do not own this exam.']);
     }
     $stmt = $pdo->prepare("DELETE FROM `exams` WHERE `id` = ?");
     $stmt->execute([$examId]);
@@ -417,6 +471,10 @@ if ($action === 'teacher_edit_exam') {
     if ($availableUntil === '') $availableUntil = null;
     if ($category === '') $category = null;
 
+    if (!teacherCanAccessExam($pdo, $examId, $currentUser)) {
+        respond('error', ['message' => 'You do not own this exam.']);
+    }
+
     // Hash password if provided; keep existing if empty (don't overwrite with empty)
     $hashedPassword = null;
     $passwordUpdateSQL = '';
@@ -485,9 +543,9 @@ if ($action === 'teacher_preview_exam') {
     $examId = isset($requestData['examId']) ? (int)$requestData['examId'] : 0;
     if ($examId <= 0) respond('error', ['message' => 'Invalid exam ID.']);
 
-    $chk = $pdo->prepare("SELECT id FROM `exams` WHERE `id` = ? AND `createdBy` = ?");
-    $chk->execute([$examId, $currentUser['id']]);
-    if (!$chk->fetch()) respond('error', ['message' => 'You do not own this exam.']);
+    if (!teacherCanAccessExam($pdo, $examId, $currentUser)) {
+        respond('error', ['message' => 'You do not own this exam.']);
+    }
 
     $stmt = $pdo->prepare("SELECT * FROM `exams` WHERE `id` = ?");
     $stmt->execute([$examId]);
@@ -520,9 +578,8 @@ if ($action === 'teacher_question_analytics') {
     $chk->execute([$examId]);
     $examRow = $chk->fetch();
     if (!$examRow) respond('error', ['message' => 'Exam not found.']);
-    // Allow if teacher owns it OR if createdBy is null/0 (legacy exam)
-    if ($examRow['createdBy'] && $examRow['createdBy'] != $currentUser['id'] && $currentUser['role'] === 'teacher') {
-        // Still allow — teachers in the same system can view analytics
+    if ($currentUser['role'] === 'teacher' && $examRow['createdBy'] && $examRow['createdBy'] != $currentUser['id']) {
+        respond('error', ['message' => 'You do not own this exam.']);
     }
 
     // Use try-catch for query in case questionType column doesn't exist yet
@@ -615,6 +672,11 @@ if ($action === 'teacher_export_csv') {
     if ($examId > 0)       { $where[] = 'r.examId = ?';            $params[] = $examId; }
     if ($dateFrom !== '')  { $where[] = 'DATE(r.completedAt) >= ?'; $params[] = $dateFrom; }
     if ($dateTo   !== '')  { $where[] = 'DATE(r.completedAt) <= ?'; $params[] = $dateTo; }
+
+    if ($currentUser['role'] !== 'system_admin') {
+        $where[] = 'e.createdBy = ?';
+        $params[] = $currentUser['id'];
+    }
 
     $sql  = "SELECT r.id, u.name AS studentName, u.userId AS studentId, u.email,
                     e.title AS examTitle, e.subject, r.score, r.correctAnswers,

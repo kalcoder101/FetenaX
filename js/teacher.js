@@ -5,7 +5,106 @@
 // TEACHER DASHBOARD (loads on overview, exams, students, attempts tabs)
 // =========================================================================
 
+async function loadSystemAdminDashboard() {
+    var container = document.getElementById('teacherAdminContent');
+    if (!container) return;
+
+    container.innerHTML = '<div class="analytics-loading-state"><div class="als-spinner"></div><div class="als-text">Loading administration console…</div></div>';
+
+    var statsRes = await apiRequest('admin_dashboard', {}, 'GET');
+    var usersRes = await apiRequest('admin_users', {}, 'GET');
+
+    if (statsRes.status !== 'success' || usersRes.status !== 'success') {
+        container.innerHTML = '<div class="analytics-error-state"><div class="aes-icon">⚠</div><div class="aes-title">Administration unavailable</div><div class="aes-desc">The server could not load the admin dashboard. Please try again.</div></div>';
+        return;
+    }
+
+    var stats = statsRes.stats || {};
+    var users = usersRes.users || [];
+    var rows = '';
+    users.forEach(function (u) {
+        var roleValue = u.role || 'student';
+        rows += '<div class="glass-card" style="padding:0.95rem 1rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:0.75rem;margin-bottom:0.8rem;">' +
+            '<div style="display:flex;align-items:center;gap:0.75rem;min-width:220px;">' +
+                '<div style="width:2.2rem;height:2.2rem;border-radius:999px;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">' + escapeHtmlNotif((u.name || u.email || 'U').substring(0, 2).toUpperCase()) + '</div>' +
+                '<div>' +
+                    '<div style="font-weight:700;">' + escapeHtmlNotif(u.name || u.email || 'Unknown user') + '</div>' +
+                    '<div style="font-size:0.82rem;color:var(--color-text-secondary);">' + escapeHtmlNotif(u.email || '') + ' • ' + escapeHtmlNotif(u.userId || '') + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">' +
+                '<select class="form-input form-select admin-role-select" data-user-id="' + u.id + '" style="min-width:140px;">' +
+                    '<option value="student"' + (roleValue === 'student' ? ' selected' : '') + '>Student</option>' +
+                    '<option value="teacher"' + (roleValue === 'teacher' ? ' selected' : '') + '>Teacher</option>' +
+                    '<option value="system_admin"' + (roleValue === 'system_admin' ? ' selected' : '') + '>System Admin</option>' +
+                '</select>' +
+                '<button class="btn btn-secondary btn-small admin-reset-btn" data-user-id="' + u.id + '">Reset Password</button>' +
+            '</div>' +
+        '</div>';
+    });
+
+    container.innerHTML = '' +
+        '<div class="stats-cards-grid" style="margin-bottom:1.25rem;">' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">👤</div><div><div class="stat-card-label">Total Users</div><div class="stat-card-number">' + (stats.users || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">🎓</div><div><div class="stat-card-label">Students</div><div class="stat-card-number">' + (stats.students || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">🧑‍🏫</div><div><div class="stat-card-label">Teachers</div><div class="stat-card-number">' + (stats.teachers || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">🛡️</div><div><div class="stat-card-label">Admins</div><div class="stat-card-number">' + (stats.admins || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">📝</div><div><div class="stat-card-label">Exams</div><div class="stat-card-number">' + (stats.exams || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">📈</div><div><div class="stat-card-label">Attempts</div><div class="stat-card-number">' + (stats.attempts || 0) + '</div></div></div>' +
+            '<div class="glass-card stat-card-flex"><div class="stat-card-icon" style="color:var(--color-primary);">📊</div><div><div class="stat-card-label">Average Score</div><div class="stat-card-number">' + (stats.averageScore || 0) + '%</div></div></div>' +
+        '</div>' +
+        '<div class="dashboard-split-grid" style="gap:1rem;">' +
+            '<div class="glass-card" style="min-width:0;">' +
+                '<div class="card-header-flex"><h3>Account Management</h3></div>' +
+                '<div style="display:flex;flex-direction:column;gap:0.5rem;">' + rows + '</div>' +
+            '</div>' +
+            '<div class="glass-card" style="min-width:0;">' +
+                '<div class="card-header-flex"><h3>Recent Platform Activity</h3></div>' +
+                '<div style="display:flex;flex-direction:column;gap:0.75rem;">' +
+                    '<div><div style="font-size:0.82rem;color:var(--color-text-secondary);margin-bottom:0.4rem;">Recent users</div>' +
+                    '<div style="display:flex;flex-direction:column;gap:0.45rem;">' + (statsRes.recentUsers || []).map(function (u) {
+                        return '<div style="padding:0.55rem 0.7rem;background:var(--glass-bg);border-radius:0.6rem;font-size:0.9rem;">' + escapeHtmlNotif(u.name || u.email || 'Unknown') + ' <span style="color:var(--color-text-secondary);">(' + escapeHtmlNotif((u.role || 'student').replace('_', ' ')) + ')</span></div>';
+                    }).join('') + '</div></div>' +
+                    '<div><div style="font-size:0.82rem;color:var(--color-text-secondary);margin-bottom:0.4rem;">Recent exams</div>' +
+                    '<div style="display:flex;flex-direction:column;gap:0.45rem;">' + (statsRes.recentExams || []).map(function (e) {
+                        return '<div style="padding:0.55rem 0.7rem;background:var(--glass-bg);border-radius:0.6rem;font-size:0.9rem;">' + escapeHtmlNotif(e.title || 'Untitled exam') + ' <span style="color:var(--color-text-secondary);">(' + escapeHtmlNotif(e.subject || '—') + ')</span></div>';
+                    }).join('') + '</div></div>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+
+    container.querySelectorAll('.admin-role-select').forEach(function (select) {
+        select.addEventListener('change', async function () {
+            var userId = this.getAttribute('data-user-id');
+            var role = this.value;
+            var res = await apiRequest('admin_update_user_role', { userId: Number(userId), role: role });
+            if (res.status === 'success') {
+                showToast('Role updated.', 'success');
+            } else {
+                showToast(res.message || 'Unable to update role.', 'error');
+            }
+        });
+    });
+
+    container.querySelectorAll('.admin-reset-btn').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+            var pw = prompt('Enter a temporary password (at least 6 characters):');
+            if (!pw) return;
+            var res = await apiRequest('admin_reset_user_password', { userId: Number(this.getAttribute('data-user-id')), newPassword: pw });
+            if (res.status === 'success') {
+                showToast('Password reset.', 'success');
+            } else {
+                showToast(res.message || 'Unable to reset password.', 'error');
+            }
+        });
+    });
+}
+
 async function loadTeacherDashboard() {
+    if (currentUser && currentUser.role === 'system_admin') {
+        loadSystemAdminDashboard();
+        return;
+    }
     var statsRes     = await apiRequest('teacher_stats',     {}, 'GET');
     var analyticsRes = await apiRequest('teacher_analytics', {}, 'GET');
     var attemptsRes  = await apiRequest('teacher_attempts',  {}, 'GET');

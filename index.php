@@ -383,6 +383,9 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                         <button class="menu-item" data-tab="teacher-progress">
                             <span>Student Progress</span>
                         </button>
+                        <button class="menu-item" data-tab="teacher-admin">
+                            <span>Administration</span>
+                        </button>
                     </div>
                 </div>
 
@@ -770,6 +773,11 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                     <!-- Tab: Study Resources (teacher) -->
                     <div id="teacher-resources" class="tab-content hidden">
                         <div id="teacherResourcesContent"></div>
+                    </div>
+
+                    <!-- Tab: Administration -->
+                    <div id="teacher-admin" class="tab-content hidden">
+                        <div id="teacherAdminContent"></div>
                     </div>
 
                     <!-- Tab: Teacher Settings -->

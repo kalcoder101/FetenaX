@@ -164,6 +164,12 @@ if (isset($routeMap[$action])) {
     exit;
 }
 
+// Catch-all for admin_* actions
+if (strpos($action, 'admin_') === 0) {
+    require __DIR__ . '/api/admin.php';
+    exit;
+}
+
 // Catch-all for remaining teacher_* actions
 if (strpos($action, 'teacher_') === 0) {
     require __DIR__ . '/api/teacher.php';
