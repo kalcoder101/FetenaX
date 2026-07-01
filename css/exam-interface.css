@@ -497,8 +497,8 @@
         min-height: 0;
     }
 
-    /* ── Hide desktop navigation panel — use bottom sheet instead ── */
-    .exam-navigation-panel { display: none !important; }
+    /* ── Show navigation panel but style it compactly ── */
+    .exam-navigation-panel { display: block !important; }
 
     /* ── Main panel: question card fills screen ── */
     .exam-main-panel {

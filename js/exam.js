@@ -336,10 +336,21 @@ function updateQuestionsGridItem(idx) {
 
 function highlightActiveGridItem() {
     var grid = document.getElementById('questionsMapGrid');
+    if (!grid) return;
     Array.from(grid.children).forEach(function (cell, idx) {
-        cell.classList.toggle('active', idx === currentExamIndex);
+        var isActive = idx === currentExamIndex;
+        cell.classList.toggle('active', isActive);
+        if (isActive) {
+            try {
+                cell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } catch (e) {
+                // Fallback for older browsers
+                grid.scrollLeft = cell.offsetLeft - (grid.offsetWidth / 2) + (cell.offsetWidth / 2);
+            }
+        }
     });
 }
+
 
 // =========================================================================
 // SUBMIT EXAM

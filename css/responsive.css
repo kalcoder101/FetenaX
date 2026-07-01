@@ -361,12 +361,30 @@
         flex-direction: column;
         gap: 0.6rem;
     }
-    .exam-main-panel { flex: 1; min-width: 0; }
+    .exam-main-panel {
+        flex: 1;
+        min-width: 0;
+        order: 0; /* Question panel at the top */
+    }
     .exam-navigation-panel {
+        display: block !important;
+        width: 100% !important;
+        background: var(--color-card);
+        border: none;
+        border-top: 1.5px solid var(--color-border);
+        box-shadow: none;
+        padding: 0.5rem 0.75rem;
         flex: 0 0 auto;
-        max-height: 220px;
-        overflow-y: auto;
-        order: -1; /* show grid at top on mobile */
+        max-height: none;
+        overflow: hidden;
+        order: 1; /* Place navigation at the bottom */
+        border-radius: 0;
+    }
+    .exam-navigation-panel .navigation-title {
+        display: none !important;
+    }
+    .exam-navigation-panel .grid-legend {
+        display: none !important;
     }
     .exam-info-card {
         padding: 0.6rem;
@@ -374,13 +392,32 @@
     .candidate-photo { display: none; }
     .exam-content-area { padding: 0; }
 
-    /* Question map: smaller cells, horizontal scroll */
+    /* Question map: single horizontal scrolling row */
     .questions-grid-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
-        gap: 0.3rem;
-        max-height: 180px;
-        overflow-y: auto;
+        display: flex !important;
+        flex-direction: row !important;
+        grid-template-columns: none !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        gap: 0.5rem !important;
+        max-height: none !important;
+        padding: 0.2rem 0 !important;
+        margin-bottom: 0 !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    .questions-grid-container::-webkit-scrollbar {
+        display: none !important;
+    }
+    .grid-cell-btn {
+        flex: 0 0 38px !important;
+        width: 38px !important;
+        height: 38px !important;
+        aspect-ratio: 1 !important;
+        border-radius: 50% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     /* Question text */

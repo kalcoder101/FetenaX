@@ -34,18 +34,18 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
     <title>FetenaX – Your Exam, Your Vibe</title>
     <link rel="icon" type="image/png" href="Img/fetenAX.png">
     <link rel="apple-touch-icon" href="Img/fetenAX.png">
-    <link rel="stylesheet" href="css/theme.css?v=39">
-    <link rel="stylesheet" href="css/components.css?v=39">
-    <link rel="stylesheet" href="css/layout.css?v=39">
-    <link rel="stylesheet" href="css/auth.css?v=39">
-    <link rel="stylesheet" href="css/student.css?v=39">
-    <link rel="stylesheet" href="css/teacher.css?v=39">
-    <link rel="stylesheet" href="css/exam-interface.css?v=39">
-    <link rel="stylesheet" href="css/results.css?v=39">
-    <link rel="stylesheet" href="css/exam-creation.css?v=39">
-    <link rel="stylesheet" href="css/study.css?v=39">
-    <link rel="stylesheet" href="css/question-renderer.css?v=39">
-    <link rel="stylesheet" href="css/responsive.css?v=39">
+    <link rel="stylesheet" href="css/theme.css?v=40">
+    <link rel="stylesheet" href="css/components.css?v=40">
+    <link rel="stylesheet" href="css/layout.css?v=40">
+    <link rel="stylesheet" href="css/auth.css?v=40">
+    <link rel="stylesheet" href="css/student.css?v=40">
+    <link rel="stylesheet" href="css/teacher.css?v=40">
+    <link rel="stylesheet" href="css/exam-interface.css?v=40">
+    <link rel="stylesheet" href="css/results.css?v=40">
+    <link rel="stylesheet" href="css/exam-creation.css?v=40">
+    <link rel="stylesheet" href="css/study.css?v=40">
+    <link rel="stylesheet" href="css/question-renderer.css?v=40">
+    <link rel="stylesheet" href="css/responsive.css?v=40">
     <!-- Prism.js for code syntax highlighting in question text -->
     <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
     <!-- PWA manifest + theme -->
@@ -1667,18 +1667,18 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
         </div>
     </div>
 
-    <script src="js/core.js?v=39"></script>
-    <script src="js/auth.js?v=39"></script>
-    <script src="js/dashboard.js?v=39"></script>
-    <script src="js/student.js?v=39"></script>
-    <script src="js/teacher.js?v=39"></script>
-    <script src="js/exam.js?v=39"></script>
-    <script src="js/exam-creation.js?v=39"></script>
-    <script src="js/study.js?v=39"></script>
-    <script src="js/question-renderer.js?v=39"></script>
+    <script src="js/core.js?v=40"></script>
+    <script src="js/auth.js?v=40"></script>
+    <script src="js/dashboard.js?v=40"></script>
+    <script src="js/student.js?v=40"></script>
+    <script src="js/teacher.js?v=40"></script>
+    <script src="js/exam.js?v=40"></script>
+    <script src="js/exam-creation.js?v=40"></script>
+    <script src="js/study.js?v=40"></script>
+    <script src="js/question-renderer.js?v=40"></script>
     <!-- Prism.js for syntax highlighting -->
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="js/app.js?v=39"></script>
+    <script src="js/app.js?v=40"></script>
 </body>
 </html>
