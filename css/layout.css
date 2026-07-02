@@ -6,7 +6,7 @@
 .navbar {
   background: var(--color-card, #fff);
   box-shadow: 0 2px 12px rgba(36,36,36,0.07);
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
   position: sticky;
   top: 0;
   z-index: 1001;
@@ -65,7 +65,7 @@
   height: 18px;
   flex-shrink: 0;
 }
-#themeToggle, #logoutBtn {
+#themeToggle {
   background: #f3f4f6;
   color: #23272f;
   border: none;
@@ -73,9 +73,49 @@
   font-weight: 500;
   transition: background 0.2s, color 0.2s;
 }
-#themeToggle:hover, #logoutBtn:hover {
+#themeToggle:hover {
   background: #e0e7ef;
   color: #2b4cff;
+}
+#logoutBtn {
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--color-danger, #dc2626);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-radius: 0.7rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  position: relative;
+}
+#logoutBtn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--color-danger, #dc2626), #991b1b);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+#logoutBtn:hover {
+  color: #fff;
+  border-color: var(--color-danger, #dc2626);
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.35), 0 6px 20px rgba(220, 38, 38, 0.2);
+  transform: translateY(-2px) scale(1.03);
+}
+#logoutBtn:hover::before {
+  opacity: 1;
+}
+#logoutBtn span, #logoutBtn svg {
+  position: relative;
+  z-index: 1;
+}
+#logoutBtn svg {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#logoutBtn:hover svg {
+  transform: translateX(3px);
 }
 
 @media (max-width: 600px) {
@@ -543,28 +583,130 @@ body.dark-mode .about-fullpage {
     color: var(--color-text-secondary);
     font-weight: 500;
 }
-.btn-logout-icon {
+.btn.btn-logout-icon {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 34px;
     height: 34px;
+    padding: 0;
     border-radius: 0.55rem;
-    border: 1px solid var(--color-border);
-    background: rgba(224, 122, 95, 0.06);
-    color: var(--color-danger);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    background: rgba(220, 38, 38, 0.06);
+    color: var(--color-danger, #dc2626);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
+    position: relative;
+    box-shadow: none;
+    gap: 0;
 }
-.btn-logout-icon span {
+.btn.btn-logout-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--color-danger, #dc2626), #991b1b);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
+    z-index: 0;
+}
+.btn.btn-logout-icon span {
     display: none;
 }
-.btn-logout-icon:hover {
-    background: var(--color-danger);
+.btn.btn-logout-icon:hover {
     color: #ffffff;
-    border-color: var(--color-danger);
-    box-shadow: 0 4px 12px rgba(224, 122, 95, 0.25);
+    border-color: var(--color-danger, #dc2626);
+    background: transparent;
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.35), 0 4px 16px rgba(220, 38, 38, 0.2);
+    transform: translateY(-2px);
+}
+.btn.btn-logout-icon:hover::before {
+    opacity: 1;
+}
+.btn.btn-logout-icon svg {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn.btn-logout-icon:hover svg {
+    transform: translateX(3px);
+}
+
+/* ============================
+   LOGOUT CONFIRMATION TOOLTIP — appears above button on hover
+   ============================ */
+#logoutBtn::after,
+.btn-logout-icon::after,
+#mobileLogoutBtn::after,
+#headerLogoutBtn::after {
+    content: 'Are you sure you want to logout?';  /* Full confirmation text */
+    position: absolute;
+    bottom: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: rgba(31, 41, 55, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #fcd34d;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.35rem 0.85rem;
+    border-radius: 0.4rem;
+    white-space: nowrap;
+    max-width: 260px;
+    overflow-wrap: break-word;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s ease;
+    transition-delay: 0s;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-left: 3px solid var(--color-danger, #dc2626);
+    padding-left: calc(0.85rem + 2px);
+}
+
+/* Delay before showing tooltip (0.6s hover required) */
+#logoutBtn:not(:hover)::after,
+.btn-logout-icon:not(:hover)::after,
+#mobileLogoutBtn:not(:hover)::after,
+#headerLogoutBtn:not(:hover)::after {
+    transition-delay: 0s;
+}
+#logoutBtn:hover::after,
+.btn-logout-icon:hover::after,
+#mobileLogoutBtn:hover::after,
+#headerLogoutBtn:hover::after {
+    transition-delay: 0.6s;
+}
+
+/* Tooltip arrow pointing down using clip-path */
+#logoutBtn::after,
+.btn-logout-icon::after,
+#mobileLogoutBtn::after,
+#headerLogoutBtn::after {
+    clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 5px), 56% calc(100% - 5px), 50% 100%, 44% calc(100% - 5px), 0% calc(100% - 5px));
+}
+
+/* Show on hover */
+#logoutBtn:hover::after,
+.btn-logout-icon:hover::after,
+#mobileLogoutBtn:hover::after,
+#headerLogoutBtn:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Reposition tooltip below for mobile top bar (at top of screen) */
+@media (max-width: 900px) {
+    #mobileLogoutBtn::after {
+        bottom: auto;
+        top: calc(100% + 8px);
+        clip-path: polygon(0% 5px, 44% 5px, 50% 0%, 56% 5px, 100% 5px, 100% 100%, 0% 100%);
+    }
 }
 
 /* Main dashboard panel */

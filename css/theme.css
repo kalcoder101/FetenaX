@@ -7,7 +7,7 @@
     --color-primary: #57785a;
     --color-primary-hover: #466149;
     --color-success: #6e9a72;
-    --color-danger: #e07a5f;
+    --color-danger: #dc2626;
     --color-text: #3c352e;
     --color-text-secondary: #756a5e;
     --color-border: rgba(255, 255, 255, 0.45);
@@ -26,7 +26,7 @@ body.dark-mode {
     --color-primary: #a3cc3b;
     --color-primary-hover: #b2df40;
     --color-success: #6e9a72;
-    --color-danger: #e07a5f;
+    --color-danger: #dc2626;
     --color-text: #f0ede6;
     --color-text-secondary: #a3b0a7;
     --color-border: rgba(255, 255, 255, 0.08);

@@ -34,18 +34,18 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
     <title>FetenaX – Your Exam, Your Vibe</title>
     <link rel="icon" type="image/png" href="Img/fetenAX.png">
     <link rel="apple-touch-icon" href="Img/fetenAX.png">
-    <link rel="stylesheet" href="css/theme.css?v=41">
-    <link rel="stylesheet" href="css/components.css?v=41">
-    <link rel="stylesheet" href="css/layout.css?v=41">
-    <link rel="stylesheet" href="css/auth.css?v=41">
-    <link rel="stylesheet" href="css/student.css?v=41">
-    <link rel="stylesheet" href="css/teacher.css?v=41">
-    <link rel="stylesheet" href="css/exam-interface.css?v=41">
-    <link rel="stylesheet" href="css/results.css?v=41">
-    <link rel="stylesheet" href="css/exam-creation.css?v=41">
-    <link rel="stylesheet" href="css/study.css?v=41">
-    <link rel="stylesheet" href="css/question-renderer.css?v=41">
-    <link rel="stylesheet" href="css/responsive.css?v=41">
+    <link rel="stylesheet" href="css/theme.css?v=42">
+    <link rel="stylesheet" href="css/components.css?v=42">
+    <link rel="stylesheet" href="css/layout.css?v=42">
+    <link rel="stylesheet" href="css/auth.css?v=42">
+    <link rel="stylesheet" href="css/student.css?v=42">
+    <link rel="stylesheet" href="css/teacher.css?v=42">
+    <link rel="stylesheet" href="css/exam-interface.css?v=42">
+    <link rel="stylesheet" href="css/results.css?v=42">
+    <link rel="stylesheet" href="css/exam-creation.css?v=42">
+    <link rel="stylesheet" href="css/study.css?v=42">
+    <link rel="stylesheet" href="css/question-renderer.css?v=42">
+    <link rel="stylesheet" href="css/responsive.css?v=42">
     <!-- Prism.js for code syntax highlighting in question text -->
     <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
     <!-- PWA manifest + theme -->
@@ -103,11 +103,12 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                         </svg>
                     </button>
                     <button id="logoutBtn" class="btn btn-secondary hidden">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:6px;">
-                            <path d="M16 17l5-5m0 0l-5-5m5 5H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M13 7V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h6a2 2 0 002-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
                         </svg>
-                        Logout
+                        <span>Logout</span>
                     </button>
                 </div>
             </div>
@@ -251,7 +252,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                 </svg>
             </button>
             <button id="mobileLogoutBtn" class="btn btn-logout-icon" title="Logout">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
         </div>
 
@@ -460,7 +461,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                     </div>
                 </div>
                 <button id="sidebarLogoutBtn" class="btn btn-logout-icon" title="Logout">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     <span>Logout</span>
                 </button>
             </div>
@@ -510,7 +511,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"></path></svg>
                     </button>
                     <button id="headerLogoutBtn" class="btn btn-logout-icon" title="Logout">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                         <span>Logout</span>
                     </button>
                 </div>

@@ -97,19 +97,41 @@
     padding: 0;
     flex-shrink: 0;
     border-radius: 0.5rem;
-    border: 1px solid rgba(224, 122, 95, 0.35);
-    background: rgba(224, 122, 95, 0.08);
-    color: var(--color-danger, #e07a5f);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    background: rgba(220, 38, 38, 0.08);
+    color: #dc2626;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+#mobileLogoutBtn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
 }
 #mobileLogoutBtn:hover {
-    background: var(--color-danger, #e07a5f);
     color: #fff;
-    border-color: var(--color-danger, #e07a5f);
+    border-color: #dc2626;
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.35), 0 4px 16px rgba(220, 38, 38, 0.2);
+    transform: translateY(-2px);
+}
+#mobileLogoutBtn:hover::before {
+    opacity: 1;
+}
+#mobileLogoutBtn svg {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
+}
+#mobileLogoutBtn:hover svg {
+    transform: translateX(3px);
 }
 /* Desktop header-strip logout button */
 #headerLogoutBtn {
@@ -118,18 +140,40 @@
     gap: 0.4rem;
     padding: 0.4rem 0.75rem;
     border-radius: 0.5rem;
-    border: 1px solid rgba(224, 122, 95, 0.35);
-    background: rgba(224, 122, 95, 0.08);
-    color: var(--color-danger, #e07a5f);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    background: rgba(220, 38, 38, 0.08);
+    color: #dc2626;
     font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+#headerLogoutBtn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
 }
 #headerLogoutBtn:hover {
-    background: var(--color-danger, #e07a5f);
     color: #fff;
-    border-color: var(--color-danger, #e07a5f);
+    border-color: #dc2626;
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.35), 0 4px 16px rgba(220, 38, 38, 0.2);
+    transform: translateY(-2px);
+}
+#headerLogoutBtn:hover::before {
+    opacity: 1;
+}
+#headerLogoutBtn svg {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
+}
+#headerLogoutBtn:hover svg {
+    transform: translateX(3px);
 }
 
 /* =========================================================================
