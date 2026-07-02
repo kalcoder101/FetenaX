@@ -1736,10 +1736,10 @@ async function loadClassAnalytics() {
     // Summary tiles
     var s = res.summary || {};
     html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.85rem;margin-bottom:1.5rem;">';
-    html += renderAnalyticsStatTile('Students', s.totalStudents || 0, '👥');
-    html += renderAnalyticsStatTile('Exams', s.totalExams || 0, '📝');
-    html += renderAnalyticsStatTile('Real Exam Attempts', s.totalAttempts || 0, '🎯');
-    html += renderAnalyticsStatTile('Practice Sessions', s.totalPracticeSessions || 0, '💪');
+    html += renderAnalyticsStatTile('Students', s.totalStudents || 0, '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>');
+    html += renderAnalyticsStatTile('Exams', s.totalExams || 0, '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>');
+    html += renderAnalyticsStatTile('Real Exam Attempts', s.totalAttempts || 0, '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>');
+    html += renderAnalyticsStatTile('Practice Sessions', s.totalPracticeSessions || 0, '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>');
     html += '</div>';
 
     // Subject mastery table (from practice_sessions / subject_mastery)
@@ -1800,7 +1800,7 @@ async function loadClassAnalytics() {
     // Hardest questions
     var hardest = res.hardestQuestions || [];
     if (hardest.length > 0) {
-        html += '<h3 style="margin:1.75rem 0 0.6rem;font-size:1.1rem;font-weight:700;">🔥 Top 10 Hardest Questions (most often wrong)</h3>';
+        html += '<h3 style="margin:1.75rem 0 0.6rem;font-size:1.1rem;font-weight:700;"><svg width="18" height="18" viewBox="0 0 24 24" fill="#e76f51" style="vertical-align:middle;margin-right:4px;"><path d="M12 2C9 7 8 10 8 13c0 3.3 1.8 5 4 5s4-1.7 4-5c0-3-1-6-4-11z" opacity="0.85"/><path d="M12 18c2 0 3-1 3-2.5S13 13 12 12c-1 1-2 2-2 3.5S10 18 12 18z" fill="#fbbf24"/></svg> Top 10 Hardest Questions (most often wrong)</h3>';
         html += '<div style="display:grid;gap:0.5rem;">';
         hardest.forEach(function (q, i) {
             html += '<div style="background:var(--glass-bg);border:1px solid var(--color-border);border-left:3px solid var(--color-danger);border-radius:0.5rem;padding:0.6rem 0.9rem;font-size:0.9rem;">' +
