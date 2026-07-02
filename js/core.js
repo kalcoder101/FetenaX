@@ -38,6 +38,9 @@ var warningsCount = 0;
 /** @var {string} CSRF token for API requests (set after status check) */
 var csrfToken = '';
 
+/** @var {boolean} Whether system-wide public signup is allowed */
+var systemAllowSignup = false;
+
 // =========================================================================
 // SVG ICON LIBRARY
 // =========================================================================

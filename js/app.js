@@ -102,6 +102,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (authTabSignup) {
         authTabSignup.addEventListener('click', function () {
+            if (!systemAllowSignup) {
+                showToast('Self-registration is currently disabled. Please contact your teacher or administrator to request an account.', 'error');
+                return;
+            }
             setAuthMode(false);
             if (authForm) authForm.reset();
         });
@@ -111,7 +115,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (switchAuthMode) {
         switchAuthMode.addEventListener('click', function (e) {
             e.preventDefault();
-            setAuthMode(!isLoginMode);
+            var targetLoginMode = !isLoginMode;
+            if (!targetLoginMode && !systemAllowSignup) {
+                showToast('Self-registration is currently disabled. Please contact your teacher or administrator to request an account.', 'error');
+                return;
+            }
+            setAuthMode(targetLoginMode);
             if (authForm) authForm.reset();
         });
     }
@@ -167,9 +176,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     alert(res.message || 'Sign up failed.');
                 }
+    }
+
+    // Quick demo login buttons handler
+    document.querySelectorAll('.auth-demo-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            // Force login mode first
+            setAuthMode(true);
+            var userVal = this.getAttribute('data-user');
+            var passVal = this.getAttribute('data-pass');
+            var userInp = document.getElementById('authUsername');
+            var passInp = document.getElementById('authPassword');
+            if (userInp) userInp.value = userVal;
+            if (passInp) passInp.value = passVal;
+
+            // Submit form
+            if (authForm) {
+                authForm.dispatchEvent(new Event('submit'));
             }
         });
-    }
+    });
 
     // =========================================================================
     // LOGOUT

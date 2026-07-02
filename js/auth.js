@@ -79,11 +79,12 @@ async function checkAuthStatus() {
     // Signup is disabled by default — students must be registered by a teacher.
     // To enable self-signup, set ALLOW_SIGNUP=true in your environment / .htaccess.
     var allowSignup = res.allowSignup === true;
+    systemAllowSignup = allowSignup;
     var signupTab   = document.getElementById('authTabSignup');
     var switchBtn   = document.getElementById('switchAuthMode');
     var signupFields= document.getElementById('signupFields');
-    if (signupTab)    signupTab.style.display    = allowSignup ? '' : 'none';
-    if (switchBtn)    switchBtn.style.display    = allowSignup ? '' : 'none';
+    if (signupTab)    signupTab.style.display    = '';
+    if (switchBtn)    switchBtn.style.display    = '';
     if (signupFields) signupFields.classList.add('hidden');
 
     if (res.csrfToken) {
@@ -96,6 +97,10 @@ async function checkAuthStatus() {
         showDashboardForRole(currentUser.role);
     } else {
         showAuthModal();
+        if (!localStorage.getItem('fetenax_experimental_shown')) {
+            var popup = document.getElementById('experimentalPopup');
+            if (popup) popup.classList.remove('hidden');
+        }
     }
 }
 
@@ -109,3 +114,25 @@ async function handleLogout() {
         showAuthModal();
     }
 }
+// Retro Popup functions
+function closeExperimentalPopup() {
+    var popup = document.getElementById('experimentalPopup');
+    if (popup) {
+        popup.style.opacity = '0';
+        setTimeout(function () {
+            popup.classList.add('hidden');
+            popup.style.opacity = '';
+        }, 250);
+    }
+    try {
+        localStorage.setItem('fetenax_experimental_shown', '1');
+    } catch (e) {}
+}
+
+// Bind retro popup events
+document.addEventListener('DOMContentLoaded', function () {
+    var closeBtn = document.getElementById('closeRetroPopup');
+    var enterBtn = document.getElementById('enterPortalBtn');
+    if (closeBtn) closeBtn.addEventListener('click', closeExperimentalPopup);
+    if (enterBtn) enterBtn.addEventListener('click', closeExperimentalPopup);
+});

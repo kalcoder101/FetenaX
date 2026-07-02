@@ -6,7 +6,7 @@ if (file_exists($maintFlag)) {
     $maintData = json_decode(file_get_contents($maintFlag), true);
     http_response_code(503);
     header('Retry-After: 300');
-    die('<!DOCTYPE html><html><head><title>Maintenance</title><style>body{font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f7f8f5;color:#23272f;}div{text-align:center;max-width:400px;padding:2rem;}h1{color:#57785a;}p{color:#6b7280;}</style></head><body><div><h1>🔧 Under Maintenance</h1><p>' . htmlspecialchars($maintData['message'] ?? 'FetenaX is under maintenance. Please check back soon.') . '</p></div></body></html>');
+    die('<!DOCTYPE html><html><head><title>Maintenance</title><style>body{font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f7f8f5;color:#23272f;}div{text-align:center;max-width:400px;padding:2rem;}h1{color:#57785a;display:flex;align-items:center;justify-content:center;}p{color:#6b7280;}</style></head><body><div><h1><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:10px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Under Maintenance</h1><p>' . htmlspecialchars($maintData['message'] ?? 'FetenaX is under maintenance. Please check back soon.') . '</p></div></body></html>');
 }
 // Start session only if not already started (api.php may have started it)
 if (session_status() === PHP_SESSION_NONE) {
@@ -82,6 +82,51 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 </head>
 
 <body>
+    <!-- Experimental Alert Popup (First-time visitor) -->
+    <div id="experimentalPopup" class="retro-popup-overlay hidden">
+        <div class="retro-popup-card">
+            <div class="retro-header-bar">
+                <span class="retro-title"><span class="pixel-dot pulse-red"></span> SYSTEM NOTICE</span>
+                <button id="closeRetroPopup" class="retro-close-btn" aria-label="Close popup">&times;</button>
+            </div>
+            <div class="retro-body">
+                <div class="retro-icon-wrapper">
+                    <!-- SVG cute retro monitor displaying "kal" and a heart/spark -->
+                    <svg viewBox="0 0 100 100" class="retro-svg-monitor" width="100" height="100">
+                        <!-- Monitor case -->
+                        <rect x="15" y="10" width="70" height="55" rx="5" fill="#fcfcfc" stroke="#2d3a2e" stroke-width="4" />
+                        <rect x="20" y="15" width="60" height="40" rx="3" fill="#2d3a2e" />
+                        <!-- Pixel grid decoration/Screen lines -->
+                        <line x1="20" y1="25" x2="80" y2="25" stroke="#3d4e3e" stroke-width="1" />
+                        <line x1="20" y1="35" x2="80" y2="35" stroke="#3d4e3e" stroke-width="1" />
+                        <line x1="20" y1="45" x2="80" y2="45" stroke="#3d4e3e" stroke-width="1" />
+                        <!-- Text on screen: "KAL" in pixel style -->
+                        <text x="50" y="38" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="bold" fill="#a6cc3b" text-anchor="middle">KAL_</text>
+                        <!-- Stand -->
+                        <path d="M40 65 L35 80 L65 80 L60 65 Z" fill="#ede8da" stroke="#2d3a2e" stroke-width="4" stroke-linejoin="round" />
+                        <rect x="30" y="80" width="40" height="6" fill="#fcfcfc" stroke="#2d3a2e" stroke-width="4" />
+                        <!-- Cute pulsing pixel heart -->
+                        <path d="M78 20 C76 18, 72 18, 70 20 L70 20 C68 18, 64 18, 62 20 C60 22, 60 26, 62 28 L70 36 L78 28 C80 26, 80 22, 78 20 Z" fill="#e76f51" />
+                    </svg>
+                </div>
+                <div class="retro-text-content">
+                    <h2 class="retro-heading">EXPERIMENTAL BUILD</h2>
+                    <p class="retro-subtitle">Developed by <strong>kalcoder</strong></p>
+                    <div class="retro-divider"></div>
+                    <p class="retro-info-text">
+                        Welcome to the <strong>FetenaX</strong> exam simulation. This system is currently in active development and testing.
+                    </p>
+                    <p class="retro-info-sub">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:4px;display:inline-block;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> <strong>Notice:</strong> All mock sessions, question analytics, and scoring metrics are fully simulated for practice.
+                    </p>
+                </div>
+            </div>
+            <div class="retro-footer">
+                <button id="enterPortalBtn" class="retro-btn">ENTER PORTAL</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
@@ -1382,6 +1427,28 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                         <span id="authSubmitText">Login</span>
                     </button>
                 </form>
+
+                <!-- Quick Demo Login -->
+                <div class="auth-demo-accounts">
+                    <div class="auth-demo-title">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Quick Demo Login
+                    </div>
+                    <div class="auth-demo-buttons">
+                        <button type="button" class="auth-demo-btn teacher-badge" data-user="teacher@fetenaX.com" data-pass="password123">
+                            <span class="demo-btn-role">Teacher</span>
+                            <span class="demo-btn-user">teacher@fetenaX.com</span>
+                        </button>
+                        <button type="button" class="auth-demo-btn student-badge" data-user="student@fetenaX.com" data-pass="password123">
+                            <span class="demo-btn-role">Student</span>
+                            <span class="demo-btn-user">student@fetenaX.com</span>
+                        </button>
+                        <button type="button" class="auth-demo-btn student-badge" data-user="alice@fetenaX.com" data-pass="password123">
+                            <span class="demo-btn-role">Student</span>
+                            <span class="demo-btn-user">alice@fetenaX.com</span>
+                        </button>
+                    </div>
+                </div>
 
                 <button type="button" class="hidden" id="switchAuthMode"></button>
             </div>
