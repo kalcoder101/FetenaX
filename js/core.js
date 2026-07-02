@@ -35,6 +35,9 @@ var examTimerInterval = null;
 /** @var {number} Anti-cheat warning count (3 = auto-submit) */
 var warningsCount = 0;
 
+/** @var {string} CSRF token for API requests (set after status check) */
+var csrfToken = '';
+
 // =========================================================================
 // SVG ICON LIBRARY
 // =========================================================================
@@ -98,7 +101,7 @@ async function apiRequest(action, data, method) {
 
     if (method === 'POST') {
         options.headers['Content-Type'] = 'application/json';
-        options.body = JSON.stringify(Object.assign({ action: action }, data));
+        options.body = JSON.stringify(Object.assign({ action: action, _csrf: csrfToken }, data));
     } else {
         var params = new URLSearchParams(Object.assign({ action: action }, data)).toString();
         url = url + '?' + params;

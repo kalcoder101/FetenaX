@@ -86,6 +86,10 @@ async function checkAuthStatus() {
     if (switchBtn)    switchBtn.style.display    = allowSignup ? '' : 'none';
     if (signupFields) signupFields.classList.add('hidden');
 
+    if (res.csrfToken) {
+        csrfToken = res.csrfToken;
+    }
+
     if (res.status === 'success' && res.user) {
         currentUser = res.user;
         hideAuthModal();

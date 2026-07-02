@@ -313,9 +313,9 @@ CREATE TABLE IF NOT EXISTS `subject_mastery` (
 INSERT INTO `users` (`id`, `email`, `password`, `role`, `name`, `avatar`, `userId`) VALUES
 (1, 'teacher@private.local', '$2b$10$blNUChDE8cyQ9itm9NGQ5OWW3wUCCTWUlIPr9786QppKOLGO2gtDe', 'teacher', 'TeacherX', 'MT', 'MT1234'),
 (2, 'student@private.local', '$2b$10$blNUChDE8cyQ9itm9NGQ5OWW3wUCCTWUlIPr9786QppKOLGO2gtDe', 'student', 'StudentX', 'MS', 'MS1234'),
-(3, 'student@demo.com', '$2b$10$Wj5R9gowWp2sAL8Np6VXHewC9tS.E7XggYiexHxKXU7pPf9MawMLK', 'student', 'Abdu Student', 'JS', '1'),
-(4, 'teacher@demo.com', '$2b$10$Wj5R9gowWp2sAL8Np6VXHewC9tS.E7XggYiexHxKXU7pPf9MawMLK', 'teacher', 'Chala Teacher', 'JT', '2'),
-(5, 'alice@demo.com', '$2b$10$Wj5R9gowWp2sAL8Np6VXHewC9tS.E7XggYiexHxKXU7pPf9MawMLK', 'student', 'Abebe Johnson', 'AJ', '3');
+(3, 'student@fetenaX.com', '$2b$10$Wj5R9gowWp2sAL8Np6VXHewC9tS.E7XggYiexHxKXU7pPf9MawMLK', 'student', 'Fetena Student', 'JS', '1'),
+(4, 'teacher@fetenaX.com', '$2b$10$Wj5R9gowWp2sAL8Np6VXHewC9tS.E7XggYiexHxKXU7pPf9MawMLK', 'teacher', 'Fetena Teacher', 'JT', '2'),
+(5, 'alice@fetenaX.com', '$2b$10$Wj5R9gowWp2sAL8Np6VXHewC9tS.E7XggYiexHxKXU7pPf9MawMLK', 'student', 'Fetena Abebe', 'AJ', '3');
 
 -- Note: The password hash above is for 'password123'. For '123456' use:
 -- $2y$10$RvL3oQ5q5N3Q5o5o5o5o5OQ5o5o5o5o5o5o5o5o5o5o5o5o5o5o5o5o

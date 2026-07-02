@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
-Sitemap: /sitemap.xml
+Disallow: /api.php
+Disallow: /uploads/
+Disallow: /deploy/
+Disallow: /migrations/
+Sitemap: https://fetenax.great-site.net/sitemap.xml

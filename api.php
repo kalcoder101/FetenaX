@@ -18,6 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
     @ini_set('session.cookie_lifetime', 14400); // 4 hours
     @ini_set('session.gc_maxlifetime', 14400); // 4 hours
     @ini_set('session.cookie_httponly', 1);
+    @ini_set('session.cookie_secure', 1);
     @ini_set('session.cookie_samesite', 'Lax');
     session_start();
 }
@@ -61,6 +62,15 @@ function respond($status, $data = []) {
 }
 
 // ──────────────────────────────────────────────────
+// CSRF Protection
+// Generate a per-session token; validate on all POST requests
+// (except pre-auth actions like login, signup, logout, status).
+// ──────────────────────────────────────────────────
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// ──────────────────────────────────────────────────
 // Auth actions — no session required
 // Signup is DISABLED by default. Enable by setting ALLOW_SIGNUP=true
 // (in .htaccess, environment, or via a config file).
@@ -69,12 +79,21 @@ if ($action === 'signup' && getenv('ALLOW_SIGNUP') !== 'true') {
     respond('error', ['message' => 'Public signup is disabled. Please contact your teacher to get an account.']);
 }
 if (in_array($action, ['login', 'signup', 'logout', 'status'])) {
-    // Pass signup availability to the status endpoint
+    // Pass signup availability and CSRF token to the status endpoint
     if ($action === 'status') {
         $GLOBALS['allowSignup'] = getenv('ALLOW_SIGNUP') === 'true';
+        $GLOBALS['csrfToken']   = $_SESSION['csrf_token'];
     }
     require __DIR__ . '/api/auth.php';
     exit;
+}
+
+// Validate CSRF token on all authenticated POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $clientToken = isset($requestData['_csrf']) ? $requestData['_csrf'] : '';
+    if (!hash_equals($_SESSION['csrf_token'], $clientToken)) {
+        respond('error', ['message' => 'Invalid security token. Please reload the page and try again.']);
+    }
 }
 
 // ──────────────────────────────────────────────────

@@ -13,6 +13,7 @@ if (session_status() === PHP_SESSION_NONE) {
     @ini_set('session.cookie_lifetime', 14400); // 4 hours
     @ini_set('session.gc_maxlifetime', 14400); // 4 hours
     @ini_set('session.cookie_httponly', 1);
+    @ini_set('session.cookie_secure', 1);
     @ini_set('session.cookie_samesite', 'Lax');
     session_start();
 }

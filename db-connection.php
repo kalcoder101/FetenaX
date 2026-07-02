@@ -15,6 +15,7 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 } catch (PDOException $e) {
-    die("Database Connection Failed: " . $e->getMessage());
+    error_log('FetenaX DB connection failed: ' . $e->getMessage());
+    die("Database Connection Failed. Please check server configuration.");
 }
 // No closing ?> tag

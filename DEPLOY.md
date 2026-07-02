@@ -110,6 +110,17 @@ sudo certbot --nginx -d your-domain.com
 - [ ] File permissions correct (644 files, 755 dirs)
 - [ ] Daily database backups configured
 
+## Security Hardening
+
+To maintain high security when hosting FetenaX in a production environment:
+
+1. **CSRF Protection:**
+   The API validates custom session-bound tokens for all POST/authenticated actions. Ensure your theme and UI scripts properly initiate checking state (via `status` action) to obtain this token.
+2. **Login Rate Limiting:**
+   FetenaX automatically tracks failed login attempts by IP in the `login_attempts` table. If an IP exceeds 5 failed attempts, they will be blocked for 15 minutes. Ensure the `login_attempts` table is present (it auto-creates, or import `fetenax_schema.sql`).
+3. **Secure Cookies:**
+   Session cookies are configured with `HttpOnly`, `SameSite=Lax`, and `Secure` attributes. Because of the `Secure` attribute, **sessions will not function over unencrypted HTTP**. Make sure HTTP is redirected to HTTPS (which is default in the provided Apache/Nginx configs).
+
 ## Maintenance Mode
 
 ```bash
