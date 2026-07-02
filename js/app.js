@@ -176,10 +176,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     alert(res.message || 'Sign up failed.');
                 }
+            }
+        });
     }
 
     // Quick demo login buttons handler
-    document.querySelectorAll('.auth-demo-btn').forEach(function (btn) {
+    document.querySelectorAll('.auth-demo-btn, .demo-pixel-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             // Force login mode first
             setAuthMode(true);

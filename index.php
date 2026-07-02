@@ -1428,26 +1428,36 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
                     </button>
                 </form>
 
-                <!-- Quick Demo Login -->
-                <div class="auth-demo-accounts">
-                    <div class="auth-demo-title">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        Quick Demo Login
+                <!-- Quick Demo Login (Pixel Art) -->
+                <div class="demo-pixel-section">
+                    <div class="demo-pixel-header">
+                        <span class="demo-pixel-dot pulse-green"></span>
+                        <span>QUICK DEMO LOGIN</span>
                     </div>
-                    <div class="auth-demo-buttons">
-                        <button type="button" class="auth-demo-btn teacher-badge" data-user="teacher@fetenaX.com" data-pass="password123">
-                            <span class="demo-btn-role">Teacher</span>
-                            <span class="demo-btn-user">teacher@fetenaX.com</span>
+                    <div class="demo-pixel-body">
+                        <button type="button" class="demo-pixel-btn teacher-pixel" data-user="teacher@fetenaX.com" data-pass="password123">
+                            <span class="demo-pixel-role">TEACH</span>
+                            <span class="demo-pixel-creds">
+                                <span class="demo-pixel-user">teacher@fetenaX.com</span>
+                                <span class="demo-pixel-pass">pass: password123</span>
+                            </span>
                         </button>
-                        <button type="button" class="auth-demo-btn student-badge" data-user="student@fetenaX.com" data-pass="password123">
-                            <span class="demo-btn-role">Student</span>
-                            <span class="demo-btn-user">student@fetenaX.com</span>
+                        <button type="button" class="demo-pixel-btn student-pixel" data-user="student@fetenaX.com" data-pass="password123">
+                            <span class="demo-pixel-role">STUD</span>
+                            <span class="demo-pixel-creds">
+                                <span class="demo-pixel-user">student@fetenaX.com</span>
+                                <span class="demo-pixel-pass">pass: password123</span>
+                            </span>
                         </button>
-                        <button type="button" class="auth-demo-btn student-badge" data-user="alice@fetenaX.com" data-pass="password123">
-                            <span class="demo-btn-role">Student</span>
-                            <span class="demo-btn-user">alice@fetenaX.com</span>
+                        <button type="button" class="demo-pixel-btn student-pixel" data-user="alice@fetenaX.com" data-pass="password123">
+                            <span class="demo-pixel-role">STUD</span>
+                            <span class="demo-pixel-creds">
+                                <span class="demo-pixel-user">alice@fetenaX.com</span>
+                                <span class="demo-pixel-pass">pass: password123</span>
+                            </span>
                         </button>
                     </div>
+                    <div class="demo-pixel-footer-corner"></div>
                 </div>
 
                 <button type="button" class="hidden" id="switchAuthMode"></button>

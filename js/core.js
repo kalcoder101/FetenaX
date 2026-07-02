@@ -161,29 +161,58 @@ function showCustomConfirm(title, message, onConfirm) {
 }
 
 /**
- * Show a toast notification.
+ * Show a pixel-art styled toast notification.
  * @param {string} message
  * @param {string} [type='success']
  */
 function showToast(message, type) {
     if (!type) type = 'success';
-    var container = document.getElementById('toastContainer');
+    var container = document.getElementById('toastPixelContainer');
     if (!container) {
         container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:99999;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none;';
+        container.id = 'toastPixelContainer';
+        container.className = 'toast-pixel-container';
         document.body.appendChild(container);
     }
+
+    // Icon character
+    var iconChar = type === 'error' ? '!' : type === 'success' ? 'OK' : 'i';
+
+    // Toast outer wrapper
     var toast = document.createElement('div');
-    var bg = type === 'success' ? 'var(--color-success)' : type === 'error' ? 'var(--color-danger)' : 'var(--color-primary)';
-    toast.style.cssText = 'background:' + bg + ';color:#fff;padding:0.65rem 1.2rem;border-radius:0.65rem;font-size:0.9rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);transform:translateY(8px);opacity:0;transition:all 0.25s;pointer-events:auto;font-family:\'Plus Jakarta Sans\',\'Inter\',sans-serif;';
-    toast.textContent = message;
+    toast.className = 'toast-pixel' + (type === 'error' ? ' toast-pixel-error' : type === 'success' ? ' toast-pixel-success' : '');
+
+    // Icon badge
+    var icon = document.createElement('div');
+    icon.className = 'toast-pixel-icon';
+    icon.textContent = iconChar;
+
+    // Message span with cursor
+    var msgSpan = document.createElement('span');
+    msgSpan.className = 'toast-pixel-msg toast-pixel-cursor';
+    msgSpan.textContent = message;
+
+    // CRT scan-line overlay
+    var crt = document.createElement('div');
+    crt.className = 'toast-pixel-crt';
+
+    toast.appendChild(icon);
+    toast.appendChild(msgSpan);
+    toast.appendChild(crt);
     container.appendChild(toast);
-    requestAnimationFrame(function () { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; });
+
+    // Animate in
+    requestAnimationFrame(function () {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0) scale(1)';
+    });
+
+    // Animate out & remove
     setTimeout(function () {
-        toast.style.opacity = '0'; toast.style.transform = 'translateY(8px)';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-12px) scale(0.92)';
         setTimeout(function () { toast.remove(); }, 300);
-    }, 3200);
+    }, 4200);
 }
 
 /**
