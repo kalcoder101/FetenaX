@@ -1132,8 +1132,8 @@ body.dark-mode .about-fullpage {
     }
     .user-badge-details { display: none; }
     .user-badge-avatar { width: 30px; height: 30px; font-size: 0.72rem; }
-    .btn-logout-icon span { display: none; }
-    .btn-logout-icon { padding: 0.4rem; min-width: 34px; min-height: 34px; }
+    .btn.btn-logout-icon span { display: none; }
+    .btn.btn-logout-icon { padding: 0.4rem; min-width: 34px; min-height: 34px; }
     .dashboard-main { padding: 0.75rem 0.85rem; height: auto; overflow-y: visible; }
     .dashboard-header-strip { margin-bottom: 0.75rem; }
     .header-welcome-text h2 { font-size: 1rem; }

@@ -295,8 +295,8 @@
     }
     .user-badge-details { display: block; }
     .user-badge-avatar { width: 36px; height: 36px; font-size: 0.85rem; }
-    .btn-logout-icon span { display: inline; }
-    .btn-logout-icon {
+    .btn.btn-logout-icon span { display: inline; }
+    .btn.btn-logout-icon {
         padding: 0.55rem 0.85rem;
         min-width: auto;
         min-height: 44px;
